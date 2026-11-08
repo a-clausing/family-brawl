@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="description" content="NextRep Brawl: a pixel-art gym fighting game for your phone. Play the CPU or a friend online.">
 <meta name="theme-color" content="#100d18">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,7 +29,7 @@
   color-scheme:dark;
 }
 [hidden]{display:none!important}
-html{height:100%;box-sizing:border-box}
+html{height:100%;box-sizing:border-box;touch-action:none;overscroll-behavior:none;-webkit-text-size-adjust:100%}
 *,*::before,*::after{box-sizing:inherit}
 body{height:100%;background:var(--night);color:var(--ink);font-family:var(--ui);overflow:hidden;
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
@@ -961,14 +961,28 @@ function sfx(n){
 const KEYS=['left','right','up','down','punch','kick','special','block'];
 const touchHeld={}, keyHeld={}, taps={};
 KEYS.forEach(k=>{ touchHeld[k]=false; keyHeld[k]=false; taps[k]=false; });
-const ptrs=new Map();
+const ptrs=new Map();   // mouse pointers only (desktop testing)
 const controls=document.getElementById('controls');
 const btnEls=[...document.querySelectorAll('#rightside [data-k]')];
-function keysAt(x,y){ const el=document.elementFromPoint(x,y); const b=el&&el.closest('#rightside [data-k]'); return b?[b.dataset.k]:[]; }
+const rightside=document.getElementById('rightside');
+// Which action button is under (x,y)? A near miss counts: the closest button within a small margin wins.
+function keysAt(x,y){
+  const el=document.elementFromPoint(x,y), b=el&&el.closest('#rightside [data-k]');
+  if(b) return [b.dataset.k];
+  const rr=rightside.getBoundingClientRect(), M=22;
+  if(x<rr.left-M||x>rr.right+M||y<rr.top-M||y>rr.bottom+M) return [];
+  let best=null, bd=Infinity;
+  for(const e of btnEls){
+    const r=e.getBoundingClientRect(), cx=Math.max(r.left,Math.min(x,r.right)), cy=Math.max(r.top,Math.min(y,r.bottom));
+    const d=Math.hypot(x-cx,y-cy); if(d<bd){ bd=d; best=e; }
+  }
+  return best&&bd<=M?[best.dataset.k]:[];
+}
 // Joystick: left/right only. Position is measured from the track's center.
 const stick=document.getElementById('stick'), track=document.getElementById('track'), knob=document.getElementById('knob');
 const stickHeld={left:false,right:false};
-let stickId=null;
+let stickId=null;     // mouse pointer driving the stick
+let stickTouch=null;  // finger driving the stick
 function setStick(x){
   let dir=0, kx=0;
   if(x!==null){
@@ -982,39 +996,72 @@ function setStick(x){
   knob.style.setProperty('--kx',kx+'px');
   stick.classList.toggle('held',x!==null); stick.classList.toggle('goL',L); stick.classList.toggle('goR',Rt);
 }
+const touchActions=new Set();
 function refreshTouch(){
-  const now=new Set(); ptrs.forEach(ks=>ks.forEach(k=>now.add(k)));
+  const now=new Set(touchActions); ptrs.forEach(ks=>ks.forEach(k=>now.add(k)));
   ['up','block','punch','kick','special'].forEach(k=>{ const v=now.has(k); if(v&&!touchHeld[k]) taps[k]=true; touchHeld[k]=v; });
   touchHeld.left=stickHeld.left; touchHeld.right=stickHeld.right;
   btnEls.forEach(b=>b.classList.toggle('on', now.has(b.dataset.k)));
 }
+function resetTouch(){ ptrs.clear(); touchActions.clear(); stickId=null; stickTouch=null; setStick(null); refreshTouch(); }
+// Touch: rebuilt from the fingers actually on the screen at every touch event, so a button can never stay
+// stuck down when the browser loses a release (zoom gesture, finger sliding off, notifications, app switch).
+const inGame=()=>G.mode==='play' && pauseOv.hidden && resultOv.hidden;
+function syncTouches(e){
+  const list=[...e.touches];
+  if(e.type==='touchstart' && stickTouch===null){
+    for(const t of e.changedTouches){
+      const el=document.elementFromPoint(t.clientX,t.clientY);
+      if(el&&el.closest('#stick')&&inGame()){ stickTouch=t.identifier; break; }
+    }
+  }
+  if(stickTouch!==null){
+    const t=list.find(t=>t.identifier===stickTouch);
+    if(t) setStick(t.clientX); else { stickTouch=null; setStick(null); }
+  }
+  touchActions.clear();
+  if(inGame()) for(const t of list){ if(t.identifier!==stickTouch) keysAt(t.clientX,t.clientY).forEach(k=>touchActions.add(k)); }
+  refreshTouch();
+}
+const onTouch=e=>{
+  if(e.type==='touchstart') audioInit();
+  syncTouches(e);
+  // during a fight, the screen is a game pad: no zoom, scroll, text selection or long-press menus
+  if(inGame() && e.cancelable && !(e.target.closest&&e.target.closest('.mid'))) e.preventDefault();
+};
+for(const t of ['touchstart','touchmove','touchend','touchcancel']) addEventListener(t,onTouch,{capture:true,passive:false});
+// Mouse (desktop): same buttons via pointer events
 controls.addEventListener('pointerdown',e=>{
+  if(e.pointerType!=='mouse') return;
   if(e.target.closest('#stick')){ e.preventDefault(); audioInit(); stickId=e.pointerId; try{stick.setPointerCapture(e.pointerId);}catch(_){} setStick(e.clientX); refreshTouch(); return; }
   if(!e.target.closest('#rightside')) return;
   e.preventDefault(); audioInit(); ptrs.set(e.pointerId,keysAt(e.clientX,e.clientY)); refreshTouch();
 });
 controls.addEventListener('pointermove',e=>{
-  if(e.pointerId===stickId){ e.preventDefault(); setStick(e.clientX); refreshTouch(); return; }
-  if(!ptrs.has(e.pointerId)) return; e.preventDefault(); ptrs.set(e.pointerId,keysAt(e.clientX,e.clientY)); refreshTouch();
+  if(e.pointerType!=='mouse') return;
+  if(e.pointerId===stickId){ setStick(e.clientX); refreshTouch(); return; }
+  if(ptrs.has(e.pointerId)){ ptrs.set(e.pointerId,keysAt(e.clientX,e.clientY)); refreshTouch(); }
 });
-const endPtr=e=>{
-  if(e.pointerId===stickId){ stickId=null; setStick(null); refreshTouch(); return; }
-  if(ptrs.delete(e.pointerId)) refreshTouch();
+const endMouse=e=>{
+  if(e.pointerType!=='mouse') return;
+  if(e.pointerId===stickId){ stickId=null; setStick(null); }
+  ptrs.delete(e.pointerId); refreshTouch();
 };
-controls.addEventListener('pointerup',endPtr); controls.addEventListener('pointercancel',endPtr);
-stick.addEventListener('lostpointercapture',e=>{ if(e.pointerId===stickId){ stickId=null; setStick(null); refreshTouch(); } });
-// Safety net: whichever element gets the release, drop the stick right away
-const releaseStick=e=>{ if(stickId!==null && (!e || e.pointerId===undefined || e.pointerId===stickId)){ stickId=null; setStick(null); refreshTouch(); } };
-addEventListener('pointerup',releaseStick,true); addEventListener('pointercancel',releaseStick,true);
-// Touch level check: if no remaining finger is on the stick, it's released
-const stickTouchCheck=e=>{
-  if(stickId===null) return;
-  const r=stick.getBoundingClientRect(), pad=80;
-  const still=[...e.touches].some(t=>t.clientX>=r.left-pad&&t.clientX<=r.right+pad&&t.clientY>=r.top-pad&&t.clientY<=r.bottom+pad);
-  if(!still) releaseStick();
-};
-addEventListener('touchend',stickTouchCheck,true); addEventListener('touchcancel',stickTouchCheck,true);
+addEventListener('pointerup',endMouse,true); addEventListener('pointercancel',endMouse,true);
 controls.addEventListener('contextmenu',e=>e.preventDefault());
+// ---- never zoom: lock the viewport, block pinch / double-tap zoom, and snap back if a zoom slips through
+const vpMeta=document.querySelector('meta[name="viewport"]');
+const VP_LOCK='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover';
+if(vpMeta) vpMeta.setAttribute('content',VP_LOCK);
+for(const g of ['gesturestart','gesturechange','gestureend']) addEventListener(g,e=>e.preventDefault(),{passive:false});
+addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+if(window.visualViewport) visualViewport.addEventListener('resize',()=>{
+  if(visualViewport.scale>1.01 && vpMeta){   // re-applying the locked viewport makes the browser zoom back out
+    vpMeta.setAttribute('content',VP_LOCK.replace('maximum-scale=1','maximum-scale=1.0'));
+    setTimeout(()=>vpMeta.setAttribute('content',VP_LOCK),60);
+  }
+});
+document.addEventListener('visibilitychange',()=>{ if(document.hidden) resetTouch(); });
 const KMAP={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',Space:'up',
   KeyJ:'punch',KeyK:'kick',KeyL:'special',KeyI:'block',ShiftLeft:'block',ShiftRight:'block'};
 addEventListener('keydown',e=>{
@@ -1025,7 +1072,7 @@ addEventListener('keydown',e=>{
   if(!e.repeat){ keyHeld[k]=true; taps[k]=true; }
 });
 addEventListener('keyup',e=>{ const k=KMAP[e.code]; if(k) keyHeld[k]=false; });
-addEventListener('blur',()=>{ KEYS.forEach(k=>keyHeld[k]=false); ptrs.clear(); stickId=null; setStick(null); refreshTouch(); });
+addEventListener('blur',()=>{ KEYS.forEach(k=>keyHeld[k]=false); resetTouch(); });
 function playerInput(){ const o={}; KEYS.forEach(k=>o[k]=!!(touchHeld[k]||keyHeld[k]||taps[k])); return o; }
 function clearTaps(){ KEYS.forEach(k=>taps[k]=false); }
 
@@ -1636,7 +1683,7 @@ function togglePause(){
     pauseOv.hidden=!pauseOv.hidden; document.getElementById('pauseTitle').textContent=pauseOv.hidden?'PAUSED':'MENU';
     document.getElementById('quitBtn').textContent='Leave match'; return; }
   G.paused=!G.paused; pauseOv.hidden=!G.paused;
-  if(G.paused){ ptrs.clear(); stickId=null; setStick(null); refreshTouch(); }
+  if(G.paused) resetTouch();
 }
 document.getElementById('pauseBtn').addEventListener('click',togglePause);
 document.getElementById('resumeBtn').addEventListener('click',togglePause);
