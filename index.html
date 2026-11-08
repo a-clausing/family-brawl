@@ -1193,7 +1193,7 @@ function newMatch(){
 }
 function startRound(){
   G.f.forEach((f,i)=>{ Object.assign(f,{x:i?W/2+60:W/2-60,y:GROUND,vx:0,vy:0,dir:i?-1:1,hp:MAXHP,shp:MAXHP,lagT:0,meter:40,state:'idle',
-    move:null,mf:0,mhit:false,stun:0,bstun:0,onGround:true,landT:10,flash:0,combo:0,bandOut:false,sprint:null,impactT:0,ib:null,armorCD:0,sup:null}); f.ai.cool=20; f.ai.holdT=0; f.ai.holds={}; });
+    move:null,mf:0,mhit:false,stun:0,bstun:0,onGround:true,landT:10,flash:0,combo:0,bandOut:false,sprint:null,impactT:0,ib:null,armorCD:0,sup:null,superArmor:false}); f.ai.cool=20; f.ai.holdT=0; f.ai.holds={}; });
   G.cine=null; G.proj=[]; G.parts=[]; G.timer=60; G.ft=0; G.phase='intro'; G.pt=0; G.winner=null; G.combo=null; G.slow=0; G.hitstop=0;
 }
 
@@ -1217,6 +1217,10 @@ function tryHit(f,o,m){
   applyHit(f,o,m,f.x,(Math.max(x0,hb.x0)+Math.min(x1,hb.x1))/2,(Math.max(y0,hb.y0)+Math.min(y1,hb.y1))/2);
 }
 function applyHit(att,def,m,srcX,hx,hy){
+  if(def.superArmor){   // super armor: the hit bounces off
+    sparks(hx,hy,['#ffffff',def.alt?def.cfg.altMeterCol:def.cfg.meterCol],6); G.hitstop=Math.max(G.hitstop,2); sfx('block');
+    return;
+  }
   const away=def.x>=srcX?1:-1;
   if(def.state==='block' && def.onGround && !m.unblockable && (def.dir===-away || m.type==='band')){
     const chip=Math.max(1,Math.round(m.dmg*0.15*(1-def.cfg.armor)));
@@ -1350,6 +1354,7 @@ const clampX=x=>Math.max(14,Math.min(W-14,x));
 function startSuper(f,o){
   f.move='super'; f.state='attack'; f.mf=0; f.mhit=false; f.moveId++; f.vx=0; f.combo=0;
   f.meter=Math.max(0,f.meter-SUPER_COST); f.dir=o.x>=f.x?1:-1;
+  f.superArmor=true;
   f.sup={t:0,fr:0,ph:0,kt:0,k:0,lock:false,hitDone:false,hitT:0,hitFr:3,pass:0,dest:f.x,trail:[]};
   G.cine={who:G.f.indexOf(f),t:0}; G.flashT=3; sfx('super');
 }
@@ -1358,7 +1363,11 @@ function superFrame(f){
   if(G.cine && G.f[G.cine.who]===f && s.fr===SUPER_POSE[f.key] && G.cine.t>8 && G.cine.t<CINE-10) return 'S:hd';
   return 'S:'+s.fr;
 }
+// super armor lasts until the super's damage lands, or until the super is fully over with nothing left in flight
+function superLanded(f){ f.superArmor=false; }
+function superArmorCheck(f){ if(f.superArmor && !f.sup && !G.proj.some(p=>p.sup&&p.owner===f)) f.superArmor=false; }
 function superHit(f,o,dmg,opt={}){
+  superLanded(f);
   if(o.state==='ko') return;
   const keep=f.meter, m={dmg,kb:opt.kb??0.4,hs:opt.hs??40,bs:0,unblockable:true,launch:!!opt.launch};
   applyHit(f,o,m,f.x+f.dir*0.01,(f.x+o.x)/2,o.y-26);
@@ -1367,7 +1376,7 @@ function superHit(f,o,dmg,opt={}){
   if(opt.big){ G.shake=Math.max(G.shake,10); sfx('superhit'); }
 }
 function endSuper(f,o){
-  f.move=null; f.sup=null; f.mf=0; f.state=f.onGround?'idle':'jump';
+  f.move=null; f.sup=null; f.mf=0; f.state=f.onGround?'idle':'jump'; superArmorCheck(f);
   if(o.state==='hit' && o.stun>28) o.stun=20;
   phys(f);
 }
@@ -1380,13 +1389,13 @@ function superStep(f,o){
   const s=f.sup; s.t++; const t=s.t, u=t-CINE;
   f.vx=0; f.state='attack';
   if(s.hitT>0) s.hitT--;
-  if(s.lock && o.state!=='ko'){ o.stun=Math.max(o.stun,30); o.bstun=0; o.move=null; o.sprint=null; o.sup=null; o.state='hit'; }
+  if(s.lock && o.state!=='ko' && !o.superArmor){ o.stun=Math.max(o.stun,30); o.bstun=0; o.move=null; o.sprint=null; o.sup=null; o.state='hit'; }
   switch(f.key){
     case 'ac': {   // MAX REP: deadlift, clean, press overhead, then throw the barbell across the gym
       if(t<=CINE){ s.fr=t<12?0:t<24?1:t<36?2:3; break; }
       if(u<6) s.fr=4; else if(u<10) s.fr=5;
       else {
-        if(u===10){ G.proj.push({type:'sbar',sup:1,owner:f,x:f.x+f.dir*AC_RELEASE[0],y:f.y-AC_RELEASE[1],vx:f.dir*6.5,t:0,
+        if(u===10){ f.dir=o.x>=f.x?1:-1; G.proj.push({type:'sbar',sup:1,owner:f,x:f.x+f.dir*AC_RELEASE[0],y:f.y-AC_RELEASE[1],vx:f.dir*6.5,t:0,
           dmg:SUPER_DMG.ac,kb:4,hs:46,bs:0,unblockable:true,launch:true}); sfx('plate'); G.shake=Math.max(G.shake,3); }
         s.fr=u<26?6:7; if(u>=34) return endSuper(f,o);
       }
@@ -1395,7 +1404,7 @@ function superStep(f,o){
       if(t<=CINE){ s.fr=t<14?0:t<28?1:2; break; }
       if(u<10) s.fr=3;
       else if(u<30){
-        if(u===10){ const x=f.x+f.dir*30; G.shake=Math.max(G.shake,11); sfx('quake'); debris(x,GROUND-2,14); dust(x,GROUND,10);
+        if(u===10){ f.dir=o.x>=f.x?1:-1; const x=f.x+f.dir*30; G.shake=Math.max(G.shake,11); sfx('quake'); debris(x,GROUND-2,14); dust(x,GROUND,10);
           G.proj.push({type:'squake',sup:1,owner:f,x,y:GROUND,vx:f.dir*4.2,t:0,dmg:SUPER_DMG.brick,kb:3,hs:52,bs:0,unblockable:true,launch:true}); }
         s.fr=4;
       } else if(u<52) s.fr=5; else if(u<60) s.fr=6; else return endSuper(f,o);
@@ -1404,7 +1413,7 @@ function superStep(f,o){
       if(t<=CINE){ s.fr=t<16?0:1; break; }
       if(s.ph===0){
         s.fr=2;
-        if(u===3){ G.proj.push({type:'slasso',sup:1,owner:f,x:f.x+f.dir*BK_LOOP[0],y:f.y-BK_LOOP[1],vx:f.dir*9,t:0}); sfx('snap'); }
+        if(u===3){ f.dir=o.x>=f.x?1:-1; G.proj.push({type:'slasso',sup:1,owner:f,x:f.x+f.dir*BK_LOOP[0],y:f.y-BK_LOOP[1],vx:f.dir*9,t:0}); sfx('snap'); }
         if(u>=7) s.ph=1;
       } else if(s.ph===1){
         s.fr=3; if(!G.proj.some(p=>p.owner===f&&p.type==='slasso')) return endSuper(f,o);
@@ -1425,7 +1434,7 @@ function superStep(f,o){
       if(s.ph===0){
         s.fr=1;
         if(u===1){ dust(f.x-f.dir*6,GROUND,10); sfx('zap'); G.shake=Math.max(G.shake,4); }
-        if(u>=6){ s.ph=1; s.pass=0; s.hitDone=false; }
+        if(u>=6){ s.ph=1; s.pass=0; s.hitDone=false; f.dir=o.x>=f.x?1:-1; }
       } else if(s.ph===1||s.ph===3){
         if(s.ph===1 && !s.hitDone) s.dest=clampX(o.x+f.dir*(minD+28));
         if(s.ph===3) s.dest=clampX(o.x-f.dir*(minD-2));
@@ -1463,7 +1472,8 @@ function superProj(p){
   const o=p.owner===G.f[0]?G.f[1]:G.f[0], f=p.owner; p.t++; p.x+=p.vx;
   const live=G.phase==='fight' && o.state!=='ko';
   if(p.type==='sbar'){
-    if(live && Math.abs(p.x-o.x)<o.cfg.w/2+10){
+    if(live && (Math.abs(p.x-o.x)<o.cfg.w/2+10 || Math.sign(o.x-p.x)!==Math.sign(p.vx))){
+      superLanded(f);
       const keep=f.meter; applyHit(f,o,p,p.x-p.vx*10,o.x,o.y-26); f.meter=keep; o.vy=-4.2; o.onGround=false;
       G.parts.push({type:'sfx',key:'ac',name:'blast',x:o.x,y:GROUND+2,life:26,max:26,sc:1,alt:f.alt}); debris(o.x,GROUND-2,8);
       G.shake=Math.max(G.shake,10); sfx('superhit'); return true;
@@ -1472,7 +1482,8 @@ function superProj(p){
   }
   if(p.type==='squake'){
     if(p.t%3===0) debris(p.x,GROUND-2,3,true);
-    if(live && Math.abs(p.x-o.x)<o.cfg.w/2+14){
+    if(live && (Math.abs(p.x-o.x)<o.cfg.w/2+14 || Math.sign(o.x-p.x)!==Math.sign(p.vx))){
+      superLanded(f);
       const keep=f.meter; applyHit(f,o,p,p.x-p.vx*10,o.x,o.y-30); f.meter=keep; o.vy=-4.8; o.onGround=false;
       G.parts.push({type:'sfx',key:'brick',name:'erupt',x:o.x,y:GROUND+3,life:34,max:34,sc:0.85,alt:f.alt}); debris(o.x,GROUND-4,16);
       G.shake=Math.max(G.shake,13); sfx('quake'); sfx('superhit'); return true;
@@ -1485,7 +1496,7 @@ function superProj(p){
     // so the snare can't miss at point-blank range
     const dx=o.x-p.x;
     if(live && f.sup && (Math.abs(dx)<o.cfg.w/2+10 || Math.sign(dx)!==Math.sign(p.vx))){
-      f.sup.ph=2; f.sup.kt=0; f.sup.lock=true; o.vx=0; o.stun=Math.max(o.stun,30); o.state='hit'; o.move=null; o.sprint=null; o.sup=null;
+      superLanded(f); f.sup.ph=2; f.sup.kt=0; f.sup.lock=true; o.vx=0; o.stun=Math.max(o.stun,30); o.state='hit'; o.move=null; o.sprint=null; o.sup=null;
       sfx('snap'); return true;
     }
     return p.x<-20||p.x>W+20||!f.sup;
@@ -1564,7 +1575,7 @@ function updF(f,o){
   let fresh=null; for(const k of ['super','special','kick','punch','up']) if(E(k)){ fresh=k; break; }
   if(fresh) f.ib={k:fresh,t:BUFFER_FRAMES,down:I.down}; else if(f.ib && --f.ib.t<=0) f.ib=null;
   const B=k=>E(k)||(!!f.ib&&f.ib.k===k), useBuf=()=>{ f.ib=null; };
-  f.anim++; if(f.flash>0) f.flash--; if(f.armorCD>0) f.armorCD--;
+  f.anim++; if(f.flash>0) f.flash--; if(f.armorCD>0) f.armorCD--; superArmorCheck(f);
   if(f.state==='ko'){ phys(f); return; }
   if(f.stun>0){ f.stun--; f.state='hit'; phys(f); if(f.stun===0){ o.combo=0; f.state=f.onGround?'idle':'jump'; } return; }
   if(f.bstun>0){ f.bstun--; f.state='block'; phys(f); if(!f.bstun) f.state='idle'; return; }
@@ -1599,7 +1610,7 @@ function updF(f,o){
   if(G.phase!=='fight'){ f.state=f.onGround?'idle':'jump'; f.vx=0; phys(f); return; }
   if(f.onGround){
     f.dir=o.x>=f.x?1:-1;
-    if(B('super') && f.meter>=SUPER_COST && G.phase==='fight' && !G.cine){ useBuf(); startSuper(f,o); phys(f); return; }
+    if(B('super') && f.meter>=SUPER_COST && G.phase==='fight' && !G.cine && !o.sup && !o.superArmor){ useBuf(); startSuper(f,o); phys(f); return; }
     if(I.block){ f.state='block'; f.vx=0; }
     else if(B('special')){ useBuf(); if(f.meter>=c.moves.special.cost) startMove(f,'special'); else if(!f.cpu) sfx('deny'); }
     else if(B('punch')){ useBuf(); startMove(f, I.down?'low':'punch'); }
@@ -1618,7 +1629,8 @@ function updF(f,o){
 }
 function separate(a,b){
   if(a.state==='ko'||b.state==='ko') return;
-  if(a.sprint||b.sprint||a.sup||b.sup) return;   // Hyper Sprint and supers pass straight through
+  const through=f=>f.sprint||(f.sup&&(f.key==='volt'||(f.key==='becky'&&f.sup.ph>=2)));
+  if(through(a)||through(b)) return;   // Hyper Sprint, Volt's super dashes and Becky's reel-in pass straight through
   const minD=(a.cfg.w+b.cfg.w)/2, dx=b.x-a.x, ad=Math.abs(dx);
   if(ad>=minD) return;
   if(a.y<=b.y-b.cfg.h+2 || b.y<=a.y-a.cfg.h+2) return; // clearing the other's head: pass over
@@ -1668,7 +1680,7 @@ function aiInput(f,o){
     a.defId=o.moveId;
     if(rnd()<D.block && f.onGround && !f.move){ a.holds={block:true}; a.holdT=16; inp.block=true; return inp; }
   }
-  if(f.meter>=SUPER_COST && f.onGround && !f.move && !G.cine && rnd()<0.035*D.aggr){ inp.super=true; return inp; }
+  if(f.meter>=SUPER_COST && f.onGround && !f.move && !G.cine && !o.sup && !o.superArmor && rnd()<0.035*D.aggr){ inp.super=true; return inp; }
   if(a.cool>0){ a.cool--; return inp; }
   a.cool=D.react+((rnd()*D.react)|0);
   if(f.meter>=f.cfg.moves.special.cost && d>70 && rnd()<0.4*D.aggr){ inp.special=true; return inp; }
@@ -1707,7 +1719,7 @@ function updParts(){
 function updProj(){
   for(let i=G.proj.length-1;i>=0;i--){
     const p=G.proj[i];
-    if(p.sup){ if(superProj(p)) G.proj.splice(i,1); continue; }
+    if(p.sup){ if(superProj(p)){ G.proj.splice(i,1); superArmorCheck(p.owner); } continue; }
     if(p.type==='band'){
       const o=p.owner, dd=o===G.f[0]?G.f[1]:G.f[0]; p.t++;
       if(o.move!=='special'||o.state!=='attack'){ o.bandOut=false; G.proj.splice(i,1); continue; }   // she got knocked out of it
