@@ -413,7 +413,7 @@ const blankIn = () => ({left:false,right:false,up:false,down:false,punch:false,k
 
 function mkF(key, side, cpu){
   return { cfg:CH[key], key, side, cpu, x:side?W/2+60:W/2-60, y:GROUND, vx:0, vy:0, dir:side?-1:1,
-    hp:190, shp:190, lagT:0, meter:40, state:'idle', anim:0, move:null, mf:0, mhit:false, moveId:0,
+    hp:200, shp:200, lagT:0, meter:40, state:'idle', anim:0, move:null, mf:0, mhit:false, moveId:0,
     stun:0, bstun:0, onGround:true, landT:10, flash:0, combo:0, wins:0,
     in:blankIn(), prev:blankIn(), ai:{cool:0, holds:{}, holdT:0, combo:0, defId:-1, decided:new WeakMap()},
     buf:mk(BW,BH), obuf:mk(BW,BH) };
@@ -1184,7 +1184,8 @@ const G={mode:'menu', paused:false, diff:'normal', pick:'ac', cpuPick:'random', 
   round:1, timer:60, ft:0, phase:'intro', pt:0, winner:null, combo:null, t:0};
 
 const FIGHTERS=['ac','brick','becky','volt'];
-const MAXHP=190, WINS_NEEDED=3;   // health and rounds to win a match
+const MAXHP=200, WINS_NEEDED=3;   // health and rounds to win a match
+const METER_GAIN=0.9;   // meter fills 10% slower (specials and supers take a bit longer to earn)
 const ONLINE_W=390;   // fixed online arena width (typical phone shape) so both phones simulate the same space
 const NET={active:false, role:null, local:0, D:3, frame:0, nextLocal:0, inputs:[{},{}], myHash:{}, theirHash:{}, snaps:{},
   stall:0, match:0, conn:null, peer:null, rematch:[false,false], picks:[null,null], resyncAt:-1, synced:0};
@@ -1231,7 +1232,7 @@ function applyHit(att,def,m,srcX,hx,hy){
     def.hp=def.hp>chip?def.hp-chip:Math.min(def.hp,1); def.lagT=20;
     def.bstun=m.bs; def.vx=away*m.kb*0.8*def.cfg.weight;
     cornerPush(att,def,srcX,away,m.kb*0.8);
-    att.meter=Math.min(100,att.meter+3); def.meter=Math.min(100,def.meter+4);
+    att.meter=Math.min(100,att.meter+3*METER_GAIN); def.meter=Math.min(100,def.meter+4*METER_GAIN);
     sparks(hx,hy,['#bfe0ff','#ffffff','#5aa0ff'],7); G.hitstop=3; sfx('block');
     return;
   }
@@ -1243,7 +1244,7 @@ function applyHit(att,def,m,srcX,hx,hy){
     def.armorCD=BAL[def.key].armorCD||0;
     // Becky shrugs it off: full damage, but no stagger and her move isn't interrupted
     def.hp-=dmg; def.lagT=30; def.flash=4;
-    att.meter=Math.min(100,att.meter+8); def.meter=Math.min(100,def.meter+5);
+    att.meter=Math.min(100,att.meter+8*METER_GAIN); def.meter=Math.min(100,def.meter+5*METER_GAIN);
     G.hitstop=4; G.shake=Math.max(G.shake,1.5);
     burst(hx,hy); sparks(hx,hy,['#fff6c2','#ffd23f'],6); sfx('hit');
     return;
@@ -1254,7 +1255,7 @@ function applyHit(att,def,m,srcX,hx,hy){
   cornerPush(att,def,srcX,away,m.kb);
   if(!def.onGround||m.launch){ def.vy=-2.6; def.onGround=false; }
   def.flash=5; att.combo++;
-  att.meter=Math.min(100,att.meter+8); def.meter=Math.min(100,def.meter+5);
+  att.meter=Math.min(100,att.meter+8*METER_GAIN); def.meter=Math.min(100,def.meter+5*METER_GAIN);
   const heavy=m.dmg>=9;
   G.hitstop=heavy?7:5; G.shake=Math.max(G.shake,heavy?5:2.5);
   burst(hx,hy); sparks(hx,hy,['#fff6c2','#ffd23f','#ff9a3c'],heavy?12:8);
@@ -1353,7 +1354,7 @@ function endSprint(f,o){
    and each one does the damage of three of that fighter's specials. */
 const SUPER_COST=100, CINE=56;
 const CINE_Z={ac:2.0,brick:1.7,becky:2.2,volt:2.4}, CINE_FY={ac:42,brick:50,becky:31,volt:24};   // close-up zoom and framing height per fighter
-const SUPER_DMG={ac:59, brick:55, becky:46, volt:59};   // 3 specials' worth, scaled to the 190 health bar   // ~same share of the 190 health bar as before
+const SUPER_DMG={ac:62, brick:58, becky:48, volt:62};   // 3 specials' worth, scaled to the 200 health bar
 const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BAND SNARE',volt:'OVERLOAD FURY'};
 const SUPER_POSE={ac:3,brick:2,becky:1,volt:0};
 const AC_RELEASE=[33.3, 48.6], BK_LOOP=[47.7, 38.9], BK_HAND2=[13.6, 38.9];
@@ -1429,7 +1430,7 @@ function superStep(f,o){
         const tx=clampX(f.x+f.dir*24), d=tx-o.x; o.x+=Math.sign(d)*Math.min(Math.abs(d),6); o.vx=0;
         if(Math.abs(tx-o.x)<1||s.kt>30){ s.ph=3; s.k=0; s.kt=0; }
       } else if(s.ph===3){
-        const STEPS=[[4,6],[5,7],[6,8],[7,10],[8,15]], cur=STEPS[s.k], last=s.k===STEPS.length-1;
+        const STEPS=[[4,6],[5,7],[6,9],[7,10],[8,16]], cur=STEPS[s.k], last=s.k===STEPS.length-1;
         s.fr=cur[0]; s.kt++;
         if(s.kt===4){ superHit(f,o,cur[1],last?{launch:true,kb:3,hs:46,vy:-4.6,big:true}:{kb:0.25,hs:40}); if(last) s.lock=false; }
         if(s.kt>=9){ s.k++; s.kt=0; if(s.k>=STEPS.length) s.ph=4; }
@@ -1463,7 +1464,7 @@ function superStep(f,o){
       } else if(s.ph===4){
         s.fr=6; s.trail=[];
         if(++s.kt===3){
-          superHit(f,o,26,{launch:true,kb:2.5,hs:46,vy:-5.2,big:true}); s.lock=false;
+          superHit(f,o,29,{launch:true,kb:2.5,hs:46,vy:-5.2,big:true}); s.lock=false;
           G.parts.push({type:'sfx',key:'volt',name:'bolt',x:o.x,y:GROUND+2,life:22,max:22,sc:1.6,alt:f.alt});
           G.parts.push({type:'sfx',key:'volt',name:'star',x:o.x,y:o.y-24,life:14,max:14,sc:0.55,alt:f.alt});
         }
