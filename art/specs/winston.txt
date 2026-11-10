@@ -1,0 +1,295 @@
+Add New Fighter: WINSTON — NextRep Brawl
+
+I want to add a new playable fighter named WINSTON to my existing 2D fighting game, NextRep Brawl.
+
+I have attached Winston’s character sprite sheet. Use it as the visual reference for his appearance, animations, and special effects.
+
+IMPORTANT: Before making changes, inspect the existing game code, character system, animation handling, collision detection, special attacks, super attacks, and character selection screen. Follow the same architecture and conventions already used for AC, Brick, Becky, Volt, and B-Money.
+
+Do not rewrite existing systems unnecessarily or break existing characters.
+
+1. Character Information
+
+Name: WINSTON
+Fighting Style: Agile Striker
+Primary Color: Electric Blue
+Strengths: Speed, Mobility, Disruption
+
+Appearance
+
+* Black dog with a German Shepherd-sized body and athletic build.
+* Short black fur.
+* Small white chest marking and white toes.
+* One ear upright and the other slightly floppy.
+* Brown eyes.
+* Blue-and-white striped collar.
+* Four-legged fighting stance.
+* Faces right by default.
+
+Maintain the exact appearance from the attached sprite sheet. Do not turn him into a traditional tan-and-black German Shepherd.
+
+Character Size
+
+Winston should be approximately 55–65% of a normal human fighter’s standing height, measured from paws to the top of his head.
+
+His body should be longer horizontally than a human fighter’s body.
+
+His paws must align with the same ground level as the other fighters.
+
+Use appropriately sized collision boxes that reflect his quadruped anatomy rather than reusing human collision boxes.
+
+2. Basic Movement
+
+Winston should feel noticeably different from the human fighters.
+
+* Idle: Standing alert, subtle breathing and tail movement.
+* Walk Forward: Natural four-legged trot.
+* Walk Backward: Careful backward stepping.
+* Jump: Four-legged leap with front paws extended.
+* Crouch: Lowers his body close to the ground.
+* Block: Braces his front paws and lowers his head.
+* Take Damage: Recoils backward.
+* Knockdown: Falls onto his side.
+* Get Up: Rolls or pushes himself back onto his paws.
+
+Winston should move slightly faster than AC but slower than Volt’s special sprint.
+
+3. Basic Attacks
+
+Adapt the existing punch and kick controls into dog-appropriate attacks.
+
+Input	Winston Attack
+Light Punch	Quick bite
+Heavy Punch	Lunging bite
+Light Kick	Quick front paw swipe
+Heavy Kick	Powerful jumping paw strike
+Combo	Bite → Paw Swipe → Lunging Bite
+Block	Defensive crouch
+
+Use the appropriate sprite sequences.
+
+Maintain the same input mappings as the existing fighters.
+
+4. Regular Special Attack — BONE THROW
+
+Winston’s regular special is throwing a bone toward his opponent.
+
+Animation Sequence
+
+1. Winston enters his throwing stance.
+2. He prepares the bone in his mouth.
+3. He whips his head forward.
+4. The bone launches horizontally toward the opponent.
+5. Winston returns to his normal fighting stance.
+
+Projectile Behavior
+
+* The bone travels horizontally toward the opponent.
+* It moves faster than Winston’s normal walking speed.
+* It causes damage when it connects.
+* It disappears after impact or leaving the arena.
+* It can be blocked using the normal block mechanic.
+* It should have a short cooldown consistent with other fighters’ regular specials.
+
+Visual Effects
+
+* Blue speed trails behind the bone.
+* Small impact effect when it connects.
+* Use the bone projectile artwork from the sprite sheet.
+
+Make sure the bone originates near Winston’s mouth, not from the center of his body.
+
+5. SUPER ATTACK — TAIL LASH RUSH
+
+Super Name: TAIL LASH RUSH
+
+Winston’s super is a rapid series of high-speed passes across the opponent, whipping them with his tail each time.
+
+This should feel like a fast, chaotic, multi-hit attack rather than one large strike.
+
+Super Sequence
+
+Phase 1 — Preparation
+
+* Winston crouches low into a sprinting position.
+* Blue energy streaks begin appearing around him.
+* Brief dramatic pause to signal the super attack.
+
+Phase 2 — First Dash
+
+* Winston accelerates rapidly toward the opponent.
+* He runs past them.
+* As he passes, his tail whips into the opponent.
+* The opponent receives damage and a small hit-stun effect.
+
+Phase 3 — Second Dash
+
+* Winston quickly turns around.
+* He sprints back across the opponent in the opposite direction.
+* His tail strikes again.
+* Another hit effect appears.
+
+Phase 4 — Third Dash
+
+* Winston reverses direction again.
+* He performs one final, even faster pass.
+* His tail delivers the strongest hit.
+* A large blue impact effect appears.
+* The opponent is knocked backward.
+
+Phase 5 — Recovery
+
+* Winston skids to a stop.
+* Dust settles.
+* He returns to his normal fighting stance.
+
+Super Mechanics
+
+* Three separate tail strikes.
+* Each strike should register damage only once.
+* The third hit deals more damage and knockback.
+* Opponent movement is briefly interrupted during the combo.
+* Winston should actually move across the opponent, not simply animate in place.
+* Winston must remain within arena boundaries.
+* Prevent repeated collision damage from one dash.
+* Temporarily prevent Winston from being interrupted during the active super sequence, consistent with the game’s existing super rules.
+* Consume the super meter using the existing system.
+* Restore normal movement and controls when the sequence ends.
+
+Visual Effects
+
+Use blue as Winston’s primary special-effect color.
+
+Include:
+
+* Blue speed streaks.
+* Motion trails during each sprint.
+* Curved blue tail-whip effects.
+* Dust clouds when Winston changes direction.
+* Bright blue impact burst on the final hit.
+
+Use the provided sprite sheet effects wherever possible.
+
+6. Animation Integration
+
+The sprite sheet contains reference animations for:
+
+* Idle
+* Walk Forward
+* Walk Backward
+* Crouch
+* Jump
+* Light Bite
+* Heavy Bite
+* Light Swipe
+* Heavy Swipe
+* Combo Attack
+* Block
+* Take Damage
+* Knockdown
+* Get Up
+* Bone Throw
+* Tail Lash Rush
+
+Use the existing animation system.
+
+Important: The supplied sheet is an illustrated reference, not necessarily a perfectly aligned production sprite atlas.
+
+Do not assume all frames are exactly 128×128 or equally spaced. Inspect the image and determine how best to isolate the animations.
+
+If frame extraction is needed, generate properly cropped sprites with transparent backgrounds, consistent alignment, and appropriate frame dimensions.
+
+Keep the character’s size consistent throughout all animations.
+
+7. Character Selection Screen
+
+Add Winston as a selectable fighter alongside the existing roster.
+
+Display Name: WINSTON
+Fighting Style: Agile Striker
+Accent Color: Blue
+
+Attributes:
+
+* Speed
+* Mobility
+* Disruption
+
+Regular Special: Bone Throw
+Super Attack: Tail Lash Rush
+
+Use Winston’s large portrait from the sprite sheet as the character selection reference.
+
+Match the existing character selection UI, including sizing, typography, and colors.
+
+Do not modify the other characters’ designs.
+
+8. AI Opponent Behavior
+
+Winston must work as both a player-controlled fighter and a CPU opponent.
+
+When controlled by the CPU:
+
+* Approach opponents quickly.
+* Use bite attacks at close range.
+* Use Bone Throw from medium distance.
+* Jump occasionally to avoid attacks.
+* Use Tail Lash Rush when the super meter is available and the opponent is in a suitable position.
+
+Follow the existing AI architecture rather than creating a separate AI system.
+
+9. Gameplay Balance
+
+Winston should be a fast, mobile character with relatively low damage per basic attack.
+
+Suggested balance relative to AC:
+
+* Health: 90%
+* Movement Speed: 115%
+* Basic Attack Damage: 85%
+* Jump Mobility: 110%
+* Defense: 90%
+
+Treat these as starting values and adjust to the existing game’s stat system.
+
+His advantage should come from mobility and repeated attacks, not overwhelming strength.
+
+10. Implementation Requirements
+
+1. Inspect the existing project structure first.
+2. Identify how characters are registered and configured.
+3. Add Winston using the existing architecture.
+4. Integrate his sprite animations.
+5. Implement Bone Throw.
+6. Implement Tail Lash Rush with three distinct passes.
+7. Add Winston to character selection.
+8. Ensure he works for both player and CPU.
+9. Preserve all existing characters and functionality.
+10. Run available checks and fix any integration errors.
+
+Do not use placeholder human animations for Winston.
+
+If the sprite sheet lacks a necessary animation frame, reuse or adapt the closest Winston frame instead of substituting another character.
+
+11. Testing Checklist
+
+Verify that:
+
+* Winston appears in character selection.
+* Winston can be selected as Player 1 or Player 2.
+* Winston faces the correct direction.
+* Winston’s animations work when facing either direction.
+* His paws remain aligned with the floor.
+* His collision boxes match his dog-sized body.
+* Bone Throw travels in the correct direction.
+* Bone Throw damages opponents once per projectile.
+* Tail Lash Rush performs three distinct passes.
+* Tail Lash Rush applies three hits without duplicate damage.
+* Winston does not get stuck outside the arena.
+* Winston returns to idle after the super.
+* Winston works correctly as a CPU opponent.
+* Existing fighters still function normally.
+
+After implementing, explain which files were changed, how the two special attacks work, and whether any sprite assets still need manual adjustment.
+
+Final Goal: Winston should feel like a completely unique playable fighter, using his speed, four-legged movement, bone projectile, and rapid tail-whipping super attack to distinguish him from the rest of the NextRep Brawl roster.

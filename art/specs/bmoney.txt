@@ -1,0 +1,237 @@
+Add New Fighter: B-Money — NextRep Brawl
+
+I want to add a fifth playable fighter named B-Money to my existing 2D fighting game, NextRep Brawl.
+
+First, inspect the existing codebase and understand how AC, Brick, Becky, and Volt are implemented. Follow the same architecture, animation system, character selection logic, hitboxes, physics, and combat controls.
+
+Do not rewrite existing systems or break existing fighters.
+
+1. Character Information
+
+Name: B-Money
+Theme: Young, confident street fighter with ground-based shockwave attacks
+Primary Color: Purple
+Secondary Colors: Black, white, and gold
+
+Appearance:
+
+* Athletic teenage fighter, not a small child
+* Brown, slightly messy hair
+* Purple athletic jersey with the number 8
+* Black athletic pants
+* Black wrist wraps
+* Athletic fighting stance with fists raised
+* No official NFL or other copyrighted team logos
+
+Use the attached character sprite sheet and VS portrait as visual references.
+
+Keep his proportions and gameplay scale consistent with the other fighters.
+
+2. Fighting Style
+
+B-Money is an agile, close-range fighter with powerful ground attacks.
+
+His regular punches and kicks should work similarly to the other fighters, but his animations should feel quicker and more energetic.
+
+He should have:
+
+* Idle stance
+* Walk forward/backward
+* Jump and landing
+* Crouch
+* Light and heavy punches
+* Light and heavy kicks
+* Blocking
+* Taking damage
+* Knockdown and recovery
+* Regular special
+* Super attack
+
+Use the same controls as the existing fighters.
+
+3. Regular Special — GROUND RIPPLE
+
+Concept: B-Money strikes the ground with his fist, sending a damaging shockwave along the floor toward his opponent.
+
+Animation sequence:
+
+1. B-Money lowers into a crouch.
+2. Pulls one fist backward.
+3. Punches the ground forcefully.
+4. A purple shockwave erupts from the impact.
+5. The shockwave travels horizontally along the floor.
+6. B-Money returns to his fighting stance.
+
+Gameplay behavior:
+
+* Ground-based projectile that travels toward the opponent.
+* The shockwave follows the stage floor.
+* Deals moderate damage on contact.
+* Can be avoided by jumping.
+* Can be blocked using the normal blocking system.
+* Does not track airborne opponents.
+* Has a short recovery period to prevent spamming.
+
+Visual effects:
+
+* Purple energy cracks
+* Small chunks of rock and dust
+* A low wave of raised floor fragments
+* Energy dissipates after reaching its maximum range
+
+The wave should travel independently after B-Money punches the ground.
+
+4. Super Move — RISING QUAKE
+
+This is B-Money’s signature cinematic super attack.
+
+Concept: B-Money strikes the floor, creating a powerful ground wave that travels toward the opponent. When it hits, the opponent stumbles toward B-Money, who finishes with an explosive jumping uppercut.
+
+Animation and gameplay sequence
+
+Phase 1 — Preparation
+
+* B-Money plants his feet.
+* Crouches low.
+* Purple energy gathers around his fist.
+* Brief dramatic pause.
+
+Phase 2 — Ground Impact
+
+* He punches the floor with tremendous force.
+* Purple energy and rocks erupt outward.
+* A larger shockwave travels toward the opponent.
+
+Phase 3 — Opponent Stumble
+
+* If the wave hits a grounded opponent, they stagger forward toward B-Money.
+* The opponent temporarily loses control.
+* Use a distinct stagger animation if available.
+* The opponent moves toward B-Money at a controlled speed.
+
+Phase 4 — Jumping Uppercut
+
+* As the opponent approaches, B-Money launches upward.
+* He performs a powerful jumping uppercut.
+* His fist glows purple.
+* A dramatic purple impact burst appears when the uppercut connects.
+* The opponent is launched into the air.
+
+Phase 5 — Finish
+
+* The opponent falls and lands on the floor.
+* B-Money lands in a crouched position.
+* He stands and returns to his fighting stance.
+
+Super gameplay rules
+
+* Requires the existing super meter system.
+* Cannot activate without sufficient meter.
+* The initial ground wave can be avoided by jumping.
+* If the initial wave misses, the combo does not continue.
+* If the wave connects, the stagger and uppercut execute automatically.
+* The uppercut should only damage the opponent once.
+* Temporarily lock the affected opponent’s movement during the confirmed combo.
+* Restore normal controls, physics, and combat states after the sequence.
+* Ensure the super works regardless of which direction B-Money is facing.
+* Prevent B-Money from moving through or beyond stage boundaries.
+* Handle interruptions, knockouts, and match-ending events safely.
+
+Damage balancing: Make the super significantly stronger than a regular special, but comparable to the existing fighters’ super moves.
+
+5. Super Cinematic
+
+During the preparation phase, briefly show a dramatic close-up of B-Money, similar to the super cinematics used for AC, Brick, Becky, and Volt.
+
+Use his existing VS portrait or a dedicated close-up if the game supports one.
+
+Add:
+
+* Purple screen flash
+* Brief camera shake when his fist hits the floor
+* Purple shockwave effects
+* Strong impact effect on the uppercut
+* Brief hit-stop on the final impact
+
+Keep the cinematic timing consistent with the existing game.
+
+6. Character Selection and VS Screen
+
+Add B-Money as the fifth selectable fighter.
+
+Use the attached portrait for his VS screen.
+
+Display information:
+
+Name: B-MONEY
+
+Strengths:
+
+* SPEED
+* TECHNIQUE
+* PRECISION
+
+Super Move: RISING QUAKE
+
+Color theme: Purple
+
+Match the existing vertical character-card design used by AC, Brick, Becky, and Volt.
+
+Do not change the visual designs of the existing four characters.
+
+Ensure the selection screen handles five fighters cleanly on mobile and desktop.
+
+7. Animation and Sprite Handling
+
+Use the attached sprite sheet for B-Money.
+
+Inspect how existing sprite sheets are loaded, cropped, and animated.
+
+Follow the same approach.
+
+Important:
+
+* Keep consistent character height.
+* Align feet with the game’s floor baseline.
+* Preserve his proportions between animations.
+* Flip sprites horizontally when facing left.
+* Do not stretch sprites.
+* Separate character animations from shockwave and impact effects.
+* If the sprite sheet is only a visual reference and cannot be cropped reliably, explain which assets are missing rather than inventing incorrect frame coordinates.
+
+8. Combat and Collision Logic
+
+Make sure:
+
+* The shockwave collision box moves independently from B-Money.
+* Ground waves do not hit airborne opponents above their collision height.
+* Damage is applied only once per intended hit.
+* The super cannot trigger multiple uppercuts from one successful hit.
+* The opponent’s stagger movement stops at the appropriate uppercut distance.
+* Both characters remain inside stage boundaries.
+* All animations and temporary combat states reset correctly after the super.
+* The character works against both CPU and human opponents.
+
+9. Implementation Requirements
+
+Before changing code:
+
+1. Inspect the existing project structure.
+2. Identify the files responsible for characters, animations, combat, selection screens, and super moves.
+3. Reuse existing systems wherever possible.
+
+Then implement B-Money as a fully selectable and playable character.
+
+After implementation:
+
+* Run any existing tests or build checks.
+* Verify regular attacks.
+* Verify Ground Ripple.
+* Verify Rising Quake.
+* Verify character selection and VS screen.
+* Verify left-facing and right-facing behavior.
+* Verify CPU compatibility.
+
+Do not modify unrelated gameplay systems.
+
+Final goal: B-Money should feel like a complete fifth fighter in NextRep Brawl, with a distinct purple ground-wave special and a cinematic Rising Quake super that pulls his opponent into a devastating jumping uppercut.
