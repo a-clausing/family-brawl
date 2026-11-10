@@ -8,8 +8,8 @@ import asyncio, sys
 from playwright.async_api import async_playwright
 from _common import page_url
 
-EXP = {'ac': 62, 'brick': 58, 'becky': 48, 'volt': 62, 'bmoney': 58, 'winston': 56}   # expected super damage
-OPP = {'ac': 'becky', 'brick': 'volt', 'becky': 'ac', 'volt': 'brick', 'bmoney': 'ac', 'winston': 'becky'}
+EXP = {'ac': 62, 'brick': 58, 'becky': 48, 'volt': 62, 'bmoney': 58, 'winston': 56, 'haddie': 56}   # expected super damage
+OPP = {'ac': 'becky', 'brick': 'volt', 'becky': 'ac', 'volt': 'brick', 'bmoney': 'ac', 'winston': 'becky', 'haddie': 'ac'}
 fails = []
 
 
