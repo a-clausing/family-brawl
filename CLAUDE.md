@@ -46,7 +46,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
 - **Stage.** H=180, GROUND=158. Screen width `W` runs 320–400 (online fixes it at 390).
   - `AW` is the arena width: it equals `W` in 1v1 and is `MULTI_AW=640` in 2v2 and free-for-all.
   - In 2v2 and free-for-all a camera follows the fighters (`CAM`, `baseCam`, `cineCam`).
-  - Backdrops: 1v1 uses the gym (`src/assets/gym-backdrop.js`, `FLOOR_ROW`). 2v2 and free-for-all use Alex's house at night (`art/originals/house-backdrop-multi.png` → `src/assets/house-backdrop.js` as WebP, `HOUSEIMG`, `MULTI_FLOOR_ROW=0.89`, drawn in `buildGymMulti`). New backdrops should be 2:1; in the zoomed-out multi view a ~6'2" fighter is about 16% of the image height.
+  - Backdrops: 1v1 uses the gym (`src/assets/gym-backdrop.js`, `FLOOR_ROW`). 2v2 and free-for-all use Alex's house at night (`art/originals/house-backdrop-multi.png` → `src/assets/house-backdrop.js` as WebP), drawn by `drawHouseBg` as a far layer in screen space that zooms/pans less than the fighters so they look like they're in the street in front of it. Tune with `MULTI_FLOOR_ROW` (feet line), `HOUSE_H1` (smaller = fighters bigger vs the house; Alex wants real-life proportions with fighters in the foreground) and `HOUSE_ZPOW`. New backdrops should be 2:1.
 - **Game state.**
   - `G` holds everything that changes during a fight; `G.f` is the fighters array (2 to 4 entries).
   - Match setup: `newMatch` for 1v1, `setupMulti`/`newMatchMulti` for 2v2 and free-for-all.

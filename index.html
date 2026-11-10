@@ -1282,14 +1282,27 @@ function buildGym(){
   g.drawImage(GYMIMG,x0*2,y0*2,wd*2,hd*2);
 }
 // 2v2 and free-for-all use their own backdrop (Alex's house at night, art/originals/house-backdrop-multi.png),
-// falling back to the gym until it loads. MULTI_FLOOR_ROW is where feet land: just onto the street past the curb.
-const HOUSEIMG=new Image(); let houseReady=false; const MULTI_FLOOR_ROW=0.89;
-HOUSEIMG.onload=()=>{ houseReady=true; gymmFor=0; }; if(window.HOUSE_BG) HOUSEIMG.src=window.HOUSE_BG;
+// drawn as a far-away layer in screen space: it zooms and pans less than the fighters, so they read as standing in
+// the street in front of the house, bigger than the house's own scale. Falls back to the gym until it loads.
+//  MULTI_FLOOR_ROW: image row (fraction of height) that lines up with the fighters' feet, out in the street.
+//  HOUSE_H1: backdrop height in screen units at camera zoom 1 (smaller = fighters look bigger next to the house).
+//  HOUSE_ZPOW: how much the backdrop follows the camera zoom (0 = not at all, 1 = same as the fighters).
+const HOUSEIMG=new Image(); let houseReady=false; const MULTI_FLOOR_ROW=0.93, HOUSE_H1=246, HOUSE_ZPOW=0.5;
+HOUSEIMG.onload=()=>{ houseReady=true; }; if(window.HOUSE_BG) HOUSEIMG.src=window.HOUSE_BG;
+function drawHouseBg(cam){
+  const iw=HOUSEIMG.naturalWidth, ih=HOUSEIMG.naturalHeight, ar=iw/ih, z=cam?cam.z:1, cx=cam?cam.cx:AW/2, cy=cam?cam.cy:H/2;
+  const gs=(GROUND-cy)*z+H/2;                                   // where the feet line is on screen
+  const hd=Math.max(HOUSE_H1*Math.pow(z,HOUSE_ZPOW), (W+2)/ar, (gs+1)/MULTI_FLOOR_ROW), wd=hd*ar;
+  const lo=W/(2*z), hi=AW-W/(2*z), t=hi>lo?Math.min(1,Math.max(0,(cx-lo)/(hi-lo))):0.5;
+  const x0=-(wd-W)*t, y0=gs-MULTI_FLOOR_ROW*hd, bot=y0+hd;
+  ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  ctx.drawImage(HOUSEIMG,x0,y0,wd,hd);
+  if(bot<H) ctx.drawImage(HOUSEIMG,0,ih-4,iw,4,x0,bot-0.5,wd,H-bot+1); // stretch the near street down to the screen edge
+}
 const GYMM=mk(2,2); let GYMM_Y=0, GYMM_H=H, gymmFor=0;
 function buildGymMulti(){
-  const key=AW*1000+W+(houseReady?0.5:0);
-  if(!gymReady || gymmFor===key) return; gymmFor=key;
-  const IMG=houseReady?HOUSEIMG:GYMIMG, FR=houseReady?MULTI_FLOOR_ROW:FLOOR_ROW;
+  if(!gymReady || gymmFor===AW*1000+W) return; gymmFor=AW*1000+W;
+  const IMG=GYMIMG, FR=FLOOR_ROW;
   const zmin=W/AW, top=GROUND-GROUND/zmin-4, bot=GROUND+(H-GROUND)/zmin+4, ar=IMG.naturalWidth/IMG.naturalHeight;
   const hd=Math.max(AW/ar,(GROUND-top)/FR,(bot-GROUND)/(1-FR)), wd=hd*ar, y0=GROUND-FR*hd, x0=(AW-wd)/2;
   GYMM_Y=Math.min(top,y0); GYMM_H=Math.max(bot,y0+hd)-GYMM_Y;
@@ -2874,8 +2887,10 @@ function render(){
   ctx.save(); ctx.translate(sx,sy);
   const base=G.mode==='play'?baseCam():null;
   const cam=G.mode==='play'?(cineCam(base)||base):null; LASTCAM=cam;
+  const houseBg=G.multi && G.mode==='play' && houseReady; if(houseBg) drawHouseBg(cam);
   if(cam){ ctx.translate(W/2,H/2); ctx.scale(cam.z,cam.z); ctx.translate(-cam.cx,-cam.cy); ctx.imageSmoothingEnabled=true; }
-  if(G.multi && G.mode==='play'){ buildGymMulti(); if(gymReady) ctx.drawImage(GYMM,0,GYMM_Y,AW,GYMM_H); }
+  if(houseBg){}
+  else if(G.multi && G.mode==='play'){ buildGymMulti(); if(gymReady) ctx.drawImage(GYMM,0,GYMM_Y,AW,GYMM_H); }
   else if(gymReady) ctx.drawImage(GYMC,0,0,W*2,H*2,0,0,W,H); else ctx.drawImage(SCENE,0,0);
   if(!cam||cam.z===1) ctx.imageSmoothingEnabled=false;
   if(G.f && G.mode==='play'){
