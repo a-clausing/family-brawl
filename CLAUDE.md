@@ -114,6 +114,7 @@ Known issues and ideas:
 - If a player leaves mid-match, the match ends and everyone goes back to the lobby; a CPU doesn't take over.
 - Campaign isn't built yet.
 - The 1v1 gym backdrop art still has the old "NEXT REP" logo painted on the wall. It needs new art or a repaint of that area.
+- Idea Alex passed on (Nov 2026): a "TV mode" where a TV/laptop hosts and shows the fight while phones act as controllers only. He felt it was too much for this game; mirroring the host phone with AirPlay/Chromecast works today.
 - Idea Alex shelved (Nov 2026): shrink Winston's hit box to his drawn 33 px so standing punches whiff over him, while kicks, crouching punches, jump attacks, specials and supers still hit. It would need a balance cost, a CPU change to kick/go low against him, and a MISS pop-up.
 
 ## Sprite pipelines (`tools/sprites/<fighter>/`)
