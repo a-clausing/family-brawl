@@ -172,7 +172,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 .pick .nm{position:absolute;left:0;right:0;bottom:3px;z-index:1;font-family:var(--brush);font-size:clamp(14px,5.2vh,24px);line-height:1;color:#fff;text-align:center;transform:skewX(-8deg);
   text-shadow:2px 2px 0 #0a0d1c,-1px -1px 0 #0a0d1c,1px -1px 0 #0a0d1c,-1px 1px 0 #0a0d1c}
 .pick .nm{white-space:nowrap;overflow:hidden;padding:0 2px}
-.pick[data-c="bmoney"] .nm,.pick[data-c="winston"] .nm,.pick[data-c="haddie"] .nm{font-size:clamp(12px,4.3vh,21px)}
+.pick[data-c="bmoney"] .nm,.pick[data-c="winston"] .nm,.pick[data-c="haddie"] .nm,.pick[data-c="harper"] .nm{font-size:clamp(12px,4.3vh,21px)}
 .pick .ep,.pick .spc,.pick .stats{display:none}
 .pick[aria-pressed="true"]{border-color:#ffd23f;transform:translateY(-2px);box-shadow:0 0 0 2px #0a0d1c,0 0 18px rgba(255,210,63,.55)}
 .pick:not([aria-pressed="true"]) .tport{filter:saturate(.8) brightness(.82)}
@@ -405,6 +405,14 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
         <span class="spc">Special: Projectile Puke</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
       </button>
+      <button class="pick" data-c="harper" aria-pressed="false" style="--fc:#ff2fa0">
+        <img class="tport" alt="" data-port="harper">
+        <span class="badges"></span>
+        <span class="nm">HARPER</span>
+        <span class="ep">The chill scrapper. Small and laid-back, with the quickest nip around and a yap that carries across the room.</span>
+        <span class="spc">Special: Yap</span>
+        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
+      </button>
       </div>
     </section>
     <aside class="fs-side">
@@ -439,6 +447,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
             <button data-o="bmoney" aria-pressed="false">B-Money</button>
             <button data-o="winston" aria-pressed="false">Winston</button>
             <button data-o="haddie" aria-pressed="false">Haddie</button>
+            <button data-o="harper" aria-pressed="false">Harper</button>
             <button data-o="random" aria-pressed="true">Random</button>
           </div>
         </div>
@@ -517,6 +526,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 @@asset:bmoney-sheet.js@@
 @@asset:winston-sheet.js@@
 @@asset:haddie-sheet.js@@
+@@asset:harper-sheet.js@@
 @@asset:ac-sheet.js@@
 </script>
 <script>
@@ -625,9 +635,21 @@ const CH = {
       // Projectile Puke: rear back, heave, a green glob flies straight (blockable)
       special:{st:14, ac:0, rc:18, cost:40}
     }
+  },
+  harper: {   // tiny, chill rat-terrier type: the quickest nip in the game and a big voice
+    key:'harper', name:'HARPER', speed:1.85, jump:-6.2, grav:0.3, weight:1.0, armor:0, jumpVx:2.4, w:20, h:28,
+    meterCol:'#ff2fa0',
+    moves:{
+      punch:{st:2, ac:3, rc:7,  dmg:5, kb:1.3, hs:14, bs:9,  box:[8,25,-24,-10]},     // quick nip
+      low:  {st:3, ac:3, rc:7,  dmg:5, kb:1.2, hs:13, bs:8,  box:[8,25,-13,-1]},      // nip at the ankles
+      kick: {st:4, ac:4, rc:10, dmg:8, kb:2.3, hs:17, bs:10, box:[8,26,-26,-8]},      // paw swipe (chained: headbutt)
+      air:  {st:3, ac:12,rc:4,  dmg:7, kb:2.0, hs:15, bs:9,  box:[2,22,-12,4]},       // pounce
+      // Yap: a sound wave that carries across the arena and stuns (blockable)
+      special:{st:12, ac:0, rc:16, cost:40}
+    }
   }
 };
-CH.ac.altMeterCol='#ff4a3d'; CH.brick.altMeterCol='#3b7cff'; CH.becky.altMeterCol='#ff3b6b'; CH.volt.altMeterCol='#33d6ff'; CH.bmoney.altMeterCol='#2fe0a8'; CH.winston.altMeterCol='#ff8a1f'; CH.haddie.altMeterCol='#3b9dff';
+CH.ac.altMeterCol='#ff4a3d'; CH.brick.altMeterCol='#3b7cff'; CH.becky.altMeterCol='#ff3b6b'; CH.volt.altMeterCol='#33d6ff'; CH.bmoney.altMeterCol='#2fe0a8'; CH.winston.altMeterCol='#ff8a1f'; CH.haddie.altMeterCol='#3b9dff'; CH.harper.altMeterCol='#2fe07a';
 // Fighters are drawn 10% larger than the original design; scale their bodies and attack reach to match.
 const FIGHTER_SCALE=1.1;
 for(const c of Object.values(CH)){
@@ -639,6 +661,8 @@ CH.ac.jump=-7.3;   // keeps AC's jump high enough to clear the taller Brick
 CH.winston.h=46; CH.winston.w=28; CH.winston.artH=33;
 // Haddie is drawn 5% smaller than Winston (31px) with the same 46px hit area, so standing punches still land.
 CH.haddie.h=46; CH.haddie.w=24; CH.haddie.artH=31;
+// Harper is drawn 10% smaller than Winston (30px), same 46px hit area.
+CH.harper.h=46; CH.harper.w=22; CH.harper.artH=30;
 // Per-fighter heights in pixels (Alex's 60–99 ratings: 50px = 60, 59px = 99). Art, hit area and reach grow together.
 const FIGHTER_H={ac:53, becky:51};
 for(const [k,th] of Object.entries(FIGHTER_H)){
@@ -656,7 +680,7 @@ const BAL={
   winston:{punch:{dmg:6, st:2, rc:5, hs:15, bs:10}, low:{dmg:5, st:2, hs:14}, kick:{dmg:10, st:4, rc:9, hs:19, bs:11}, air:{dmg:8}, speed:2.1}
 };
 // Winston's rapid, light hits build the opponent's super meter more slowly than a heavy hitter's would
-CH.winston.feed=0.7; CH.haddie.feed=0.85;
+CH.winston.feed=0.7; CH.haddie.feed=0.85; CH.harper.feed=0.75;
 for(const [k,t] of Object.entries(BAL)){
   for(const [mv,props] of Object.entries(t)) if(CH[k].moves[mv]) Object.assign(CH[k].moves[mv],props);
   if(t.armor!==undefined) CH[k].armor=t.armor;
@@ -1056,7 +1080,7 @@ function vtFrame(f){
 // ---- Super move sheets (one per fighter) + alternate-color versions for mirror matches
 const SUPERS=window.SUPERS, SUPIMG={}, ALT_S={}, supReady={};
 const ALT_RULES={ac:[(h,s)=>h>=190&&h<=255&&s>0.3,150,1],brick:[(h,s)=>(h>=345||h<=22)&&s>0.5,205,1],
-  becky:[(h,s)=>h>=70&&h<=170&&s>0.22,232,1.45],volt:[(h,s)=>h>=38&&h<=70&&s>0.4,150,1],bmoney:[(h,s)=>h>=255&&h<=315&&s>0.3,240,1],winston:[(h,s)=>h>=185&&h<=240&&s>0.3,178,1],haddie:[(h,s)=>(h>=340||h<=15)&&s>0.45,205,1]};
+  becky:[(h,s)=>h>=70&&h<=170&&s>0.22,232,1.45],volt:[(h,s)=>h>=38&&h<=70&&s>0.4,150,1],bmoney:[(h,s)=>h>=255&&h<=315&&s>0.3,240,1],winston:[(h,s)=>h>=185&&h<=240&&s>0.3,178,1],haddie:[(h,s)=>(h>=340||h<=15)&&s>0.45,205,1],harper:[(h,s)=>h>=295&&h<=345&&s>0.4,170,1]};
 for(const k of Object.keys(SUPERS)){ const im=new Image(); SUPIMG[k]=im;
   im.onload=()=>{ supReady[k]=true; const r=ALT_RULES[k]; makeAlt(k,im,r[0],r[1],r[2],ALT_S); }; im.src=SUPERS[k].src; }
 const supImg=(k,alt)=>alt>=2?(PALS_S[alt]&&PALS_S[alt][k]||SUPIMG[k]):((alt&&ALT_S[k])||SUPIMG[k]);
@@ -1111,6 +1135,9 @@ WNIMG.src=WNS.src;
 const HDS=window.HD_SHEET, HDIMG=new Image(); let hdReady=false;
 HDIMG.onload=()=>{ hdReady=true; makeAlt('haddie',HDIMG,(h,s)=>(h>=340||h<=15)&&s>0.45,205); };
 HDIMG.src=HDS.src;
+const HPS=window.HP_SHEET, HPIMG=new Image(); let hpReady=false;
+HPIMG.onload=()=>{ hpReady=true; makeAlt('harper',HPIMG,(h,s)=>h>=295&&h<=345&&s>0.4,170); };
+HPIMG.src=HPS.src;
 // Small dogs (Haddie, Harper): idle, walk/run, jump, bite, swipe, launch, hit, down, getup, special
 function dogFrame(f){
   const key=f.state+(f.move||'');
@@ -1183,10 +1210,11 @@ const SHEETS={ac:{S:()=>ACS,img:()=>ACIMG,frame:acFrame,ready:()=>acReady},
   volt:{S:()=>VTS,img:()=>VTIMG,frame:vtFrame,ready:()=>vtReady},
   bmoney:{S:()=>BMS,img:()=>BMIMG,frame:bmFrame,ready:()=>bmReady},
   winston:{S:()=>WNS,img:()=>WNIMG,frame:wnFrame,ready:()=>wnReady},
-  haddie:{S:()=>HDS,img:()=>HDIMG,frame:dogFrame,ready:()=>hdReady}};
+  haddie:{S:()=>HDS,img:()=>HDIMG,frame:dogFrame,ready:()=>hdReady},
+  harper:{S:()=>HPS,img:()=>HPIMG,frame:dogFrame,ready:()=>hpReady}};
 // Free-for-all can have up to four of the same fighter: color sets 2 and 3 rotate the accent hue further
-const PAL_SHIFT={ac:[263,183],brick:[116,276],becky:[165,290],volt:[301,226],bmoney:[75,120],winston:[273,73],haddie:[120,280]};
-const PAL_COL={ac:['#3ddc5a','#ffc23d'],brick:['#3ddc5a','#b05cff'],becky:['#b05cff','#ffc23d'],volt:['#ff4a3d','#b05cff'],bmoney:['#ff4a3d','#ffc23d'],winston:['#3ddc5a','#c05cff'],haddie:['#3ddc5a','#ffc23d']};
+const PAL_SHIFT={ac:[263,183],brick:[116,276],becky:[165,290],volt:[301,226],bmoney:[75,120],winston:[273,73],haddie:[120,280],harper:[60,240]};
+const PAL_COL={ac:['#3ddc5a','#ffc23d'],brick:['#3ddc5a','#b05cff'],becky:['#b05cff','#ffc23d'],volt:['#ff4a3d','#b05cff'],bmoney:['#ff4a3d','#ffc23d'],winston:['#3ddc5a','#c05cff'],haddie:['#3ddc5a','#ffc23d'],harper:['#ffc23d','#b05cff']};
 const PALS={2:{},3:{}}, PALS_S={2:{},3:{}}, PALS_P={2:{},3:{}}, PALS_C={2:{},3:{}};
 function ensurePal(key,p){
   if(p<2) return; const r=ALT_RULES[key], sh=PAL_SHIFT[key][p-2];
@@ -1605,7 +1633,7 @@ const G={fmode:(()=>{ try{ return localStorage.getItem('nrb.fmode')||'1v1'; }cat
   rules:{mode:'bestof',bestOf:5,minutes:2,stocks:3}, mclock:0, sudden:false, mode:'menu', paused:false, diff:'normal', pick:'ac', cpuPick:'random', f:null, proj:[], parts:[], shake:0, hitstop:0, slow:0,
   round:1, timer:60, ft:0, phase:'intro', pt:0, winner:null, combo:null, t:0};
 
-const FIGHTERS=['ac','brick','becky','volt','bmoney','winston','haddie'];
+const FIGHTERS=['ac','brick','becky','volt','bmoney','winston','haddie','harper'];
 const MAXHP=200;
 // Fight Options: 'bestof' (1/3/5/7 rounds, 60s per round) or 'mostwins' (most KOs in 1-4 minutes, then sudden death)
 const OPT_DEFAULT={mode:'bestof',bestOf:5,minutes:2,stocks:3};
@@ -1745,6 +1773,10 @@ function spawnSpecial(f){
     const x=f.x+f.dir*HD_MOUTH[0], y=f.y-HD_MOUTH[1];
     G.proj.push({type:'puke',owner:f,x,y,vx:f.dir*4.2,t:0,dmg:11,kb:2.2,hs:22,bs:10});
     sparks(x,y,PUKE_FX,6); sfx('whoosh');
+  } else if(f.key==='harper'){   // YAP: a sound wave that travels the length of the arena and stuns (blockable)
+    const x=f.x+f.dir*HP_MOUTH[0], y=f.y-HP_MOUTH[1];
+    G.proj.push({type:'yap',owner:f,x,y,vx:f.dir*5,t:0,dmg:9,kb:1.6,hs:26,bs:10});
+    sparks(x,y,f.alt?YAP_FX_ALT:YAP_FX,5); sfx('snap');
   } else if(f.key==='bmoney'){   // GROUND RIPPLE: a low purple shockwave runs along the floor (blockable, jumpable)
     const x=f.x+f.dir*16;
     G.proj.push({type:'ripple',owner:f,x,y:GROUND,vx:f.dir*3.6,t:0,range:72,dmg:12,kb:2.6,hs:22,bs:11,kd:true});
@@ -1784,6 +1816,8 @@ const WN_FX=['#2f9bff','#8fd0ff','#e6f6ff'], WN_FX_ALT=['#ff8a1f','#ffc27a','#ff
 const WN_MOUTH=[21,27];   // Winston's mouth, measured from his frames: forward, up (game px)
 const HD_MOUTH=[22,18];   // Haddie's mouth on her puke frames: forward, up (game px)
 const PUKE_FX=['#c6f23a','#8fd11e','#eaffb0'];
+const HP_MOUTH=[19,20];   // Harper's mouth on her yap frames: forward, up (game px)
+const YAP_FX=['#ff2fa0','#ff8fd0','#ffe0f2'], YAP_FX_ALT=['#2fe07a','#8ff0b8','#e0ffee'];
 const BUFFER_FRAMES=8;   // ~0.13 s at 60 fps
 function startSprint(f){
   const o=G.multi?tgt(f):(f===G.f[0]?G.f[1]:G.f[0]), minD=(f.cfg.w+o.cfg.w)/2;
@@ -1847,10 +1881,10 @@ function endSprint(f,o){
    everything else freezes, then it pulls back out and the attack plays. Supers can't be blocked or jumped,
    and each one does the damage of three of that fighter's specials. */
 const SUPER_COST=100, CINE=86;   // close-up length in frames (~1.4s): zoom in, hold on the power pose, snap back out
-const CINE_Z={ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4}, CINE_FY={ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22};   // close-up zoom and framing height per fighter
-const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
-const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BAND SNARE',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'TAIL LASH RUSH',haddie:'TRASH PILE ATTACK'};
-const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2};
+const CINE_Z={ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6}, CINE_FY={ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15};   // close-up zoom and framing height per fighter
+const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
+const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BAND SNARE',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'TAIL LASH RUSH',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES'};
+const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3};
 const AC_RELEASE=[33.3, 48.6], BK_LOOP=[47.7, 38.9], BK_HAND2=[13.6, 38.9];
 const clampX=x=>Math.max(14,Math.min(AW-14,x));
 function startSuper(f,o){
@@ -1912,6 +1946,14 @@ function superStep(f,o){
           dmg:SUPER_DMG.ac,kb:4,hs:46,bs:0,unblockable:true,launch:true}); sfx('plate'); G.shake=Math.max(G.shake,3); }
         s.fr=u<26?6:7; if(u>=34) return endSuper(f,o);
       }
+      break; }
+    case 'harper': {   // ANXIETY SHAKES: the nerves build and build, then burst out as a pink wave rolling along the floor
+      const FX=f.alt?YAP_FX_ALT:YAP_FX;
+      if(t<=CINE){ s.fr=t<10?0:t<22?1:t<34?2:t<46?3:4; if(t%4===0) sparks(f.x+(rnd()-0.5)*20,f.y-8-rnd()*24,FX,2); break; }
+      if(u<20){ s.fr=5;
+        if(u===4){ f.dir=o.x>=f.x?1:-1; const x=f.x+f.dir*18; G.shake=Math.max(G.shake,8); sfx('quake'); sparks(x,GROUND-6,FX,14); dust(x,GROUND,8);
+          G.proj.push({type:'sshake',sup:1,owner:f,x,y:GROUND,vx:f.dir*4.6,t:0,dmg:SUPER_DMG.harper,kb:3,hs:50,bs:0,unblockable:true,launch:true}); }
+      } else if(u<36) s.fr=6; else return endSuper(f,o);
       break; }
     case 'haddie': {   // TRASH PILE ATTACK: tip the can, dig in, then fling a barrage of trash across the floor
       if(t<=CINE){ s.fr=t<12?0:t<26?1:t<40?2:3; break; }
@@ -2070,6 +2112,19 @@ function superStep(f,o){
   phys(f);
 }
 // Super projectiles: unblockable, and they hit at any height (jumping doesn't avoid them)
+// floor waves: Brick's quake and Harper's Anxiety Shakes
+function quakeTrail(f,p){ if(p.type==='squake') debris(p.x,GROUND-2,3,true); else sparks(p.x-Math.sign(p.vx)*14,GROUND-4,f.alt?YAP_FX_ALT:YAP_FX,2); }
+function quakeBlast(f,o,p){
+  if(p.type==='sshake'){
+    G.parts.push({type:'sfx',key:'harper',name:'swoosh',x:o.x,y:o.y-22,life:18,max:18,sc:1.3,dir:Math.sign(p.vx),alt:f.alt});
+    G.parts.push({type:'sfx',key:'harper',name:'dust',x:o.x,y:GROUND+2,life:30,max:30,sc:0.9,alt:f.alt});
+    sparks(o.x,o.y-20,f.alt?YAP_FX_ALT:YAP_FX,16); G.shake=Math.max(G.shake,11); sfx('superhit');
+  } else { G.parts.push({type:'sfx',key:'brick',name:'erupt',x:o.x,y:GROUND+3,life:34,max:34,sc:0.85,alt:f.alt}); debris(o.x,GROUND-4,16); G.shake=Math.max(G.shake,13); sfx('quake'); sfx('superhit'); }
+}
+function quakeEnd(f,p){
+  if(p.type==='sshake') G.parts.push({type:'sfx',key:'harper',name:'dust',x:clampX(p.x),y:GROUND+2,life:24,max:24,sc:0.8,alt:f.alt});
+  else G.parts.push({type:'sfx',key:'brick',name:'erupt_small',x:clampX(p.x),y:GROUND+2,life:24,max:24,sc:0.8,alt:f.alt});
+}
 // impact of a thrown super (AC's barbell, Haddie's trash)
 function superBlast(f,o,p){
   if(p.type==='strash'){
@@ -2109,15 +2164,14 @@ function superProj(p){
     }
     return p.x<-40||p.x>AW+40;
   }
-  if(p.type==='squake'){
-    if(p.t%3===0) debris(p.x,GROUND-2,3,true);
+  if(p.type==='squake'||p.type==='sshake'){
+    if(p.type==='squake'?p.t%3===0:p.t%2===0) quakeTrail(f,p);
     if(live && (Math.abs(p.x-o.x)<o.cfg.w/2+14 || Math.sign(o.x-p.x)!==Math.sign(p.vx))){
       superLanded(f);
       const keep=f.meter; p.noScale=true; applyHit(f,o,p,p.x-p.vx*10,o.x,o.y-30); f.meter=keep; if(o.hp>0) knockDown(o,Math.sign(p.vx),2.4,-4.8);
-      G.parts.push({type:'sfx',key:'brick',name:'erupt',x:o.x,y:GROUND+3,life:34,max:34,sc:0.85,alt:f.alt}); debris(o.x,GROUND-4,16);
-      G.shake=Math.max(G.shake,13); sfx('quake'); sfx('superhit'); return true;
+      quakeBlast(f,o,p); return true;
     }
-    if(p.x<8||p.x>AW-8){ G.parts.push({type:'sfx',key:'brick',name:'erupt_small',x:clampX(p.x),y:GROUND+2,life:24,max:24,sc:0.8,alt:f.alt}); return true; }
+    if(p.x<8||p.x>AW-8){ quakeEnd(f,p); return true; }
     return false;
   }
   if(p.type==='slasso'){
@@ -2151,21 +2205,22 @@ function superProjMulti(p){
     if(p.x<6||p.x>AW-6){ sparks(clampX(p.x),GROUND-4,f.alt?BM_FX_ALT:BM_FX,8); dust(clampX(p.x),GROUND,6); return true; }
     return false;
   }
-  if(p.type==='sbar'||p.type==='squake'||p.type==='strash'){
-    if(p.type==='squake' && p.t%3===0) debris(p.x,GROUND-2,3,true);
+  if(p.type==='sbar'||p.type==='squake'||p.type==='strash'||p.type==='sshake'){
+    const wave=p.type==='squake'||p.type==='sshake';
+    if(wave && (p.type==='squake'?p.t%3===0:p.t%2===0)) quakeTrail(f,p);
     p.hitl=p.hitl||[];
     for(const o of vs){
       if(!fight || p.hitl.includes(fidx(o))) continue;
-      const near=Math.abs(p.x-o.x)<o.cfg.w/2+(p.type==='squake'?14:10);
+      const near=Math.abs(p.x-o.x)<o.cfg.w/2+(wave?14:10);
       if(!(near || crossed(o) || (o===tg && p.t===1 && Math.sign(o.x-p.x)!==Math.sign(p.vx)))) continue;
       p.hitl.push(fidx(o)); superLanded(f);
-      const keep=f.meter; p.noScale=true; applyHit(f,o,p,p.x-p.vx*10,o.x,o.y-(p.type==='squake'?30:26)); f.meter=keep;
-      if(o.hp>0) knockDown(o,Math.sign(p.vx),p.type==='squake'?2.4:2.6,p.type==='squake'?-4.8:-4.4);
-      if(p.type!=='squake') superBlast(f,o,p);
-      else { G.parts.push({type:'sfx',key:'brick',name:'erupt',x:o.x,y:GROUND+3,life:34,max:34,sc:0.85,alt:f.alt}); debris(o.x,GROUND-4,16); G.shake=Math.max(G.shake,13); sfx('quake'); sfx('superhit'); }
+      const keep=f.meter; p.noScale=true; applyHit(f,o,p,p.x-p.vx*10,o.x,o.y-(wave?30:26)); f.meter=keep;
+      if(o.hp>0) knockDown(o,Math.sign(p.vx),wave?2.4:2.6,wave?-4.8:-4.4);
+      if(!wave) superBlast(f,o,p);
+      else quakeBlast(f,o,p);
     }
-    if(p.type!=='squake') return p.x<-40||p.x>AW+40;
-    if(p.x<8||p.x>AW-8){ G.parts.push({type:'sfx',key:'brick',name:'erupt_small',x:clampX(p.x),y:GROUND+2,life:24,max:24,sc:0.8,alt:f.alt}); return true; }
+    if(!wave) return p.x<-40||p.x>AW+40;
+    if(p.x<8||p.x>AW-8){ quakeEnd(f,p); return true; }
     return false;
   }
   if(p.type==='slasso'){
@@ -2192,6 +2247,7 @@ function drawSuperProj(p){
   if(p.type==='bquake'){ drawSup('bmoney',f.alt,'bigwave',p.x,GROUND+2,dir,0.85+0.08*Math.sin(p.t*0.9)); return; }
   if(p.type==='sbar') drawSup('ac',f.alt,'bar_fly',p.x,p.y,dir,1,1,Math.sin(p.t*0.5)*0.06);
   else if(p.type==='squake') drawSup('brick',f.alt,'erupt_small',p.x,GROUND+2,dir,0.62+0.1*Math.sin(p.t*0.9));
+  else if(p.type==='sshake') drawSup('harper',f.alt,'swoosh2',p.x,GROUND+2,dir,0.95+0.08*Math.sin(p.t*0.8));
   else if(p.type==='strash'){ drawSup('haddie',f.alt,'trashfly',p.x,p.y+Math.sin(p.t*0.5)*1.5,dir,1); if(p.t%2===0) debris(p.x-dir*20,p.y+4,1,true); }
   else if(p.type==='slasso'){ bandLine(f,p.x-dir*12,p.y); drawSup('becky',f.alt,'loop_fly',p.x,p.y,dir,0.42); }
 }
@@ -2279,7 +2335,7 @@ function drawCineBanner(){
 // Each hit after the 2nd in a combo does less: 100%, 100%, 85%, 70%, 55%, then 50% floor. Supers aren't scaled.
 const comboScale=n=>Math.max(0.5,1-0.15*Math.max(0,n-1));
 const KD_LIE=46, KD_UP=28, WAKE_INV=14;   // frames lying down, getting up, and invincible after standing
-const THROW_POWER={ac:3,brick:5,becky:3,volt:3,bmoney:3,winston:2,haddie:2};   // matches the Power stat on the fighter cards
+const THROW_POWER={ac:3,brick:5,becky:3,volt:3,bmoney:3,winston:2,haddie:2,harper:2};   // matches the Power stat on the fighter cards
 const untouchable=d=>d.kd||d.inv>0||d.held||d.thr;
 /* ---------------- Team fights & free-for-all (2-4 fighters) ----------------
    G.multi is on for 2v2 and free-for-all. Every fighter has a team (in free-for-all each is its own team);
@@ -2494,7 +2550,7 @@ function aiInput(f,o){
       const dk='d'+G.f.indexOf(f); if(p[dk]===undefined) p[dk]=arnd()<D.dodge;
       if(p[dk]){
         threat=true;
-        if(p.type==='plate'||p.type==='band'||p.type==='bone'||p.type==='puke'){ if(pd<70) Object.assign(inp,{block:true,left:false,right:false,up:false}); }
+        if(p.type==='plate'||p.type==='band'||p.type==='bone'||p.type==='puke'||p.type==='yap'){ if(pd<70) Object.assign(inp,{block:true,left:false,right:false,up:false}); }
         else if(pd<36 && pd>12 && f.onGround){ inp.up=true; inp.block=false; }
       }
     }
@@ -2587,7 +2643,7 @@ function updProj(){
       sparks(p.x,GROUND-4,p.owner.alt?BM_FX_ALT:BM_FX,6); dust(p.x,GROUND,4); G.proj.splice(i,1); continue;
     }
     if(p.type==='ripple' && p.t%3===0) sparks(p.x-Math.sign(p.vx)*10,GROUND-2,p.owner.alt?BM_FX_ALT:BM_FX,1);
-    const box=p.type==='plate'?{x0:p.x-4,x1:p.x+4,y0:p.y-4,y1:p.y+4}:p.type==='bone'?{x0:p.x-6,x1:p.x+6,y0:p.y-3,y1:p.y+3}:p.type==='puke'?{x0:p.x-8,x1:p.x+8,y0:p.y-5,y1:p.y+5}:{x0:p.x-6,x1:p.x+6,y0:GROUND-13,y1:GROUND};
+    const box=p.type==='plate'?{x0:p.x-4,x1:p.x+4,y0:p.y-4,y1:p.y+4}:p.type==='bone'?{x0:p.x-6,x1:p.x+6,y0:p.y-3,y1:p.y+3}:p.type==='puke'?{x0:p.x-8,x1:p.x+8,y0:p.y-5,y1:p.y+5}:p.type==='yap'?{x0:p.x-6,x1:p.x+6,y0:p.y-9,y1:p.y+9}:{x0:p.x-6,x1:p.x+6,y0:GROUND-13,y1:GROUND};
     if(p.type==='wave' && p.t%3===0) debris(p.x,GROUND-2,2,true);
     let gone=false;
     for(const d of (G.multi?foes(p.owner):[p.owner===G.f[0]?G.f[1]:G.f[0]])){
@@ -2599,6 +2655,7 @@ function updProj(){
       if(p.type==='plate'){ G.parts.push({type:'impact',x:hx,y:GROUND,life:18,max:18,alt:p.owner.alt}); debris(hx,GROUND-2,5); }
       if(p.type==='bone'){ sparks(hx,p.y,p.owner.alt?WN_FX_ALT:WN_FX,8); G.parts.push({type:'sfx',key:'winston',name:'burst',x:hx,y:p.y,life:10,max:10,sc:0.4,alt:p.owner.alt,main:true}); }
       if(p.type==='puke'){ sparks(hx,p.y,PUKE_FX,10); G.parts.push({type:'sfx',key:'haddie',name:'splash',x:hx,y:p.y+4,life:16,max:16,sc:0.9,dir:Math.sign(p.vx),alt:p.owner.alt,main:true}); }
+      if(p.type==='yap'){ sparks(hx,p.y,p.owner.alt?YAP_FX_ALT:YAP_FX,10); }
       if(G.multi && (p.type==='ripple'||p.type==='wave')){ (p.hitl=p.hitl||[]).push(fidx(d)); continue; }   // shockwaves roll on to the next fighter
       gone=true; break;
     }
@@ -2753,6 +2810,18 @@ function drawProj(p){
     }
     ctx.restore();
     return;
+  }
+  if(p.type==='yap'){   // three sound rings, growing as they travel
+    const dir=Math.sign(p.vx)||1, cols=p.owner.alt?YAP_FX_ALT:YAP_FX, g=Math.min(1,0.45+p.t*0.04);
+    ctx.save(); ctx.lineCap='round';
+    for(let k=0;k<3;k++){
+      const r=(4+k*3.2)*g, x=p.x-dir*k*3.5;
+      ctx.globalAlpha=0.95-k*0.25; ctx.strokeStyle=OUT; ctx.lineWidth=2.6;
+      ctx.beginPath(); ctx.arc(x-dir*r*0.6,p.y,r,dir>0?-0.9:Math.PI-0.9,dir>0?0.9:Math.PI+0.9); ctx.stroke();
+      ctx.strokeStyle=cols[k===0?2:k===1?1:0]; ctx.lineWidth=1.4;
+      ctx.beginPath(); ctx.arc(x-dir*r*0.6,p.y,r,dir>0?-0.9:Math.PI-0.9,dir>0?0.9:Math.PI+0.9); ctx.stroke();
+    }
+    ctx.restore(); return;
   }
   if(p.type==='puke' && hdReady){   // a wobbling green glob with drips falling off it
     const [sx,sy,w,h,ax,ay]=HDS.spr.puke, dir=Math.sign(p.vx)||1, sq=1+0.08*Math.sin(p.t*0.8);
@@ -3072,7 +3141,7 @@ function drawVSMulti(){   // 2v2 / free-for-all intro: every fighter's card in a
 const VS_LEN=156, VS_SLAM=26;
 const PORT={}; for(const [k,src] of Object.entries(window.PORTRAITS)){ const im=new Image(); im.src=src; PORT[k]=im; }
 const CARD={}; for(const [k,src] of Object.entries(window.CARDS)){ const im=new Image(); im.src=src; CARD[k]=im; }
-const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'BAND WHIP',volt:'HYPER SPRINT',bmoney:'GROUND RIPPLE',winston:'BONE THROW',haddie:'PROJECTILE PUKE'};
+const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'BAND WHIP',volt:'HYPER SPRINT',bmoney:'GROUND RIPPLE',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP'};
 function vsSkip(){ if(G.mode==='play' && G.phase==='vs' && !NET.active && G.pt<VS_LEN-14) G.pt=VS_LEN-14; }
 function drawVS(){
   const t=G.pt, [a,b]=G.f, C=W/2, PS=112, top=16;
@@ -3109,7 +3178,7 @@ function drawVS(){
 }
 
 /* ---------------- Fighter select: portraits, hero panel, pick badges ---------------- */
-const FC={ac:'#3b7cff',brick:'#e0402a',becky:'#4cc93a',volt:'#ffd400',bmoney:'#a24dff',winston:'#3fa9ff',haddie:'#ff3b3b'};
+const FC={ac:'#3b7cff',brick:'#e0402a',becky:'#4cc93a',volt:'#ffd400',bmoney:'#a24dff',winston:'#3fa9ff',haddie:'#ff3b3b',harper:'#ff2fa0'};
 document.querySelectorAll('.pick .tport').forEach(im=>{ im.src=window.PORTRAITS[im.dataset.port]; });
 document.getElementById('fsLogo').src=document.querySelector('.mm-logo').src;
 function renderHero(){
@@ -3183,7 +3252,7 @@ document.getElementById('fsBack').addEventListener('click',()=>{ sfx('select'); 
 function leaveLobbyScreen(){ lastLobby=null; howOv.hidden=true; menuEl.hidden=true; menuEl.classList.remove('online'); show('room',false); show('roomCode',false); setRoomControls(); mainMenu.hidden=false; mmTop.hidden=true; mmArc.hidden=false; }
 // ---- 1v1 / 2v2 / free-for-all
 const fmodeSel=document.getElementById('fmodeSel'), cpuMulti=document.getElementById('cpuMulti');
-const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',winston:'Winston',haddie:'Haddie'};
+const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',winston:'Winston',haddie:'Haddie',harper:'Harper'};
 function renderCpuSlots(){
   const fm=G.fmode, multi=fm!=='1v1', online=appMode==='online';
   document.getElementById('cpuPick').hidden=multi; cpuMulti.hidden=!multi;

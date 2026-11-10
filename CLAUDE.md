@@ -40,7 +40,10 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - `FIGHTER_SCALE` and the per-fighter size overrides come after `CH`.
   - `FIGHTER_H` sets a fighter's height in pixels. It scales their drawn art (`drawK`, used in `drawAC`), hit area and attack reach together. Currently AC 53, Becky 51.
   - `BAL` is the tuned balance layer and overrides `CH`.
-  - Fighters: `ac`, `brick`, `becky`, `volt`, `bmoney`, `winston`.
+  - Fighters: `ac`, `brick`, `becky`, `volt`, `bmoney`, `winston`, `haddie`, `harper`.
+  - The three dogs are drawn shorter than their hit area so standing punches still land: `artH` is the drawn height, `h` the hit height (46 for all three). Winston 33 px, Haddie 31 (95%), Harper 30 (90%).
+  - Haddie and Harper share one frame picker, `dogFrame` (frame names idle/walk/run/jump/bite/swipe/launch/hit/down/getup/special). `runAnim` makes Haddie use her run cycle when walking forward ("she likes chasing things"); Harper walks.
+  - **Haddie's last stand** (`lastStand`, `cfg.lastStand`): once a round in 1v1, or once a life in 2v2/free-for-all, a knockout leaves her at 1 health with a second of invincibility and a LAST STAND! pop-up. Tracked by `f.stood`, reset in `startRound`/`respawn`.
 - **Sprites.** The `*_SHEET` atlases are drawn at 2× detail.
   - `PAL_SHIFT`/`PALS` hue-shift each fighter into 4 color sets, so up to four players can pick the same fighter.
   - Super close-up sheets are in `SUPERS`; portraits and select cards are in `PORTRAITS`/`CARDS`.
@@ -55,7 +58,8 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
 - **Facing.** Human players face the last way they pushed, on the ground and in the air (`steerFace`); they don't turn on their own when getting up or after Volt's sprint. CPUs always turn to face their target (Alex chose this, Nov 2026). Supers and throws still swing everyone around to their target. Block only stops hits from the front.
 - **Combat.** `applyHit`, combo scaling, knockdowns, throws.
   - Supers are cinematic, and each fighter's projectile is handled in `superProj` (1v1) or `superProjMulti`.
-  - Specials: AC's dumbbell, Brick's quake wave, Becky's band, Volt's sprint, B-Money's ripple, Winston's bone.
+  - Specials: AC's dumbbell, Brick's quake wave, Becky's band, Volt's sprint, B-Money's ripple, Winston's bone, Haddie's puke (`puke` projectile), Harper's Yap (`yap`, sound rings drawn in code, long range, stuns).
+  - Haddie's super, Trash Pile Attack, throws `strash`, which works like AC's barbell (`superBlast` draws the impact). Harper's super, Anxiety Shakes, sends `sshake` rolling along the floor like Brick's quake (`quakeTrail`/`quakeBlast`/`quakeEnd` hold the per-fighter visuals).
 - **2v2 and free-for-all.**
   - Helpers: `foes(f)` / `tgt(f)`, plus `koFighter`, `respawn` and `stepMulti`.
   - Lives and respawn timing: `RESPAWN_T`, `RESPAWN_INV`.
@@ -69,7 +73,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - Touch controls are in their original spots (14px from the sides, 8px from the bottom). Alex tried them tucked further into the corners and found them harder to hold, so keep them there. They're a bit more see-through than they used to be: buttons and stick .52, Super/Special stronger when ready, .85 while pressed.
   - Main menu backdrop is Alex's title art (`art/originals/family-brawl-title-bg.png`, embedded as `src/assets/title-bg.webp.b64`, 1600px WebP) under the logo and buttons. The old fanned fighter cards were removed from it.
   - Menu flow: main menu (Arcade / Campaign "coming soon") → Arcade → Solo → fighter select, or → Online → Host / Join (`#onlineOv`) → lobby.
-  - Fighter select (`#menu.fsel`, modeled on Alex's mockup) has three columns: left hero panel (logo, big portrait, blurb, stats, super name: `renderHero`), middle 3×2 grid of portrait tiles (`.pick`, with P1–P4 badges from `renderBadges`), right side panel (1v1/2v2/free-for-all dropdown `#fmodeSel`, SOLO/ONLINE chip, then CPU difficulty and opponents in solo, or room code, copy, Invite and the lobby list in online) above the big FIGHT/READY button. A bottom bar holds Back, Fight Options and How to Play (`#howOv` popup).
+  - Fighter select (`#menu.fsel`, modeled on Alex's mockup) has three columns: left hero panel (logo, big portrait, blurb, stats, super name: `renderHero`), middle 4×2 grid of portrait tiles (`.pick`, with P1–P4 badges from `renderBadges`), right side panel (1v1/2v2/free-for-all dropdown `#fmodeSel`, SOLO/ONLINE chip, then CPU difficulty and opponents in solo, or room code, copy, Invite and the lobby list in online) above the big FIGHT/READY button. A bottom bar holds Back, Fight Options and How to Play (`#howOv` popup).
   - Each tile still carries its description, special and stats markup (hidden); the hero panel copies from the selected tile. Headline font is Bangers (`--brush`), loaded from Google Fonts with an Impact/Arial Black fallback.
   - Online CPU spots are picked by the host straight in the lobby list (`#lobbyCpu0..2`). Invite uses the phone's share sheet with a `?join=CODE` link that opens Join with the code filled in.
   - Fight Options are saved in localStorage under `nrb.*`.
@@ -108,7 +112,6 @@ Known issues and ideas:
 - Brick dominates free-for-all in CPU sims (~37% wins with 4 fighters); Volt is weakest (~6%). Alex was offered a 2v2/free-for-all-only balance pass.
 - If a player leaves mid-match, the match ends and everyone goes back to the lobby; a CPU doesn't take over.
 - Campaign isn't built yet.
-- **Planned (Nov 2026): two new dog fighters, Haddie and Harper.** Waiting on Alex's sprite sheets (one each, like Winston's). Decided so far: drawn 5% (Haddie, ~31 px) and 10% (Harper, ~30 px) smaller than Winston's 33 px, with Winston's 46 px hit box so standing punches still land; each gets her own style, special and super from Alex; fighter select becomes 4 across × 2 rows.
 - The 1v1 gym backdrop art still has the old "NEXT REP" logo painted on the wall. It needs new art or a repaint of that area.
 - Idea Alex shelved (Nov 2026): shrink Winston's hit box to his drawn 33 px so standing punches whiff over him, while kicks, crouching punches, jump attacks, specials and supers still hit. It would need a balance cost, a CPU change to kick/go low against him, and a MISS pop-up.
 
@@ -123,6 +126,8 @@ Run each script from inside its own folder. They read sheets from `art/originals
    - `winston/update_data.py` does this step for Winston and is the model to copy for a new fighter.
 
 Supers (`tools/sprites/supers/`) work the same way for the close-up sheets.
+
+**Small dogs (Haddie, Harper)** use a shared cutter, `tools/sprites/dogsheet.py`, with a `config.py` per dog (sheet rows, target height, frame map). In each dog's folder run `build.py` (frames.pkl + lineup.png to eyeball) → `pack.py` (atlas, super sheet, card, portrait) → `update_data.py` (writes `src/assets/<dog>-sheet.js` and adds the dog to supers/cards/portraits). Sheets on dark backgrounds are cut by brightness (Haddie). A dog with black fur needs a non-black background: Harper's first sheet was black-on-black and couldn't be cut, so Alex redid it on pink, and she's cut by her black outline with the inside filled (`silhouette` in her config). Her magenta shake lines and sound rings had nothing to cut them by, so the game draws those itself.
 
 Watch for frames that poke above a panel's border on Alex's sheets. The cutter skips the top 34 px of each panel (the label band), so anything above that gets sliced off. AC's top-of-jump frame lost its head this way. `TOP` in `ac/panels.py` starts the jump panel higher and bridges the figure across the border rows. Check `lineup.png` for missing heads or hands whenever you cut a new sheet.
 

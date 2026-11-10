@@ -35,6 +35,10 @@ class Sheet:
         """Foreground of one row: everything that isn't background or the panel border."""
         x0, y0, x1, y1 = box[:4]
         c = self.a[y0:y1, x0:x1]
+        if hasattr(self.cfg, 'silhouette'):   # the dog's config finds her outline itself
+            fg = self.cfg.silhouette(c)
+            for f in strip: fg &= ~f(c)
+            return fg, c
         fg = self.cfg.foreground(c)
         for f in strip: fg &= ~f(c)
         fg = nd.binary_opening(fg, iterations=1)
@@ -66,6 +70,7 @@ class Sheet:
         out = []
         for g in groups:
             if sum(q[2] for q in g) < minA: continue
+            if getattr(self.cfg, 'MAIN_ONLY', False): g = [max(g, key=lambda q: q[2])]
             m = np.isin(lab, [q[1] for q in g])
             ys, xs = np.where(m)
             sl = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))

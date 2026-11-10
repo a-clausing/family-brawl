@@ -53,7 +53,7 @@ mask = Image.new('L', (W, H), 0); ImageDraw.Draw(mask).rounded_rectangle([0, 0, 
 fr = Image.new('RGB', (W, H), (6, 8, 12)); fr.paste(card, (0, 0), mask); card = fr
 ImageDraw.Draw(card).rounded_rectangle([3, 3, W - 4, H - 4], radius=24, outline=(225, 40, 40), width=7)
 card = card.resize((288, 384), Image.LANCZOS).filter(ImageFilter.UnsharpMask(1, 50, 2))
-face = im.crop((25, 40, 415, 430)).resize((256, 256), Image.LANCZOS)
+face = im.crop((50, 126, 400, 476)).resize((256, 256), Image.LANCZOS)   # below the logo in the corner
 
 def alt(img, shift=205):   # mirror-match colors: red accents -> blue
     a = np.asarray(img).astype(np.float32) / 255; out = a.copy()

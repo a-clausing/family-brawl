@@ -3,6 +3,7 @@ then compares state checkpoints across every tab. Expect 'mismatched 0'. Screens
 
   python3 tests/net_multi.py ffa 3     # host + 3 guests
   python3 tests/net_multi.py 2v2 1     # host + 1 guest, CPUs fill the other two spots
+  python3 tests/net_multi.py ffa 3 haddie,harper,haddie,harper   # pick the fighters (host first)
 """
 import asyncio, sys, json, os, random
 from playwright.async_api import async_playwright
@@ -10,7 +11,7 @@ from _common import serve_out, BG_ARGS, OUT, page_url
 
 MODE = sys.argv[1] if len(sys.argv) > 1 else 'ffa'
 NG = int(sys.argv[2]) if len(sys.argv) > 2 else 3
-PICKS = ['ac', 'volt', 'winston', 'brick']
+PICKS = sys.argv[3].split(',') if len(sys.argv) > 3 else ['ac', 'volt', 'winston', 'brick']
 
 
 async def main():
