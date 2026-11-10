@@ -1,4 +1,4 @@
-# NextRep Brawl: notes for Claude
+# Family Brawl: notes for Claude
 
 A pixel-art gym fighting game for phones, played sideways, often saved to an iPhone home screen. Everything is one HTML page with no framework: canvas rendering, sprite art embedded as base64, and online play over PeerJS (WebRTC).
 
@@ -6,7 +6,7 @@ A pixel-art gym fighting game for phones, played sideways, often saved to an iPh
 - **Owner:** Alex. He isn't a programmer, so talk to him in plain language about what changed in the game, not about code.
 
 ## Rules from Alex
-- **The name.** Never call the game "Next Rep" (two words). The current name is "NextRep Brawl". Alex plans to rename it. When that happens, update this line, the title in `src/game.html`, `src/head.html`, `manifest.webmanifest` and the README.
+- **The name.** The game is "Family Brawl" (renamed from "NextRep Brawl" in Nov 2026; never use the old name or "Next Rep"). If it changes again, update this line, the title and gym sign in `src/game.html`, `src/head.html`, `manifest.webmanifest`, the README and the logo/icons. Internal keys (`nrb.*` saved options, `nrb-match-` online room IDs) keep the old prefix on purpose: changing them would wipe players' saved options and split online rooms between versions.
 - **Big changes.** Ask before big changes: new systems, anything that changes how the game plays, or several design decisions at once. Ask with multiple-choice questions and put a recommended option first. Small fixes are fine without asking.
 - **Other repos.** Don't touch Alex's other repos (workout-log, grocery-app). Work only in this one.
 - **Commits.** Use author `Claude <noreply@anthropic.com>` and plain-English messages. Push finished work to `main` so the next chat sees it. For something big and unfinished (like Campaign), work on a branch and merge it when Alex is happy.
@@ -17,9 +17,10 @@ A pixel-art gym fighting game for phones, played sideways, often saved to an iPh
 |---|---|
 | `index.html` | **Built file, never edit by hand.** It's the live game. Rebuild it with `python3 tools/build.py`. |
 | `src/game.html` | All game code: CSS, menu markup, and the game script. Edit here. |
-| `src/assets/*.js`, `src/assets/logo.jpg.b64` | Embedded art, one `window.X_SHEET=...` line per file. `src/game.html` pulls each one in with an `@@asset:NAME@@` marker. |
+| `src/assets/*.js`, `src/assets/logo.webp.b64` | Embedded art, one `window.X_SHEET=...` line per file. `src/game.html` pulls each one in with an `@@asset:NAME@@` marker. |
 | `src/head.html`, `src/tail.html` | Wrapper for the live site: home-screen app tags, icons, `<script src="peerjs.min.js">`. |
 | `peerjs.min.js`, `manifest.webmanifest`, `icon-*.png`, `favicon-32.png`, `apple-touch-icon.png` | Site files served next to `index.html`. |
+| `tools/make_logo_icons.py` | Makes the menu logo (black backdrop cut away) and all app icons from `art/originals/family-brawl-logo.png` and `family-brawl-app-icon.png`. Bump `manifest.webmanifest?v=` in `src/head.html` when icons change. |
 | `tools/build.py` | Builds `src/` into `index.html`. `--check` verifies `index.html` is current. `--artifact OUT` writes the claude.ai copy. |
 | `tools/sprites/<fighter>/` | Sprite pipelines that turn Alex's sheets into game atlases (see "Sprite pipelines" below). |
 | `tools/history/` | One-off patch scripts that added past features (Winston, multiplayer). They're reference only: they target an old single-file path and won't run as-is. |

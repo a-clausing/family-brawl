@@ -1,4 +1,4 @@
-<title>NextRep Brawl</title>
+<title>Family Brawl</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
@@ -138,7 +138,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 .mm-fan img:nth-child(5){transform:translate(-50%,-50%) translateX(68vh) rotate(12deg)}
 .mm-fan img:nth-child(6){transform:translate(-50%,-50%) translateX(102vh) rotate(19deg)}
 .mm-col{position:relative;margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:min(3vh,14px)}
-.mm-logo{width:min(46vh,220px);height:auto;border-radius:22%;box-shadow:0 0 0 3px #120e14,0 0 34px rgba(59,124,255,.45),0 12px 30px rgba(0,0,0,.6)}
+.mm-logo{width:min(78vh,340px);height:auto;filter:drop-shadow(0 0 18px rgba(59,124,255,.4)) drop-shadow(0 8px 14px rgba(0,0,0,.6))}
 .mm-btns{display:flex;flex-direction:column;gap:min(2.2vh,10px);width:min(320px,80vw)}
 .mm-btns .go{font-size:clamp(14px,4.4vh,18px);padding:clamp(9px,3vh,14px)}
 .mm-alt{background:#3b7cff;color:#fff;box-shadow:0 5px 0 #1d4bb0,0 5px 0 3px #120e14}
@@ -217,7 +217,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 <div id="rotate" role="alert">
   <div class="phone" aria-hidden="true"></div>
   <span class="rt">TURN YOUR PHONE<br>SIDEWAYS</span>
-  <p>NextRep Brawl only plays in landscape, so the stage can fill your whole screen.</p>
+  <p>Family Brawl only plays in landscape, so the stage can fill your whole screen.</p>
 </div>
 
 <div class="overlay mainmenu" id="mainMenu">
@@ -225,7 +225,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
     <img data-card="ac" alt=""><img data-card="brick" alt=""><img data-card="becky" alt=""><img data-card="volt" alt=""><img data-card="bmoney" alt=""><img data-card="winston" alt="">
   </div>
   <div class="mm-col">
-    <img class="mm-logo" src="@@asset:logo.jpg.b64@@" alt="NextRep Brawl">
+    <img class="mm-logo" src="@@asset:logo.webp.b64@@" alt="Family Brawl">
     <div class="mm-btns" id="mmTop">
       <button class="go" id="mmArcade">ARCADE</button>
       <button class="ghostbtn mm-soon" id="mmCampaign" disabled aria-disabled="true">CAMPAIGN <span>Coming soon</span></button>
@@ -1140,7 +1140,7 @@ function buildScene(){
   g.fillStyle='#a8693a'; g.fillRect(119,98,82,16);
   g.fillStyle='#8a5229'; g.fillRect(119,106,82,1); g.fillStyle='#c48650'; g.fillRect(119,98,82,1);
   g.font=`8px ${FONT}`; g.textAlign='center'; g.textBaseline='top';
-  g.fillStyle='#5a3018'; g.fillText('NEXTREP',161,103); g.fillStyle='#ffe6a8'; g.fillText('NEXTREP',160,102);
+  g.fillStyle='#5a3018'; g.fillText('FAMILY',161,103); g.fillStyle='#ffe6a8'; g.fillText('FAMILY',160,102);
   g.restore();
   // ground: grass lip and dirt tiles
   g.fillStyle='#3a8f3c'; g.fillRect(0,161,W,1);

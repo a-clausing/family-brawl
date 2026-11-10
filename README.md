@@ -1,4 +1,4 @@
-# NextRep Brawl
+# Family Brawl
 
 A pixel-art gym fighting game for your phone. Six fighters (AC, Brick, Becky, Volt, B-Money and Winston), each with a special move and a cinematic super. Play 1v1, 2v2 or free-for-all for up to four fighters, against CPUs at three difficulties or online with up to four phones.
 
