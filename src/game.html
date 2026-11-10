@@ -150,12 +150,11 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 .fs-hero,.fs-center,.fs-side{display:flex;flex-direction:column;min-height:0;min-width:0}
 /* left: selected fighter */
 .fs-logo{height:clamp(40px,14vh,84px);width:auto;max-width:100%;object-fit:contain;align-self:center;margin-bottom:-4px;position:relative;z-index:2;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
-.hero-card{position:relative;flex:1;min-height:70px;border:2px solid var(--fc,#3b7cff);border-radius:10px 10px 0 0;overflow:hidden;background:#0d1226}
-.hero-port{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
-.hero-name{position:absolute;left:8px;bottom:2px;font-family:var(--brush);font-size:clamp(26px,10vh,52px);line-height:1;color:#fff;transform:skewX(-8deg);
+.hero-card{position:relative;flex:1;min-height:70px;overflow:hidden}
+.hero-port{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;filter:drop-shadow(0 4px 10px rgba(0,0,0,.55))}
+.hero-name{display:none;position:absolute;left:8px;bottom:2px;font-family:var(--brush);font-size:clamp(26px,10vh,52px);line-height:1;color:#fff;transform:skewX(-8deg);
   text-shadow:2px 2px 0 #0a0d1c,-2px -2px 0 #0a0d1c,2px -2px 0 #0a0d1c,-2px 2px 0 #0a0d1c,0 0 14px var(--fc,#3b7cff)}
-.hero-info{background:rgba(9,13,30,.94);border:2px solid var(--fc,#3b7cff);border-top:0;border-radius:0 0 10px 10px;padding:6px 8px;display:flex;flex-direction:column;gap:5px}
-.hero-ep{margin:0;font-size:11px;line-height:1.25;color:#d7dcf0}
+.hero-info{margin-top:5px;background:rgba(9,13,30,.94);border:2px solid var(--fc,#3b7cff);border-radius:10px;padding:6px 8px;display:flex;flex-direction:column;gap:5px}
 .hero-stats .stats{max-width:none;font-size:8px}
 .hero-stats .pips span{height:5px}
 .hero-sup{margin:0;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
@@ -164,17 +163,23 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 /* middle: portrait grid */
 .fs-h{margin:0 0 6px;text-align:center;font-family:var(--brush);font-weight:400;font-size:clamp(24px,9vh,44px);line-height:1;color:#f4ead8;transform:skewX(-8deg) rotate(-2deg);
   text-shadow:2px 2px 0 #0a0d1c,-1px -1px 0 #0a0d1c,3px 4px 0 rgba(0,0,0,.5)}
-.picks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(5px,1vw,10px);width:min(100%,calc(4 * 30vh + 30px));margin:auto}
-.pick{--fc:#3b7cff;position:relative;display:block;padding:0;aspect-ratio:1;border:3px solid var(--fc);border-radius:9px;overflow:hidden;background:#0d1226;min-width:0;
+.fs-group{display:flex;align-items:center;justify-content:center;gap:10px;margin:-2px 0 5px}
+.fs-group b{font-family:var(--brush);font-weight:400;font-size:clamp(18px,6.4vh,30px);line-height:1;color:#ffd23f;letter-spacing:.08em;min-width:5.6em;text-align:center;transform:skewX(-8deg);
+  text-shadow:2px 2px 0 #0a0d1c,-1px -1px 0 #0a0d1c,0 0 14px rgba(255,210,63,.35)}
+.pgbtn{width:clamp(28px,9vh,38px);height:clamp(28px,9vh,38px);padding:0;border-radius:50%;display:grid;place-items:center;font-size:clamp(18px,6vh,26px);line-height:1;
+  background:rgba(9,13,30,.85);border:2px solid #ffd23f;color:#ffd23f}
+.pager{flex:1;min-height:0;overflow:hidden;touch-action:pan-y;width:min(100%,calc(1.125 * (100vh - 158px) + 16px));margin:0 auto}
+.pager-track{display:flex;height:100%;transition:transform .28s ease}
+.picks{--pg:clamp(5px,1vw,10px);flex:0 0 100%;display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:var(--pg);padding:3px 2px}
+.pick{--fc:#3b7cff;position:relative;display:block;padding:0;flex:0 0 calc((100% - 2 * var(--pg)) / 3);aspect-ratio:3/4;border:0;border-radius:8px;overflow:hidden;background:#0d1226;min-width:0;
   box-shadow:0 3px 0 #05070f;transition:transform .12s}
 .pick .tport{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.pick::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 52%,rgba(5,8,20,.85));pointer-events:none}
 .pick .nm{position:absolute;left:0;right:0;bottom:3px;z-index:1;font-family:var(--brush);font-size:clamp(14px,5.2vh,24px);line-height:1;color:#fff;text-align:center;transform:skewX(-8deg);
   text-shadow:2px 2px 0 #0a0d1c,-1px -1px 0 #0a0d1c,1px -1px 0 #0a0d1c,-1px 1px 0 #0a0d1c}
 .pick .nm{white-space:nowrap;overflow:hidden;padding:0 2px}
 .pick[data-c="bmoney"] .nm,.pick[data-c="winston"] .nm,.pick[data-c="haddie"] .nm,.pick[data-c="harper"] .nm{font-size:clamp(12px,4.3vh,21px)}
-.pick .ep,.pick .spc,.pick .stats{display:none}
-.pick[aria-pressed="true"]{border-color:#ffd23f;transform:translateY(-2px);box-shadow:0 0 0 2px #0a0d1c,0 0 18px rgba(255,210,63,.55)}
+.pick .nm,.pick .spc,.pick .stats{display:none}   /* the card shows the name */
+.pick[aria-pressed="true"]{transform:translateY(-2px);box-shadow:0 0 0 3px #ffd23f,0 0 18px rgba(255,210,63,.6)}
 .pick:not([aria-pressed="true"]) .tport{filter:saturate(.8) brightness(.82)}
 .badges{position:absolute;top:0;left:0;z-index:2;display:flex;gap:2px}
 .badges b{font-family:var(--brush);font-weight:400;font-size:clamp(11px,3.6vh,16px);line-height:1;padding:2px 6px 1px;color:#0a0d1c;background:var(--bc,#ffd23f);border-radius:0 0 6px 0}
@@ -188,6 +193,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 .seg.seg4{grid-template-columns:repeat(3,1fr)}
 .seg4 button{font-size:12px;padding:5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .seg4 button[data-o="random"]{grid-column:1/-1}
+#cpuPick button{padding-inline:0;font-size:clamp(10px,1.55vw,12px);text-overflow:clip;letter-spacing:-.02em}   /* 8 names in 3 columns: shrink a little on small phones */
 .cpumulti{display:flex;flex-direction:column;gap:5px}
 .cpuslot{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:6px;align-items:center;min-width:0}
 .cpuslot label{font-family:var(--pixel);font-size:7px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -341,67 +347,40 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
         <span class="hero-name" id="heroName">AC</span>
       </div>
       <div class="hero-info">
-        <p class="hero-ep" id="heroEp"></p>
         <div class="hero-stats" id="heroStats"></div>
         <p class="hero-sup"><span>SUPER MOVE</span><b id="heroSup">MAX REP</b></p>
       </div>
     </aside>
     <section class="fs-center">
       <h2 class="fs-h">Select your fighter</h2>
-      <div class="picks">
+      <div class="fs-group"><button class="pgbtn" id="pgPrev" aria-label="Previous fighters">&lsaquo;</button><b id="pgName">FAMILY</b><button class="pgbtn" id="pgNext" aria-label="More fighters">&rsaquo;</button></div>
+      <div class="pager" id="pager"><div class="pager-track" id="pagerTrack">
+      <div class="picks" data-group="FAMILY">
       <button class="pick" data-c="ac" aria-pressed="true" style="--fc:#3b7cff">
         <img class="tport" alt="" data-port="ac">
         <span class="badges"></span>
         <span class="nm">AC</span>
-        <span class="ep">The lifter. Quick hands, and a jump high enough to clear Brick.</span>
         <span class="spc">Special: Dumbbell Throw</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
-      </button>
-      <button class="pick" data-c="brick" aria-pressed="false" style="--fc:#e0402a">
-        <img class="tport" alt="" data-port="brick">
-        <span class="badges"></span>
-        <span class="nm">BRICK</span>
-        <span class="ep">The living wall. Too heavy to jump over AC, but shrugs off a third of every hit.</span>
-        <span class="spc">Special: Quake Slam</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Jump</span><span class="pips"><span class="f"></span><span></span><span></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
       </button>
       <button class="pick" data-c="becky" aria-pressed="false" style="--fc:#4cc93a">
         <img class="tport" alt="" data-port="becky">
         <span class="badges"></span>
         <span class="nm">BECKY</span>
-        <span class="ep">The trainer. Fastest feet in the gym, and punches won't stop her.</span>
         <span class="spc">Special: Band Whip</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
-      </button>
-      <button class="pick" data-c="volt" aria-pressed="false" style="--fc:#ffd400">
-        <img class="tport" alt="" data-port="volt">
-        <span class="badges"></span>
-        <span class="nm">VOLT</span>
-        <span class="ep">The storm. Fastest fighter in the gym, but he can't take a hit.</span>
-        <span class="spc">Special: Hyper Sprint</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
       </button>
       <button class="pick" data-c="bmoney" aria-pressed="false" style="--fc:#a24dff">
         <img class="tport" alt="" data-port="bmoney">
         <span class="badges"></span>
         <span class="nm">B-MONEY</span>
-        <span class="ep">The prodigy. Fast hands, sharp technique, and a fist that shakes the floor.</span>
         <span class="spc">Special: Ground Ripple</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span></span>
-      </button>
-      <button class="pick" data-c="winston" aria-pressed="false" style="--fc:#3fa9ff">
-        <img class="tport" alt="" data-port="winston">
-        <span class="badges"></span>
-        <span class="nm">WINSTON</span>
-        <span class="ep">The agile striker. Four fast paws, a quick bite, and a bone with your name on it.</span>
-        <span class="spc">Special: Bone Throw</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
       </button>
       <button class="pick" data-c="haddie" aria-pressed="false" style="--fc:#ff3b3b">
         <img class="tport" alt="" data-port="haddie">
         <span class="badges"></span>
         <span class="nm">HADDIE</span>
-        <span class="ep">The scrappy chaser. Never stays down: once a round she shrugs off a knockout at 1 health.</span>
         <span class="spc">Special: Projectile Puke</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
       </button>
@@ -409,11 +388,34 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
         <img class="tport" alt="" data-port="harper">
         <span class="badges"></span>
         <span class="nm">HARPER</span>
-        <span class="ep">The chill scrapper. Small and laid-back, with the quickest nip around and a yap that carries across the room.</span>
         <span class="spc">Special: Yap</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
       </button>
+      <button class="pick" data-c="winston" aria-pressed="false" style="--fc:#3fa9ff">
+        <img class="tport" alt="" data-port="winston">
+        <span class="badges"></span>
+        <span class="nm">WINSTON</span>
+        <span class="spc">Special: Bone Throw</span>
+        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
+      </button>
       </div>
+      <div class="picks" data-group="MONSTERS">
+      <button class="pick" data-c="brick" aria-pressed="false" style="--fc:#e0402a">
+        <img class="tport" alt="" data-port="brick">
+        <span class="badges"></span>
+        <span class="nm">BRICK</span>
+        <span class="spc">Special: Quake Slam</span>
+        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Jump</span><span class="pips"><span class="f"></span><span></span><span></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
+      </button>
+      <button class="pick" data-c="volt" aria-pressed="false" style="--fc:#ffd400">
+        <img class="tport" alt="" data-port="volt">
+        <span class="badges"></span>
+        <span class="nm">VOLT</span>
+        <span class="spc">Special: Hyper Sprint</span>
+        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
+      </button>
+      </div>
+      </div></div>
     </section>
     <aside class="fs-side">
       <div class="fs-chips">
@@ -441,13 +443,13 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
           <div class="cpumulti" id="cpuMulti" hidden></div>
           <div class="seg seg4" id="cpuPick">
             <button data-o="ac" aria-pressed="false">AC</button>
-            <button data-o="brick" aria-pressed="false">Brick</button>
             <button data-o="becky" aria-pressed="false">Becky</button>
-            <button data-o="volt" aria-pressed="false">Volt</button>
             <button data-o="bmoney" aria-pressed="false">B-Money</button>
-            <button data-o="winston" aria-pressed="false">Winston</button>
             <button data-o="haddie" aria-pressed="false">Haddie</button>
             <button data-o="harper" aria-pressed="false">Harper</button>
+            <button data-o="winston" aria-pressed="false">Winston</button>
+            <button data-o="brick" aria-pressed="false">Brick</button>
+            <button data-o="volt" aria-pressed="false">Volt</button>
             <button data-o="random" aria-pressed="true">Random</button>
           </div>
         </div>
@@ -1889,7 +1891,7 @@ function endSprint(f,o){
 const SUPER_COST=100, CINE=86;   // close-up length in frames (~1.4s): zoom in, hold on the power pose, snap back out
 const CINE_Z={ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6}, CINE_FY={ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15};   // close-up zoom and framing height per fighter
 const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
-const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BAND SNARE',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'TAIL LASH RUSH',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES'};
+const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES'};
 const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3};
 const AC_RELEASE=[33.3, 48.6], BK_LOOP=[47.7, 38.9], BK_HAND2=[13.6, 38.9];
 const clampX=x=>Math.max(14,Math.min(AW-14,x));
@@ -3185,14 +3187,31 @@ function drawVS(){
 
 /* ---------------- Fighter select: portraits, hero panel, pick badges ---------------- */
 const FC={ac:'#3b7cff',brick:'#e0402a',becky:'#4cc93a',volt:'#ffd400',bmoney:'#a24dff',winston:'#3fa9ff',haddie:'#ff3b3b',harper:'#ff2fa0'};
-document.querySelectorAll('.pick .tport').forEach(im=>{ im.src=window.PORTRAITS[im.dataset.port]; });
+document.querySelectorAll('.pick .tport').forEach(im=>{ im.src=window.CARDS[im.dataset.port]; });
+// Fighter pages (Family, Monsters): arrows or a sideways swipe flip between them
+const PAGES=[...document.querySelectorAll('#pagerTrack .picks')]; let fsPage=0;
+function showPage(i,anim=true){
+  fsPage=(i+PAGES.length)%PAGES.length; const tr=document.getElementById('pagerTrack');
+  tr.style.transition=anim?'':'none'; tr.style.transform=`translateX(${-100*fsPage}%)`;
+  document.getElementById('pgName').textContent=PAGES[fsPage].dataset.group;
+}
+function showPickPage(anim=false){ const i=PAGES.findIndex(p=>p.querySelector(`.pick[data-c="${G.pick}"]`)); showPage(i<0?0:i,anim); }
+// pages move only by flipping: undo any browser scrolling (keyboard focus, scroll-into-view) and show the focused card's page
+{ const pg=document.getElementById('pager');
+  pg.addEventListener('scroll',()=>{ if(pg.scrollLeft||pg.scrollTop){ pg.scrollLeft=0; pg.scrollTop=0; } });
+  pg.addEventListener('focusin',e=>{ const i=PAGES.findIndex(p=>p.contains(e.target)); if(i>=0 && i!==fsPage) showPage(i); }); }
+document.getElementById('pgPrev').addEventListener('click',()=>{ audioInit(); sfx('select'); showPage(fsPage-1); });
+document.getElementById('pgNext').addEventListener('click',()=>{ audioInit(); sfx('select'); showPage(fsPage+1); });
+{ const pg=document.getElementById('pager'); let sx=null, sy=0;
+  pg.addEventListener('touchstart',e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+  pg.addEventListener('touchend',e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy; sx=null;
+    if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)*1.3){ audioInit(); sfx('select'); showPage(fsPage+(dx<0?1:-1)); } },{passive:true}); }
 document.getElementById('fsLogo').src=document.querySelector('.mm-logo').src;
 function renderHero(){
   const k=G.pick, b=document.querySelector(`.pick[data-c="${k}"]`);
   document.querySelector('.fs-hero').style.setProperty('--fc',FC[k]);
-  document.getElementById('heroPort').src=window.PORTRAITS[k];
+  document.getElementById('heroPort').src=window.CARDS[k];
   document.getElementById('heroName').textContent=CH[k].name.toUpperCase();
-  document.getElementById('heroEp').textContent=b.querySelector('.ep').textContent;
   const st=document.getElementById('heroStats'); st.innerHTML=''; st.appendChild(b.querySelector('.stats').cloneNode(true));
   document.getElementById('heroSup').textContent=SUPER_NAME[k];
 }
@@ -3211,7 +3230,7 @@ renderHero(); renderBadges();
 const menu=document.getElementById('menu'), pauseOv=document.getElementById('pauseOv'), resultOv=document.getElementById('resultOv');
 const spBtn=document.getElementById('spBtn');
 document.querySelectorAll('.pick').forEach(b=>b.addEventListener('click',()=>{
-  audioInit(); G.pick=b.dataset.c; sfx('select');
+  audioInit(); G.pick=b.dataset.c; sfx('select'); showPickPage(true);
   document.querySelectorAll('.pick').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
   renderHero(); renderBadges(); lobbyChanged();
 }));
@@ -3231,7 +3250,7 @@ function openSelect(mode){
   document.getElementById('fsTitle').textContent='SOLO';
   fmodeSel.value=G.fmode; renderCpuSlots();
   const go=document.getElementById('goBtn'); go.textContent='FIGHT'; go.classList.remove('isready');
-  refreshOptsLabel(); renderHero(); renderBadges(); mainMenu.hidden=true; menuEl.hidden=false;
+  refreshOptsLabel(); renderHero(); renderBadges(); showPickPage(); mainMenu.hidden=true; menuEl.hidden=false;
 }
 // How to play, room code copy and invite
 const howOv=document.getElementById('howOv');
@@ -3572,7 +3591,7 @@ function guestApplyLobby(L){   // a guest's screen mirrors the host's fight type
 function enterLobby(){
   NET.room=true; NET.where='lobby'; NET.ready=false; NET.over=false; appMode='online';
   onlineOv.hidden=true; mainMenu.hidden=true; resultOv.hidden=true; pauseOv.hidden=true;
-  menuEl.classList.add('online'); show('room',true); show('roomCode',true); lastLobby=null; renderHero(); renderBadges();
+  menuEl.classList.add('online'); show('room',true); show('roomCode',true); lastLobby=null; renderHero(); renderBadges(); showPickPage();
   document.getElementById('fsTitle').textContent='ONLINE';
   fmodeSel.value=G.fmode; renderCpuSlots(); refreshOptsLabel(); setRoomControls(); renderReadyBtn();
   document.getElementById('lobbyStatus').textContent='';
