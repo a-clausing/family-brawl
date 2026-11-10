@@ -128,7 +128,9 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 #app.vsmode .stick,#app.vsmode .rightside{pointer-events:none}
 /* Main menu: logo and buttons over the title art (src/assets/title-bg.webp.b64) */
 .mainmenu{background:radial-gradient(ellipse 34% 60% at 50% 55%,rgba(10,8,20,.45),rgba(10,8,20,0) 100%),url("@@asset:title-bg.webp.b64@@") center/cover no-repeat #0b0f24;overflow:hidden;align-items:center}
-.mm-col{position:relative;margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:min(3vh,14px)}
+.mainmenu{padding-top:0;padding-bottom:0}
+.mm-col{position:relative;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:max(1vh,env(safe-area-inset-top,0px)) 0 max(2vh,env(safe-area-inset-bottom,0px));box-sizing:border-box;min-height:100%}
+.mm-col .mm-btns{margin:auto 0}
 .mm-logo{width:min(78vh,340px);height:auto;filter:drop-shadow(0 0 18px rgba(59,124,255,.4)) drop-shadow(0 8px 14px rgba(0,0,0,.6))}
 .mm-btns{display:flex;flex-direction:column;gap:min(2.2vh,10px);width:min(320px,80vw)}
 .mm-btns .go{font-size:clamp(14px,4.4vh,18px);padding:clamp(9px,3vh,14px)}
