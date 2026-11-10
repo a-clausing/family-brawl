@@ -43,7 +43,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - Fighters: `ac`, `brick`, `becky`, `volt`, `bmoney`, `winston`, `haddie`, `harper`.
   - The three dogs are drawn shorter than their hit area so standing punches still land: `artH` is the drawn height, `h` the hit height (46 for all three). Winston 33 px, Haddie 31 (95%), Harper 30 (90%).
   - Haddie and Harper share one frame picker, `dogFrame` (frame names idle/walk/run/jump/bite/swipe/launch/hit/down/getup/special). `runAnim` makes Haddie use her run cycle when walking forward ("she likes chasing things"); Harper walks.
-  - **Haddie's last stand** (`lastStand`, `cfg.lastStand`): once a round in 1v1, or once a life in 2v2/free-for-all, a knockout leaves her at 1 health with a second of invincibility and a LAST STAND! pop-up. Tracked by `f.stood`, reset in `startRound`/`respawn`.
+  - **Haddie's last stand** (`lastStand`, `cfg.lastStand`): once a round in 1v1, or once a life in 2v2/free-for-all, a knockout leaves her at 1 health with half a second of invincibility (`standInv`: 30 frames) and a LAST STAND! pop-up. Tracked by `f.stood`, reset in `startRound`/`respawn`. Balance (Nov 2026): the last stand is worth a lot in sims, so she has no armor; with armor 0.1 plus a 1 s last stand she won ~78% of CPU 1v1s.
 - **Sprites.** The `*_SHEET` atlases are drawn at 2× detail.
   - `PAL_SHIFT`/`PALS` hue-shift each fighter into 4 color sets, so up to four players can pick the same fighter.
   - Super close-up sheets are in `SUPERS`; portraits and select cards are in `PORTRAITS`/`CARDS`.
