@@ -44,14 +44,14 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 #stageWrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #game{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
 
-#controls{position:absolute;left:max(4px,calc(env(safe-area-inset-left,0px) - 26px));right:max(4px,calc(env(safe-area-inset-right,0px) - 26px));
-  bottom:max(3px,calc(env(safe-area-inset-bottom,0px) - 14px));display:flex;align-items:flex-end;justify-content:space-between;gap:8px;pointer-events:none}
+#controls{position:absolute;left:max(14px,env(safe-area-inset-left,0px));right:max(14px,env(safe-area-inset-right,0px));
+  bottom:max(8px,env(safe-area-inset-bottom,0px));display:flex;align-items:flex-end;justify-content:space-between;gap:8px;pointer-events:none}
 .stick,.rightside,.mid{pointer-events:auto}
 .pad{display:grid;grid-template-columns:repeat(3,var(--b));grid-template-rows:repeat(3,var(--b));gap:3px;touch-action:none}
 .pad > *{width:100%;height:100%;border:0;padding:0;background:none}
-.hub{border-radius:50%;background:radial-gradient(circle,#2a2238 35%,transparent 36%);opacity:.3}
+.hub{border-radius:50%;background:radial-gradient(circle,#2a2238 35%,transparent 36%);opacity:.45}
 .act{border-radius:50%;border:2px solid #120e14;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  color:#120e14;font-family:var(--pixel);font-size:12px;line-height:1;opacity:.4;
+  color:#120e14;font-family:var(--pixel);font-size:12px;line-height:1;opacity:.52;
   box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810;transition:background .15s}
 .act i{font-style:normal;font-family:var(--ui);font-weight:700;font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;opacity:.75}
 .pu{background:var(--gold)} .ki{background:var(--ember)} .bl{background:#9a90b3} .ju{background:#6fd36a}
@@ -60,10 +60,10 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .sp.ready{background:var(--steel);color:#fff;animation:ready 1s ease-in-out infinite}
 @keyframes ready{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810,0 0 18px 2px rgba(59,124,255,.7)}}
 .act.on{opacity:.85;transform:translateY(3px) scale(.95);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 #0a0810}
-.sp.ready{opacity:.72}
-.stick{width:calc(var(--b)*2.8);height:calc(var(--b)*2.4);display:grid;place-items:center;touch-action:none}
+.sp.ready{opacity:.8}
+.stick{width:calc(var(--b)*3);height:calc(var(--b)*2.4);display:grid;place-items:center;touch-action:none}
 .track{position:relative;width:100%;height:calc(var(--b)*1.3);border-radius:999px;background:var(--panel-hi);border:2px solid #120e14;
-  box-shadow:inset 0 5px 0 #1a1424,0 3px 0 #0a0810;opacity:.4}
+  box-shadow:inset 0 5px 0 #1a1424,0 3px 0 #0a0810;opacity:.52}
 .stick.held .track{opacity:.85}
 .arr{position:absolute;top:50%;width:14px;height:14px;fill:#5b4f78;transform:translateY(-50%)}
 .arr.l{left:12px} .arr.r{right:12px}
@@ -121,8 +121,8 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 @media (prefers-reduced-motion:reduce){.sp.ready,.phone{animation:none}}
 .sprow{display:flex;gap:6px;align-items:center;margin-right:calc(var(--b)*-0.15)}
 .sprow .sp{margin-right:0}
-.su{border-radius:14px;width:calc(var(--b)*1.05);height:calc(var(--b)*0.78);font-size:9px;letter-spacing:.02em;background:#2a2238;color:#6d6390;opacity:.28}
-.su.ready{background:linear-gradient(180deg,#ffe066,#ff8a1f);color:#120e14;opacity:.78;animation:suglow .7s ease-in-out infinite}
+.su{border-radius:14px;width:calc(var(--b)*1.05);height:calc(var(--b)*0.78);font-size:9px;letter-spacing:.02em;background:#2a2238;color:#6d6390;opacity:.34}
+.su.ready{background:linear-gradient(180deg,#ffe066,#ff8a1f);color:#120e14;opacity:.85;animation:suglow .7s ease-in-out infinite}
 @keyframes suglow{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810,0 0 22px 4px rgba(255,170,40,.85)}}
 @media (prefers-reduced-motion:reduce){.su.ready{animation:none}}
 #controls{transition:opacity .25s}
