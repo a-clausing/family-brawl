@@ -2,7 +2,7 @@
 
 A pixel-art gym fighting game for your phone. Six fighters (AC, Brick, Becky, Volt, B-Money and Winston), each with a special move and a cinematic super. Play 1v1, 2v2 or free-for-all for up to four fighters, against CPUs at three difficulties or online with up to four phones.
 
-**Play:** https://a-clausing.github.io/nextrep-brawl/
+**Play:** https://a-clausing.github.io/family-brawl/
 
 ## How to play
 - Turn your phone sideways. On iPhone, use Share → Add to Home Screen to play full-screen like an app. After an update, fully close and reopen the app.

@@ -2,7 +2,7 @@
 
 A pixel-art gym fighting game for phones, played sideways, often saved to an iPhone home screen. Everything is one HTML page with no framework: canvas rendering, sprite art embedded as base64, and online play over PeerJS (WebRTC).
 
-- **Live game:** https://a-clausing.github.io/nextrep-brawl/. GitHub Pages serves `index.html` from `main`.
+- **Live game:** https://a-clausing.github.io/family-brawl/. GitHub Pages serves `index.html` from `main`.
 - **Owner:** Alex. He isn't a programmer, so talk to him in plain language about what changed in the game, not about code.
 
 ## Rules from Alex
