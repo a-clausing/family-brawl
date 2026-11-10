@@ -43,7 +43,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - Fighters: `ac`, `brick`, `becky`, `volt`, `bmoney`, `winston`, `haddie`, `harper`.
   - The three dogs are drawn shorter than their hit area so standing punches still land: `artH` is the drawn height, `h` the hit height (46 for all three). Winston 33 px, Haddie 31 (95%), Harper 30 (90%).
   - Haddie and Harper share one frame picker, `dogFrame` (frame names idle/walk/run/jump/bite/swipe/launch/hit/down/getup/special). `runAnim` makes Haddie use her run cycle when walking forward ("she likes chasing things"); Harper walks.
-  - **Haddie's last stand** (`lastStand`, `cfg.lastStand`): once a round in 1v1, or once a life in 2v2/free-for-all, a knockout leaves her at 1 health with half a second of invincibility (`standInv`: 30 frames) and a LAST STAND! pop-up. Tracked by `f.stood`, reset in `startRound`/`respawn`. Balance (Nov 2026): the last stand is worth a lot in sims, so she has no armor; with armor 0.1 plus a 1 s last stand she won ~78% of CPU 1v1s.
+  - **Haddie's last stand** (`lastStand`, `cfg.lastStand`): once a round in 1v1, or once a life in 2v2/free-for-all, a knockout leaves her at 1 health with half a second of invincibility (`standInv`: 30 frames) and a LAST STAND! pop-up. Tracked by `f.stood`, reset in `startRound`/`respawn`. Balance (Nov 2026): the last stand is worth a lot in sims, so she has no armor and softer bites (4); with armor 0.1 plus a 1 s last stand she won ~78% of CPU 1v1s. Final sims: Haddie ~48–54%, Harper ~52–54% (her nips 4, swipe 7, pounce 6). Removing the last stand's invincibility also balances her, but then a fast opponent finishes her on the next frame, so it was kept.
 - **Sprites.** The `*_SHEET` atlases are drawn at 2× detail.
   - `PAL_SHIFT`/`PALS` hue-shift each fighter into 4 color sets, so up to four players can pick the same fighter.
   - Super close-up sheets are in `SUPERS`; portraits and select cards are in `PORTRAITS`/`CARDS`.
@@ -105,10 +105,11 @@ Alex thinks about fighters as 60–99 ratings: the lowest current value of a tra
 | Armor | −10% | +18% | `armor` |
 | Stability | weight 1.1 | weight 0.6 | `weight` |
 
-Overall = plain average. Becky's flinch resistance (`lightArmor`) isn't on the scale yet; a Toughness rating was suggested. Last ratings shown: AC 81, Becky 75, B-Money 81 (AC height 74, Becky 65 after the Nov 2026 change). Brick, Volt and Winston haven't been rated yet. The 1–5 stars on fighter select are still hand-written and don't follow these ratings.
+Overall = plain average. Haddie and Harper haven't been rated on this scale yet. Becky's flinch resistance (`lightArmor`) isn't on the scale yet; a Toughness rating was suggested. Last ratings shown: AC 81, Becky 75, B-Money 81 (AC height 74, Becky 65 after the Nov 2026 change). Brick, Volt and Winston haven't been rated yet. The 1–5 stars on fighter select are still hand-written and don't follow these ratings.
 
 Known issues and ideas:
 - The 1v1 gym backdrop art still shows the old "NEXT REP" logo on the wall.
+- In the last 8-fighter 1v1 sim Winston read ~63%, but 50–55% in three runs just before; likely noise from 10-match samples. Run `sim_1v1.py 20` before tuning him.
 - Brick dominates free-for-all in CPU sims (~37% wins with 4 fighters); Volt is weakest (~6%). Alex was offered a 2v2/free-for-all-only balance pass.
 - If a player leaves mid-match, the match ends and everyone goes back to the lobby; a CPU doesn't take over.
 - Campaign isn't built yet.

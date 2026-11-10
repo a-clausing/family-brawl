@@ -5,14 +5,14 @@ Reports average match length, wins by fighter, and any errors or stuck matches (
 """
 import asyncio, sys
 from playwright.async_api import async_playwright
-from _common import page_url
+from _common import page_url, FIGHTERS
 
 N = int(sys.argv[1]) if len(sys.argv) > 1 else 30
-JS = """(([mode,n])=>{
-  const {G,setupMulti,startRound,step}=__sim, F=['ac','brick','becky','volt','bmoney','winston'];
+JS = """(([mode,n,F])=>{
+  const {G,setupMulti,startRound,step}=__sim;
   G.diff='hard'; G.mode='play'; G.paused=false; const res={wins:{},frames:0,draws:0,errors:[],maxF:0};
   for(let i=0;i<n;i++){
-    const keys=[0,1,2,3].map(()=>F[Math.floor(Math.random()*6)]);
+    const keys=[0,1,2,3].map(()=>F[Math.floor(Math.random()*F.length)]);
     setupMulti(keys,[true,true,true,true],mode==='2v2'); G.rules={mode:'bestof',bestOf:5,minutes:2,stocks:3};
     G.round=1; startRound(); G.phase='intro';
     let fr=0;
@@ -32,7 +32,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await pg.goto(page_url('sim.html')); await pg.wait_for_timeout(500); await pg.evaluate("__sim.setW(360)")
         for mode in ['ffa', '2v2']:
-            r = await pg.evaluate(JS, [mode, N])
+            r = await pg.evaluate(JS, [mode, N, FIGHTERS])
             bad |= bool(r['errors'])
             print(f"{mode}: avg match {r['frames'] / N / 60:.0f}s, longest {r['maxF'] / 60:.0f}s | wins by fighter {r['wins']} | draws {r['draws']} | errors {r['errors'][:2] or 'none'}")
         print('page errors:', errs[:2] or 'none'); await b.close()
