@@ -1016,13 +1016,14 @@ function bkAttackFrame(f){
   const m=f.cfg.moves[f.move], k=f.mf, st=m.st, ac=m.ac, rc=m.rc;
   const ph=k<=st?0:(k<=st+ac?1:2);
   const pr=ph===0?k/Math.max(1,st):(ph===2?(k-st-ac)/Math.max(1,rc):0);
+  const six=()=>ph===0?Math.min(2,Math.floor(pr*3)):(ph===1?3:4+Math.min(1,Math.floor(pr*2)));
   switch(f.move){
-    case 'punch': case 'low': {   // guard, punch out, hold, back to guard (second punch of a chain is the heavy one)
-      const n=(f.combo>0 && f.move==='punch')?'hp':'lp';
-      return n+(ph===1||(ph===2&&pr<0.5)?1:0); }
-    case 'kick': return 'rk'+(ph===0&&pr<0.5?0:(ph===2&&pr>0.6?0:1));
-    case 'air': return ph===0?'air0':'air1';
-    case 'special':   // wind up, mug drawn back, throw (mug leaves at the start of the throw), follow through, back to guard
+    case 'punch': case 'low':
+      if(f.combo>0 && f.move==='punch') return 'hpunch'+six();
+      return 'lpunch'+(ph===0?0:(ph===1?1:2+Math.min(1,Math.floor(pr*2))));
+    case 'kick': return 'hkick'+six();
+    case 'air': return ph===0?'lkick1':'lkick2';
+    case 'special':   // v2 art: wind up, mug drawn back, throw (mug leaves at the start of the throw), follow through, back to guard
       if(k<st) return 'special'+Math.min(1,Math.floor(k/st*2));
       return (k-st)<4?'special2':((k-st)<rc*0.6?'special3':'special4');
   }
@@ -1033,13 +1034,13 @@ function bkFrame(f){
   if(f.vS!==key){ f.vS=key; f.vA=f.anim; }
   const t=f.anim-f.vA;
   switch(f.state){
-    case 'idle': if(f.landT<7 && f.anim>12) return 'jump3'; return 'idle'+(Math.floor(t/9)%4);
-    case 'walk': { const i=Math.floor(t/7)%4; return 'walk'+(Math.sign(f.vx)===f.dir?i:3-i); }   // walking back plays the walk in reverse
+    case 'idle': if(f.landT<7 && f.anim>12) return 'jump3'; return 'idle'+(Math.floor(t/8)%6);
+    case 'walk': { const i=Math.floor(t/5)%6; return (Math.sign(f.vx)===f.dir?'walk':'walkb')+i; }
     case 'jump': if(f.vy<-1.5) return 'jump1'; if(f.vy>1.5&&f.y>GROUND-12) return 'jump3'; return 'jump2';
-    case 'crouch': return 'crouch';
+    case 'crouch': return 'jump0';
     case 'block': return f.bstun>0?'block3':'block'+Math.min(2,Math.floor(t/3));
-    case 'hit': return 'hit'+Math.min(2,Math.floor(t/5));
-    case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<6?'down2':'down3';
+    case 'hit': return 'hit'+Math.min(3,Math.floor(t/4));
+    case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<5?'down2':(f.landT<10?'down3':'down4');
     case 'win': return 'idle0';   // her old win pose held the band; Alex can send a new victory pose
     case 'attack': return bkAttackFrame(f);
   }
@@ -2411,7 +2412,7 @@ function throwStep(f,o){
   if(t>=30){ f.move=null; f.thr=null; f.state='idle'; }
   phys(f);
 }
-function throwFrame(f){ const t=f.thr?f.thr.t:0, p=f.key==='becky'?'t_':''; return p+(t<6?'lpunch1':(t<16?'hpunch3':(t<24?'hpunch4':'hpunch5'))); }   // Becky keeps her v1 grab frames (t_*)
+function throwFrame(f){ const t=f.thr?f.thr.t:0; return t<6?'lpunch1':(t<16?'hpunch3':(t<24?'hpunch4':'hpunch5')); }
 function commonFrame(f){
   if(f.kd) return kdFrame(f);
   if(f.held) return 'hit1';

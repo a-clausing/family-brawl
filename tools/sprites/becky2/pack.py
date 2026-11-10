@@ -15,7 +15,14 @@ def packit(items):
     buf=io.BytesIO(); q.save(buf,'PNG',optimize=True); data=buf.getvalue()
     v=Image.new('RGBA',q.size,(110,170,235,255)); v.alpha_composite(q.convert('RGBA'))
     return data,{n:[p[0],p[1],p[2],p[3],int(round(float(p[4]))),int(round(float(p[5])))]+([p[6]] if p[6]!=2 else []) for n,p in pos.items()},v
-main=[(n,f['img'],f['ax'],f['ay'],2) for n,f in F.items() if n not in SKIP]
+# Alex (Nov 2026): keep her v1 look for everything except the new special and super,
+# so the main atlas is her v1 frames (minus the band special) plus the v2 Coffee Mug Toss frames
+import subprocess, re as _re
+_js=subprocess.run(['git','show','f59de20:src/assets/becky-sheet.js'],capture_output=True,text=True,cwd='../../..').stdout
+_src=_re.search(r'src:"data:image/png;base64,([^"]+)"',_js).group(1); _spr=json.loads(_re.search(r'spr:(\{.*?\})',_js).group(1))
+_old=np.asarray(Image.open(io.BytesIO(base64.b64decode(_src))).convert('RGBA'))
+main=[(n,_old[y:y+h,x:x+w].copy(),ax,ay,2) for n,(x,y,w,h,ax,ay) in _spr.items() if not n.startswith('special')]
+main+=[(n,f['img'],f['ax'],f['ay'],2) for n,f in F.items() if n.startswith('special')]
 data,spr,v=packit(main); v.save('atlas_view.png'); print('main',len(data),'bytes',len(spr),'sprites')
 MAIN={'src':'data:image/png;base64,'+base64.b64encode(data).decode(),'spr':spr,'hand':hand}
 # super sheet: Becky+shelf frames at 2x, props stored at 3x their game size
