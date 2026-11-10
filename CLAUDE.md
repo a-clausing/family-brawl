@@ -64,7 +64,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - `rnd` is for visual effects only.
 - **Render and UI.** HUD (`hud`, `hudMulti`), VS screen, menus.
   - The HUD is drawn through `hudFaded`, which splits the top bar into one column per panel and fades a column to 25% while any fighter's head is under it (so jumps never hide behind the bar).
-  - `fadeControls` (called at the end of `render`) checks every 4 frames whether a fighter's body overlaps each touch button or the stick, and adds `.behind` to fade just that control to ~.2 (.5 if pressed).
+  - `fadeControls` (called at the end of `render`) checks every 4 frames whether a fighter's body overlaps each touch button or the stick, and fades it with `.behind`. The right-hand buttons fade together as one group if a fighter is behind any of them (Alex found one-at-a-time distracting); the stick fades on its own. Faded is ~.28 (.58 if pressed).
   - Touch controls are in their original spots (14px from the sides, 8px from the bottom). Alex tried them tucked further into the corners and found them harder to hold, so keep them there. They're a bit more see-through than they used to be: buttons and stick .52, Super/Special stronger when ready, .85 while pressed.
   - Main menu backdrop is Alex's title art (`art/originals/family-brawl-title-bg.png`, embedded as `src/assets/title-bg.webp.b64`, 1600px WebP) under the logo and buttons. The old fanned fighter cards were removed from it.
   - Menu flow: main menu (Arcade / Campaign "coming soon") → Arcade → Solo → fighter select, or → Online → Host / Join (`#onlineOv`) → lobby.
