@@ -367,7 +367,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
         <img class="tport" alt="" data-port="becky">
         <span class="badges"></span>
         <span class="nm">BECKY</span>
-        <span class="spc">Special: Band Whip</span>
+        <span class="spc">Special: Coffee Mug Toss</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
       </button>
       <button class="pick" data-c="bmoney" aria-pressed="false" style="--fc:#a24dff">
@@ -476,7 +476,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
           <b>2V2 · FFA</b><span>Pick the fight type at the top of this screen. Up to four fighters share a wider arena and the camera follows the action. Everyone has a few lives (set them in Fight Options): lose your health bar and you drop back in; out of lives, you're out. Last fighter (or team) standing wins. Specials and supers hit everyone in their path, but never your teammate.</span>
           <b>SUPER</b><span>Fill the meter all the way (2.5 specials’ worth) without spending it and SUPER lights up. Supers can’t be blocked or jumped.</span>
           <b>P, K</b><span>Punch and kick. Land a hit, then tap P or K again right away to chain a combo.</span>
-          <b>SPECIAL</b><span>Costs 40 meter; the bar glows when it's ready. Jump or block the dumbbell, jump the quake, block the band (it reaches you even mid-jump), and jump Volt's Hyper Sprint (it can't be blocked).</span>
+          <b>SPECIAL</b><span>Costs 40 meter; the bar glows when it's ready. Jump or block the dumbbell, jump the quake, jump, duck or block Becky's coffee mug, and jump Volt's Hyper Sprint (it can't be blocked).</span>
         </div>
         <p class="kbd" style="margin-top:10px;text-align:left">Keyboard: left/right or A/D walk, up/W/space jump, J punch, K kick, L special, U super, I block, P pause.</p>
     <button class="go" id="howClose">GOT IT</button>
@@ -985,7 +985,7 @@ function acFrame(f){
 }
 // g is a context in game units with a 2x device transform; sheet pixels are half a game pixel
 const BKS=window.BK_SHEET, BKIMG=new Image(); let bkReady=false;
-const BK_HAND=BKS.hand;   // [ahead, above feet] in game px: where the band leaves her fist
+const BK_HAND=BKS.hand;   // [ahead, above feet] in sheet-half px (times her drawK): where the coffee mug leaves her fist
 // Alternate palettes for mirror matches: rotate each fighter's accent hue (AC blue->red, Brick red->blue, Becky green->purple)
 const ALT={};
 function makeAlt(key,img,test,shift,boost=1,store=ALT){
@@ -1016,17 +1016,15 @@ function bkAttackFrame(f){
   const m=f.cfg.moves[f.move], k=f.mf, st=m.st, ac=m.ac, rc=m.rc;
   const ph=k<=st?0:(k<=st+ac?1:2);
   const pr=ph===0?k/Math.max(1,st):(ph===2?(k-st-ac)/Math.max(1,rc):0);
-  const six=()=>ph===0?Math.min(2,Math.floor(pr*3)):(ph===1?3:4+Math.min(1,Math.floor(pr*2)));
   switch(f.move){
-    case 'punch': case 'low':
-      if(f.combo>0 && f.move==='punch') return 'hpunch'+six();
-      return 'lpunch'+(ph===0?0:(ph===1?1:2+Math.min(1,Math.floor(pr*2))));
-    case 'kick': return 'hkick'+six();
-    case 'air': return ph===0?'lkick1':'lkick2';
-    case 'special':   // stretch the band, load it, then hold the whip pose until it snaps back
-      if(k<st) return 'special'+Math.min(2,Math.floor(k/st*3));
-      if(f.bandOut) return 'special3nb';
-      return (k-st)<rc/2?'special4':'special5';
+    case 'punch': case 'low': {   // guard, punch out, hold, back to guard (second punch of a chain is the heavy one)
+      const n=(f.combo>0 && f.move==='punch')?'hp':'lp';
+      return n+(ph===1||(ph===2&&pr<0.5)?1:0); }
+    case 'kick': return 'rk'+(ph===0&&pr<0.5?0:(ph===2&&pr>0.6?0:1));
+    case 'air': return ph===0?'air0':'air1';
+    case 'special':   // wind up, mug drawn back, throw (mug leaves at the start of the throw), follow through, back to guard
+      if(k<st) return 'special'+Math.min(1,Math.floor(k/st*2));
+      return (k-st)<4?'special2':((k-st)<rc*0.6?'special3':'special4');
   }
   return 'idle0';
 }
@@ -1035,14 +1033,14 @@ function bkFrame(f){
   if(f.vS!==key){ f.vS=key; f.vA=f.anim; }
   const t=f.anim-f.vA;
   switch(f.state){
-    case 'idle': if(f.landT<7 && f.anim>12) return 'jump3'; return 'idle'+(Math.floor(t/8)%6);
-    case 'walk': { const i=Math.floor(t/5)%6; return (Math.sign(f.vx)===f.dir?'walk':'walkb')+i; }
+    case 'idle': if(f.landT<7 && f.anim>12) return 'jump3'; return 'idle'+(Math.floor(t/9)%4);
+    case 'walk': { const i=Math.floor(t/7)%4; return 'walk'+(Math.sign(f.vx)===f.dir?i:3-i); }   // walking back plays the walk in reverse
     case 'jump': if(f.vy<-1.5) return 'jump1'; if(f.vy>1.5&&f.y>GROUND-12) return 'jump3'; return 'jump2';
-    case 'crouch': return 'jump0';
+    case 'crouch': return 'crouch';
     case 'block': return f.bstun>0?'block3':'block'+Math.min(2,Math.floor(t/3));
-    case 'hit': return 'hit'+Math.min(3,Math.floor(t/4));
-    case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<5?'down2':(f.landT<10?'down3':'down4');
-    case 'win': return 'special1';   // band stretched overhead-ready
+    case 'hit': return 'hit'+Math.min(2,Math.floor(t/5));
+    case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<6?'down2':'down3';
+    case 'win': return 'idle0';   // her old win pose held the band; Alex can send a new victory pose
     case 'attack': return bkAttackFrame(f);
   }
   return 'idle0';
@@ -1717,7 +1715,7 @@ function applyHit(att,def,m,srcX,hx,hy){
     return;
   }
   const away=def.x>=srcX?1:-1;
-  if(def.state==='block' && def.onGround && !m.unblockable && (def.dir===-away || m.type==='band')){
+  if(def.state==='block' && def.onGround && !m.unblockable && def.dir===-away){
     const chip=Math.max(1,Math.round(m.dmg*0.15*(1-def.cfg.armor)));
     def.hp=def.hp>chip?def.hp-chip:Math.min(def.hp,1); def.lagT=20;
     def.bstun=m.bs; def.vx=away*m.kb*0.8*def.cfg.weight;
@@ -1790,10 +1788,10 @@ function spawnSpecial(f){
     G.proj.push({type:'ripple',owner:f,x,y:GROUND,vx:f.dir*3.6,t:0,range:72,dmg:12,kb:2.6,hs:22,bs:11,kd:true});
     G.shake=Math.max(G.shake,4); sparks(x,GROUND-3,BM_FX,8); dust(x,GROUND,6); sfx('quake');
     G.parts.push({type:'sfx',key:'bmoney',name:'burst',x,y:GROUND+2,life:14,max:14,sc:0.8,alt:f.alt,main:true});
-  } else if(f.key==='becky'){
-    G.proj.push({type:'band',owner:f,dir:f.dir,x:f.x+f.dir*BK_HAND[0],y:f.y-BK_HAND[1],vx:f.dir*7,t:0,phase:0,
-      hitOut:false,hitBack:false,dmg:10,kb:2,hs:18,bs:10});
-    f.bandOut=true; sfx('snap');
+  } else if(f.key==='becky'){   // COFFEE MUG TOSS: a mug flies straight from her fist (block it, jump it or duck it)
+    const k=CH.becky.drawK||1, x=f.x+f.dir*BK_HAND[0]*k, y=f.y-BK_HAND[1]*k;
+    G.proj.push({type:'mug',owner:f,x,y,vx:f.dir*4.8,t:0,dmg:10,kb:2.2,hs:18,bs:10});
+    sfx('whoosh');
   } else {
     const x=f.x+f.dir*22;
     G.proj.push({type:'wave',owner:f,x,y:GROUND,vx:f.dir*2.7,t:0,dmg:12,kb:3,hs:24,bs:12,launch:true,kd:true});
@@ -1824,6 +1822,7 @@ const WN_FX=['#2f9bff','#8fd0ff','#e6f6ff'], WN_FX_ALT=['#ff8a1f','#ffc27a','#ff
 const WN_MOUTH=[23,30];   // Winston's mouth: forward, up (game px); was [21,27] before he grew 10%
 const HD_MOUTH=[21,17];   // Haddie's mouth on her puke frames: forward, up (game px); was [22,18] before she shrank
 const PUKE_FX=['#c6f23a','#8fd11e','#eaffb0'];
+const COFFEE_FX=['#6b3a1c','#a0612e','#f4ead8'];   // coffee splash + bits of white mug
 const HP_MOUTH=[19,20];   // Harper's mouth on her yap frames: forward, up (game px)
 const YAP_FX=['#ff2fa0','#ff8fd0','#ffe0f2'], YAP_FX_ALT=['#2fe07a','#8ff0b8','#e0ffee'];
 const BUFFER_FRAMES=8;   // ~0.13 s at 60 fps
@@ -1893,7 +1892,7 @@ const CINE_Z={ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:
 const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
 const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES'};
 const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3};
-const AC_RELEASE=[33.3, 48.6], BK_LOOP=[47.7, 38.9], BK_HAND2=[13.6, 38.9];
+const AC_RELEASE=[33.3, 48.6], BK_REL=[22, 33];   // where the barbell / book stack leaves their hands [ahead, above feet]
 const clampX=x=>Math.max(14,Math.min(AW-14,x));
 function startSuper(f,o){
   f.move='super'; f.state='attack'; f.mf=0; f.mhit=false; f.moveId++; f.vx=0; f.combo=0;
@@ -1904,7 +1903,7 @@ function startSuper(f,o){
 }
 function superFrame(f){
   const s=f.sup;
-  if(G.cine && G.f[G.cine.who]===f && s.fr===SUPER_POSE[f.key] && G.cine.t>8 && G.cine.t<CINE-10) return 'S:hd';
+  if(G.cine && G.f[G.cine.who]===f && s.fr===SUPER_POSE[f.key] && G.cine.t>8 && G.cine.t<CINE-10 && SUPERS[f.key].spr.hd) return 'S:hd';
   return 'S:'+s.fr;
 }
 // super armor lasts until the super's damage lands, or until the super is fully over with nothing left in flight
@@ -1979,24 +1978,20 @@ function superStep(f,o){
         s.fr=4;
       } else if(u<52) s.fr=5; else if(u<60) s.fr=6; else return endSuper(f,o);
       break; }
-    case 'becky': {   // BAND SNARE: lasso the opponent, reel them in, five-hit combo
-      if(t<=CINE){ s.fr=t<16?0:1; break; }
-      if(s.ph===0){
-        s.fr=2;
-        if(u===3){ f.dir=o.x>=f.x?1:-1; G.proj.push({type:'slasso',sup:1,owner:f,x:f.x+f.dir*BK_LOOP[0],y:f.y-BK_LOOP[1],vx:f.dir*9,t:0}); sfx('snap'); }
-        if(u>=7) s.ph=1;
-      } else if(s.ph===1){
-        s.fr=3; if(!G.proj.some(p=>p.owner===f&&p.type==='slasso')) return endSuper(f,o);
-      } else if(s.ph===2){
-        s.fr=3; s.kt++;
-        const tx=clampX(f.x+f.dir*24), d=tx-o.x; o.x+=Math.sign(d)*Math.min(Math.abs(d),6); o.vx=0;
-        if(Math.abs(tx-o.x)<1||s.kt>30){ s.ph=3; s.k=0; s.kt=0; }
-      } else if(s.ph===3){
-        const STEPS=[[4,6],[5,7],[6,9],[7,10],[8,16]], cur=STEPS[s.k], last=s.k===STEPS.length-1;
-        s.fr=cur[0]; s.kt++;
-        if(s.kt===4){ superHit(f,o,cur[1],last?{launch:true,kb:3,hs:46,vy:-4.6,big:true}:{kb:0.25,hs:40}); if(last) s.lock=false; }
-        if(s.kt>=9){ s.k++; s.kt=0; if(s.k>=STEPS.length) s.ph=4; }
-      } else { s.fr=9; if(++s.kt>=12) return endSuper(f,o); }
+    case 'becky': {   // BOOK STACK THROW: a bookshelf pops up, she grabs a stack and heaves it across the arena
+      const shX=()=>f.x+f.dir*(SUPERS.becky.meta.shelf+16)*(CH.becky.drawK||1);
+      if(t===1) bkPuff(f,shX());
+      if(t<=CINE){ s.fr=t<12?0:t<24?1:t<38?2:3; break; }
+      if(u<6) s.fr=4;
+      else if(u<16){
+        s.fr=5;
+        if(u===6){ f.dir=o.x>=f.x?1:-1; const k=CH.becky.drawK||1;
+          G.proj.push({type:'sbook',sup:1,owner:f,x:f.x+f.dir*BK_REL[0]*k,y:f.y-BK_REL[1]*k,vx:f.dir*6.5,t:0,
+            dmg:SUPER_DMG.becky,kb:4,hs:46,bs:0,unblockable:true,launch:true}); sfx('whoosh'); G.shake=Math.max(G.shake,3); }
+      } else {
+        if(u===16) bkPuff(f,shX());   // the shelf vanishes in a dust cloud
+        s.fr=6; if(u>=34) return endSuper(f,o);
+      }
       break; }
     case 'bmoney': {   // RISING QUAKE: punch the floor, the quake staggers the opponent in, jumping uppercut
       const minD=(f.cfg.w+o.cfg.w)/2, FX=f.alt?BM_FX_ALT:BM_FX;
@@ -2134,8 +2129,15 @@ function quakeEnd(f,p){
   else G.parts.push({type:'sfx',key:'brick',name:'erupt_small',x:clampX(p.x),y:GROUND+2,life:24,max:24,sc:0.8,alt:f.alt});
 }
 // impact of a thrown super (AC's barbell, Haddie's trash)
+function bkPuff(f,x){ G.parts.push({type:'sfx',key:'becky',name:'puff',x,y:GROUND+2,life:22,max:22,sc:1.1,alt:f.alt}); dust(x,GROUND,8); }
 function superBlast(f,o,p){
-  if(p.type==='strash'){
+  if(p.type==='sbook'){   // the stack bursts: books everywhere, loose pages, a dust cloud
+    G.parts.push({type:'sfx',key:'becky',name:'puff',x:o.x,y:GROUND+2,life:30,max:30,sc:1,alt:f.alt});
+    G.parts.push({type:'sfx',key:'becky',name:'flybooks',x:o.x,y:o.y-22,life:24,max:24,sc:1,alt:f.alt});
+    G.parts.push({type:'sfx',key:'becky',name:'papers',x:o.x+(p.vx>0?8:-8),y:o.y-34,life:34,max:34,sc:0.9,alt:f.alt});
+    G.parts.push({type:'sfx',key:'becky',name:'star',x:o.x,y:o.y-26,life:14,max:14,sc:1,alt:f.alt});
+    debris(o.x,GROUND-2,8);
+  } else if(p.type==='strash'){
     G.parts.push({type:'sfx',key:'haddie',name:'pile',x:o.x,y:GROUND+2,life:40,max:40,sc:1,alt:f.alt});
     G.parts.push({type:'sfx',key:'haddie',name:'star',x:o.x,y:o.y-24,life:14,max:14,sc:1,alt:f.alt});
     debris(o.x,GROUND-2,10);
@@ -2164,7 +2166,7 @@ function superProj(p){
     if(p.x<6||p.x>AW-6){ sparks(clampX(p.x),GROUND-4,f.alt?BM_FX_ALT:BM_FX,8); dust(clampX(p.x),GROUND,6); return true; }
     return false;
   }
-  if(p.type==='sbar'||p.type==='strash'){
+  if(p.type==='sbar'||p.type==='strash'||p.type==='sbook'){
     if(live && (Math.abs(p.x-o.x)<o.cfg.w/2+10 || Math.sign(o.x-p.x)!==Math.sign(p.vx))){
       superLanded(f);
       const keep=f.meter; p.noScale=true; applyHit(f,o,p,p.x-p.vx*10,o.x,o.y-26); f.meter=keep; if(o.hp>0) knockDown(o,Math.sign(p.vx),2.6,-4.4);
@@ -2181,16 +2183,6 @@ function superProj(p){
     }
     if(p.x<8||p.x>AW-8){ quakeEnd(f,p); return true; }
     return false;
-  }
-  if(p.type==='slasso'){
-    // latch on when the loop reaches the opponent, or if they're already closer than (or behind) the loop,
-    // so the snare can't miss at point-blank range
-    const dx=o.x-p.x;
-    if(live && f.sup && (Math.abs(dx)<o.cfg.w/2+10 || Math.sign(dx)!==Math.sign(p.vx))){
-      superLanded(f); f.sup.ph=2; f.sup.kt=0; f.sup.lock=true; o.vx=0; o.stun=Math.max(o.stun,30); o.state='hit'; o.move=null; o.sprint=null; o.sup=null;
-      sfx('snap'); return true;
-    }
-    return p.x<-20||p.x>AW+20||!f.sup;
   }
   return true;
 }
@@ -2213,7 +2205,7 @@ function superProjMulti(p){
     if(p.x<6||p.x>AW-6){ sparks(clampX(p.x),GROUND-4,f.alt?BM_FX_ALT:BM_FX,8); dust(clampX(p.x),GROUND,6); return true; }
     return false;
   }
-  if(p.type==='sbar'||p.type==='squake'||p.type==='strash'||p.type==='sshake'){
+  if(p.type==='sbar'||p.type==='squake'||p.type==='strash'||p.type==='sshake'||p.type==='sbook'){
     const wave=p.type==='squake'||p.type==='sshake';
     if(wave && (p.type==='squake'?p.t%3===0:p.t%2===0)) quakeTrail(f,p);
     p.hitl=p.hitl||[];
@@ -2231,24 +2223,7 @@ function superProjMulti(p){
     if(p.x<8||p.x>AW-8){ quakeEnd(f,p); return true; }
     return false;
   }
-  if(p.type==='slasso'){
-    for(const o of vs){
-      const dx=o.x-p.x;
-      if(!(fight && f.sup && !untouchable(o) && (Math.abs(dx)<o.cfg.w/2+10 || crossed(o) || (o===tg && Math.sign(dx)!==Math.sign(p.vx) && p.t<=2)))) continue;
-      superLanded(f); f.sup.ti=fidx(o); f.sup.ph=2; f.sup.kt=0; f.sup.lock=true; o.vx=0; o.stun=Math.max(o.stun,30); o.state='hit'; o.move=null; o.sprint=null; o.sup=null;
-      sfx('snap'); return true;
-    }
-    return p.x<-20||p.x>AW+20||!f.sup;
-  }
   return true;
-}
-function bandLine(f,x2,y2){
-  const [c1,c2,c3]=f.alt?['#e8335f','#ffb0c2','#2c0a12']:['#4fcc2e','#b8f58c','#10280b'];
-  const hx=f.x+f.dir*BK_HAND2[0], hy=f.y-BK_HAND2[1];
-  ctx.save(); ctx.lineCap='round';
-  for(const [col,lw,off] of [[c3,2.2,-1.4],[c3,2.2,1.4],[c1,1.2,-1.4],[c1,1.2,1.4],[c2,0.5,-1.7]]){
-    ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.beginPath(); ctx.moveTo(hx,hy+off); ctx.lineTo(x2,y2+off*0.6); ctx.stroke(); }
-  ctx.restore();
 }
 function drawSuperProj(p){
   const f=p.owner, dir=Math.sign(p.vx)||1;
@@ -2257,7 +2232,7 @@ function drawSuperProj(p){
   else if(p.type==='squake') drawSup('brick',f.alt,'erupt_small',p.x,GROUND+2,dir,0.62+0.1*Math.sin(p.t*0.9));
   else if(p.type==='sshake') drawSup('harper',f.alt,'swoosh2',p.x,GROUND+2,dir,0.95+0.08*Math.sin(p.t*0.8));
   else if(p.type==='strash'){ drawSup('haddie',f.alt,'trashfly',p.x,p.y+Math.sin(p.t*0.5)*1.5,dir,1); if(p.t%2===0) debris(p.x-dir*20,p.y+4,1,true); }
-  else if(p.type==='slasso'){ bandLine(f,p.x-dir*12,p.y); drawSup('becky',f.alt,'loop_fly',p.x,p.y,dir,0.42); }
+  else if(p.type==='sbook'){ drawSup('becky',f.alt,'speed',p.x-dir*16,p.y,dir,1,0.9); drawSup('becky',f.alt,'stack',p.x,p.y,dir,1.15,1,Math.sin(p.t*0.4)*0.12); }
 }
 function drawHeldFx(f){   // Winston holds the bone in his mouth while winding up the throw
   if(f.key!=='winston' || f.move!=='special' || f.state!=='attack' || !wnReady) return;
@@ -2266,7 +2241,7 @@ function drawHeldFx(f){   // Winston holds the bone in his mouth while winding u
   ctx.save(); ctx.translate(f.x+f.dir*(WN_MOUTH[0]-3-k),f.y-WN_MOUTH[1]+1-k*2); if(f.dir<0) ctx.scale(-1,1); ctx.rotate(-0.25-k*0.3); ctx.scale(0.8,0.8);
   ctx.drawImage(sheetImg('winston',f.alt),sx,sy,w,h,-ax/2,-ay/2,w/2,h/2); ctx.restore();
 }
-function drawSuperExtras(f){   // drawn behind the fighter: Volt's afterimages, Becky's snare
+function drawSuperExtras(f){   // drawn behind the fighter: Volt's and Winston's afterimages
   const s=f.sup; if(!s) return;
   if(f.key==='volt' && s.trail.length && (s.ph===1||s.ph===3)){
     const col=f.alt?'#33d6ff':'#ffd400';
@@ -2275,10 +2250,6 @@ function drawSuperExtras(f){   // drawn behind the fighter: Volt's afterimages, 
   if(f.key==='winston' && s.trail && s.trail.length && s.ph===1){   // blue afterimages behind each dash
     const col=f.alt?'#ff8a1f':'#2f9bff';
     s.trail.forEach((x,i)=>{ ctx.save(); ctx.globalAlpha=0.12+i*0.08; drawAC(ctx,f,x,f.y,col,'S:3'); ctx.restore(); });
-  }
-  if(f.key==='becky' && (s.ph===2||(s.ph===3&&s.k===0&&s.kt<4))){
-    const o=f===G.f[0]?G.f[1]:G.f[0];
-    bandLine(f,o.x-f.dir*8,o.y-26); drawSup('becky',f.alt,'loop_snare',o.x,o.y-24,1,0.36);
   }
 }
 // ---- the cinematic close-up
@@ -2413,7 +2384,7 @@ function kdStep(f,o){
 function kdFrame(f){
   const k=f.kd;
   if(k.ph==='air') return k.t<8?'down0':'down1';
-  if(k.ph==='lie') return k.t<5?'down2':(k.t<10?'down3':'down4');
+  if(k.ph==='lie'){ const d4=SHEETS[f.key].S().spr['down4']; return k.t<5?'down2':(k.t<10||!d4?'down3':'down4'); }
   const n=SHEETS[f.key].S().spr['getup3']?4:3;
   return 'getup'+Math.min(n-1,Math.floor(k.t/KD_UP*n));
 }
@@ -2440,7 +2411,7 @@ function throwStep(f,o){
   if(t>=30){ f.move=null; f.thr=null; f.state='idle'; }
   phys(f);
 }
-function throwFrame(f){ const t=f.thr?f.thr.t:0; return t<6?'lpunch1':(t<16?'hpunch3':(t<24?'hpunch4':'hpunch5')); }
+function throwFrame(f){ const t=f.thr?f.thr.t:0, p=f.key==='becky'?'t_':''; return p+(t<6?'lpunch1':(t<16?'hpunch3':(t<24?'hpunch4':'hpunch5'))); }   // Becky keeps her v1 grab frames (t_*)
 function commonFrame(f){
   if(f.kd) return kdFrame(f);
   if(f.held) return 'hit1';
@@ -2475,7 +2446,6 @@ function updF(f,o){
   if(f.move){
     const m=c.moves[f.move]; f.mf++;
     if(f.move==='special' && f.mf===m.st) spawnSpecial(f);
-    if(f.move==='special' && f.bandOut && f.mf>m.st){ f.mf=m.st+1; f.vx=0; phys(f); return; }
     if(f.key==='volt' && f.move==='special'){
       if(f.impactT>0) f.impactT--;
       if(f.mf<m.st){   // sprinter's start: electricity builds
@@ -2525,8 +2495,8 @@ function updF(f,o){
 }
 function separate(a,b){
   if(a.state==='ko'||b.state==='ko') return;
-  const through=f=>f.sprint||(f.sup&&(f.key==='volt'||f.key==='winston'||(f.key==='becky'&&f.sup.ph>=2)));
-  if(through(a)||through(b)||a.kd||b.kd||a.held||b.held) return;   // Hyper Sprint, Volt's super dashes and Becky's reel-in pass straight through
+  const through=f=>f.sprint||(f.sup&&(f.key==='volt'||f.key==='winston'));
+  if(through(a)||through(b)||a.kd||b.kd||a.held||b.held) return;   // Hyper Sprint and Volt's/Winston's super dashes pass straight through
   const minD=(a.cfg.w+b.cfg.w)/2, dx=b.x-a.x, ad=Math.abs(dx);
   if(ad>=minD) return;
   if(a.y<=b.y-(b.cfg.artH||b.cfg.h)+2 || b.y<=a.y-(a.cfg.artH||a.cfg.h)+2) return; // clearing the other's head: pass over
@@ -2558,7 +2528,7 @@ function aiInput(f,o){
       const dk='d'+G.f.indexOf(f); if(p[dk]===undefined) p[dk]=arnd()<D.dodge;
       if(p[dk]){
         threat=true;
-        if(p.type==='plate'||p.type==='band'||p.type==='bone'||p.type==='puke'||p.type==='yap'){ if(pd<70) Object.assign(inp,{block:true,left:false,right:false,up:false}); }
+        if(p.type==='plate'||p.type==='mug'||p.type==='bone'||p.type==='puke'||p.type==='yap'){ if(pd<70) Object.assign(inp,{block:true,left:false,right:false,up:false}); }
         else if(pd<36 && pd>12 && f.onGround){ inp.up=true; inp.block=false; }
       }
     }
@@ -2621,37 +2591,12 @@ function updProj(){
   for(let i=G.proj.length-1;i>=0;i--){
     const p=G.proj[i];
     if(p.sup){ if(superProj(p)){ G.proj.splice(i,1); superArmorCheck(p.owner); } continue; }
-    if(p.type==='band'){
-      const o=p.owner; p.t++;
-      if(o.move!=='special'||o.state!=='attack'){ o.bandOut=false; G.proj.splice(i,1); continue; }   // she got knocked out of it
-      p.y=o.y-BK_HAND[1];
-      const hx=o.x+p.dir*BK_HAND[0];
-      if(p.phase===0){
-        p.x+=p.dir*7; p.vx=p.dir*7;
-        // the tip reaches the opponent at any height (it can't be jumped): hit (or get blocked), then snap back
-        let dd=null;
-        for(const e of (G.multi?foes(o):[o===G.f[0]?G.f[1]:G.f[0]])){ const eb=hurt(e); if(G.phase==='fight' && e.state!=='ko' && !untouchable(e) && p.x+5>=eb.x0 && p.x-5<=eb.x1){ dd=e; break; } }
-        const hb=dd?hurt(dd):null;
-        if(dd){
-          p.x=p.dir>0?Math.max(hb.x0-2,p.x-7):Math.min(hb.x1+2,p.x+7);
-          applyHit(o,dd,p,o.x,p.x,Math.max(hb.y0+4,Math.min(hb.y1-4,p.y)));
-          p.phase=1; sfx('snap');
-        } else {
-          const edge=p.dir>0?AW-4:4;   // nobody in the way (opponent KO'd mid-whip): stop at the wall
-          if((p.dir>0&&p.x>=edge)||(p.dir<0&&p.x<=edge)){ p.x=edge; p.phase=1; sfx('snap'); }
-        }
-      } else {
-        p.x-=p.dir*9; p.vx=-p.dir*9;
-        if((p.dir>0&&p.x<=hx)||(p.dir<0&&p.x>=hx)){ o.bandOut=false; G.proj.splice(i,1); continue; }
-      }
-      continue;
-    }
     p.x+=p.vx; p.t++;
     if(p.type==='ripple' && p.t>p.range){   // energy dissipates at max range
       sparks(p.x,GROUND-4,p.owner.alt?BM_FX_ALT:BM_FX,6); dust(p.x,GROUND,4); G.proj.splice(i,1); continue;
     }
     if(p.type==='ripple' && p.t%3===0) sparks(p.x-Math.sign(p.vx)*10,GROUND-2,p.owner.alt?BM_FX_ALT:BM_FX,1);
-    const box=p.type==='plate'?{x0:p.x-4,x1:p.x+4,y0:p.y-4,y1:p.y+4}:p.type==='bone'?{x0:p.x-6,x1:p.x+6,y0:p.y-3,y1:p.y+3}:p.type==='puke'?{x0:p.x-8,x1:p.x+8,y0:p.y-5,y1:p.y+5}:p.type==='yap'?{x0:p.x-6,x1:p.x+6,y0:p.y-9,y1:p.y+9}:{x0:p.x-6,x1:p.x+6,y0:GROUND-13,y1:GROUND};
+    const box=p.type==='plate'?{x0:p.x-4,x1:p.x+4,y0:p.y-4,y1:p.y+4}:p.type==='mug'?{x0:p.x-6,x1:p.x+6,y0:p.y-4,y1:p.y+4}:p.type==='bone'?{x0:p.x-6,x1:p.x+6,y0:p.y-3,y1:p.y+3}:p.type==='puke'?{x0:p.x-8,x1:p.x+8,y0:p.y-5,y1:p.y+5}:p.type==='yap'?{x0:p.x-6,x1:p.x+6,y0:p.y-9,y1:p.y+9}:{x0:p.x-6,x1:p.x+6,y0:GROUND-13,y1:GROUND};
     if(p.type==='wave' && p.t%3===0) debris(p.x,GROUND-2,2,true);
     let gone=false;
     for(const d of (G.multi?foes(p.owner):[p.owner===G.f[0]?G.f[1]:G.f[0]])){
@@ -2664,6 +2609,7 @@ function updProj(){
       if(p.type==='bone'){ sparks(hx,p.y,p.owner.alt?WN_FX_ALT:WN_FX,8); G.parts.push({type:'sfx',key:'winston',name:'burst',x:hx,y:p.y,life:10,max:10,sc:0.4,alt:p.owner.alt,main:true}); }
       if(p.type==='puke'){ sparks(hx,p.y,PUKE_FX,10); G.parts.push({type:'sfx',key:'haddie',name:'splash',x:hx,y:p.y+4,life:16,max:16,sc:0.9,dir:Math.sign(p.vx),alt:p.owner.alt,main:true}); }
       if(p.type==='yap'){ sparks(hx,p.y,p.owner.alt?YAP_FX_ALT:YAP_FX,10); }
+      if(p.type==='mug'){ sparks(hx,p.y,COFFEE_FX,12); G.parts.push({type:'sfx',key:'becky',name:'star',x:hx,y:p.y,life:10,max:10,sc:0.7}); }
       if(G.multi && (p.type==='ripple'||p.type==='wave')){ (p.hitl=p.hitl||[]).push(fidx(d)); continue; }   // shockwaves roll on to the next fighter
       gone=true; break;
     }
@@ -2800,23 +2746,11 @@ function txt(s,x,y,size,col,align='center'){
 }
 function drawProj(p){
   if(p.sup){ drawSuperProj(p); return; }
-  if(p.type==='band'){
-    const o=p.owner, hx=o.x+p.dir*BK_HAND[0], y=p.y, tip=p.x;
-    const [c1,c2,c3]=o.alt?['#e8335f','#ffb0c2','#2c0a12']:['#4fcc2e','#b8f58c','#10280b'];
-    const len=Math.abs(tip-hx), sp=Math.min(3,0.8+len/70), mid=(hx+tip)/2, sag=p.phase?1.5:-0.5;
-    const strand=(off,col,lw)=>{ ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.beginPath(); ctx.moveTo(hx,y);
-      ctx.quadraticCurveTo(mid,y+off+sag,tip,y+off); ctx.stroke(); };
-    ctx.save(); ctx.lineCap='round'; ctx.lineJoin='round';
-    strand(-sp,c3,2.2); strand(sp,c3,2.2);
-    strand(-sp,c1,1.2); strand(sp,c1,1.2); strand(-sp-0.3,c2,0.5);
-    // looped end of the band
-    ctx.strokeStyle=c3; ctx.lineWidth=2.2; ctx.beginPath(); ctx.ellipse(tip,y,2.2,sp+0.4,0,0,Math.PI*2); ctx.stroke();
-    ctx.strokeStyle=c1; ctx.lineWidth=1.2; ctx.beginPath(); ctx.ellipse(tip,y,2.2,sp+0.4,0,0,Math.PI*2); ctx.stroke();
-    if(p.phase===0){ // speed lines behind the tip on the way out
-      ctx.strokeStyle=c2; ctx.globalAlpha=0.7; ctx.lineWidth=0.6;
-      for(const dy of [-sp-3,0,sp+3]){ ctx.beginPath(); ctx.moveTo(tip-p.dir*4,y+dy); ctx.lineTo(tip-p.dir*14,y+dy*1.3); ctx.stroke(); }
-    }
-    ctx.restore();
+  if(p.type==='mug'){   // coffee mug with a splash trailing behind, wobbling as it flies
+    const dir=Math.sign(p.vx)||1;
+    drawSup('becky',p.owner.alt,'speed',p.x-dir*15,p.y,dir,0.9,0.8);
+    drawSup('becky',p.owner.alt,'mug_fly',p.x,p.y,dir,1.5,1,Math.sin(p.t*0.5)*0.15);
+    if(p.t%3===0) part(p.x-dir*7,p.y-2,-p.vx*0.15,-0.3-rnd()*0.4,10,COFFEE_FX[(p.t>>2)%2],1,0.08);
     return;
   }
   if(p.type==='yap'){   // three sound rings, growing as they travel
@@ -3149,7 +3083,7 @@ function drawVSMulti(){   // 2v2 / free-for-all intro: every fighter's card in a
 const VS_LEN=156, VS_SLAM=26;
 const PORT={}; for(const [k,src] of Object.entries(window.PORTRAITS)){ const im=new Image(); im.src=src; PORT[k]=im; }
 const CARD={}; for(const [k,src] of Object.entries(window.CARDS)){ const im=new Image(); im.src=src; CARD[k]=im; }
-const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'BAND WHIP',volt:'HYPER SPRINT',bmoney:'GROUND RIPPLE',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP'};
+const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'COFFEE MUG TOSS',volt:'HYPER SPRINT',bmoney:'GROUND RIPPLE',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP'};
 function vsSkip(){ if(G.mode==='play' && G.phase==='vs' && !NET.active && G.pt<VS_LEN-14) G.pt=VS_LEN-14; }
 function drawVS(){
   const t=G.pt, [a,b]=G.f, C=W/2, PS=112, top=16;
