@@ -63,6 +63,8 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - **All CPU randomness must use `arnd()`, never `rnd()`/`Math.random`.** Online rooms swap `arnd` for a seeded generator so every phone agrees.
   - `rnd` is for visual effects only.
 - **Render and UI.** HUD (`hud`, `hudMulti`), VS screen, menus.
+  - The HUD is drawn through `hudFaded`, which splits the top bar into one column per panel and fades a column to 25% while any fighter's head is under it (so jumps never hide behind the bar).
+  - Touch controls sit close to the screen corners and are mostly see-through (buttons .4, Super/Special a bit stronger when ready, .85 while pressed). Alex asked for this so fighters behind them stay visible.
   - Main menu backdrop is Alex's title art (`art/originals/family-brawl-title-bg.png`, embedded as `src/assets/title-bg.webp.b64`, 1600px WebP) under the logo and buttons. The old fanned fighter cards were removed from it.
   - Menu flow: main menu (Arcade / Campaign "coming soon") → Arcade → Solo → fighter select, or → Online → Host / Join (`#onlineOv`) → lobby.
   - Fighter select (`#menu.fsel`, modeled on Alex's mockup) has three columns: left hero panel (logo, big portrait, blurb, stats, super name: `renderHero`), middle 3×2 grid of portrait tiles (`.pick`, with P1–P4 badges from `renderBadges`), right side panel (1v1/2v2/free-for-all dropdown `#fmodeSel`, SOLO/ONLINE chip, then CPU difficulty and opponents in solo, or room code, copy, Invite and the lobby list in online) above the big FIGHT/READY button. A bottom bar holds Back, Fight Options and How to Play (`#howOv` popup).
@@ -104,6 +106,7 @@ Known issues and ideas:
 - Brick dominates free-for-all in CPU sims (~37% wins with 4 fighters); Volt is weakest (~6%). Alex was offered a 2v2/free-for-all-only balance pass.
 - If a player leaves mid-match, the match ends and everyone goes back to the lobby; a CPU doesn't take over.
 - Campaign isn't built yet.
+- The 1v1 gym backdrop art still has the old "NEXT REP" logo painted on the wall. It needs new art or a repaint of that area.
 - Idea Alex shelved (Nov 2026): shrink Winston's hit box to his drawn 33 px so standing punches whiff over him, while kicks, crouching punches, jump attacks, specials and supers still hit. It would need a balance cost, a CPU change to kick/go low against him, and a MISS pop-up.
 
 ## Sprite pipelines (`tools/sprites/<fighter>/`)

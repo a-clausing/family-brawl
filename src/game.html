@@ -26,14 +26,14 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 #stageWrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
 #game{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
 
-#controls{position:absolute;left:max(14px,env(safe-area-inset-left,0px));right:max(14px,env(safe-area-inset-right,0px));
-  bottom:max(8px,env(safe-area-inset-bottom,0px));display:flex;align-items:flex-end;justify-content:space-between;gap:8px;pointer-events:none}
+#controls{position:absolute;left:max(4px,calc(env(safe-area-inset-left,0px) - 26px));right:max(4px,calc(env(safe-area-inset-right,0px) - 26px));
+  bottom:max(3px,calc(env(safe-area-inset-bottom,0px) - 14px));display:flex;align-items:flex-end;justify-content:space-between;gap:8px;pointer-events:none}
 .stick,.rightside,.mid{pointer-events:auto}
 .pad{display:grid;grid-template-columns:repeat(3,var(--b));grid-template-rows:repeat(3,var(--b));gap:3px;touch-action:none}
 .pad > *{width:100%;height:100%;border:0;padding:0;background:none}
-.hub{border-radius:50%;background:radial-gradient(circle,#2a2238 35%,transparent 36%);opacity:.6}
+.hub{border-radius:50%;background:radial-gradient(circle,#2a2238 35%,transparent 36%);opacity:.3}
 .act{border-radius:50%;border:2px solid #120e14;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  color:#120e14;font-family:var(--pixel);font-size:12px;line-height:1;opacity:.66;
+  color:#120e14;font-family:var(--pixel);font-size:12px;line-height:1;opacity:.4;
   box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810;transition:background .15s}
 .act i{font-style:normal;font-family:var(--ui);font-weight:700;font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;opacity:.75}
 .pu{background:var(--gold)} .ki{background:var(--ember)} .bl{background:#9a90b3} .ju{background:#6fd36a}
@@ -41,12 +41,12 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .sp{background:#3d4a69;color:#9fb0d6;border-radius:14px;width:calc(var(--b)*1.8);height:calc(var(--b)*0.78);font-size:11px;letter-spacing:.04em;margin-right:calc(var(--b)*-0.15)}
 .sp.ready{background:var(--steel);color:#fff;animation:ready 1s ease-in-out infinite}
 @keyframes ready{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810,0 0 18px 2px rgba(59,124,255,.7)}}
-.act.on{opacity:.92;transform:translateY(3px) scale(.95);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 #0a0810}
-.sp.ready{opacity:.92}
-.stick{width:calc(var(--b)*3);height:calc(var(--b)*2.4);display:grid;place-items:center;touch-action:none}
+.act.on{opacity:.85;transform:translateY(3px) scale(.95);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 #0a0810}
+.sp.ready{opacity:.72}
+.stick{width:calc(var(--b)*2.8);height:calc(var(--b)*2.4);display:grid;place-items:center;touch-action:none}
 .track{position:relative;width:100%;height:calc(var(--b)*1.3);border-radius:999px;background:var(--panel-hi);border:2px solid #120e14;
-  box-shadow:inset 0 5px 0 #1a1424,0 3px 0 #0a0810;opacity:.66}
-.stick.held .track{opacity:.92}
+  box-shadow:inset 0 5px 0 #1a1424,0 3px 0 #0a0810;opacity:.4}
+.stick.held .track{opacity:.85}
 .arr{position:absolute;top:50%;width:14px;height:14px;fill:#5b4f78;transform:translateY(-50%)}
 .arr.l{left:12px} .arr.r{right:12px}
 .stick.goL .arr.l,.stick.goR .arr.r{fill:var(--gold)}
@@ -103,8 +103,8 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 @media (prefers-reduced-motion:reduce){.sp.ready,.phone{animation:none}}
 .sprow{display:flex;gap:6px;align-items:center;margin-right:calc(var(--b)*-0.15)}
 .sprow .sp{margin-right:0}
-.su{border-radius:14px;width:calc(var(--b)*1.05);height:calc(var(--b)*0.78);font-size:9px;letter-spacing:.02em;background:#2a2238;color:#6d6390;opacity:.42}
-.su.ready{background:linear-gradient(180deg,#ffe066,#ff8a1f);color:#120e14;opacity:.95;animation:suglow .7s ease-in-out infinite}
+.su{border-radius:14px;width:calc(var(--b)*1.05);height:calc(var(--b)*0.78);font-size:9px;letter-spacing:.02em;background:#2a2238;color:#6d6390;opacity:.28}
+.su.ready{background:linear-gradient(180deg,#ffe066,#ff8a1f);color:#120e14;opacity:.78;animation:suglow .7s ease-in-out infinite}
 @keyframes suglow{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810,0 0 22px 4px rgba(255,170,40,.85)}}
 @media (prefers-reduced-motion:reduce){.su.ready{animation:none}}
 #controls{transition:opacity .25s}
@@ -2809,6 +2809,20 @@ function drawTags(cam){   // a label over every fighter so you can tell four fig
     txt(t,Math.round(sx),Math.round(sy-9),8,t==='YOU'?'#ffd23f':col);
   }
 }
+// The top bar turns see-through over any fighter who jumps (or gets launched) up into it, one panel at a time.
+const HUD_FADE=[];
+function hudFaded(draw,n,bottom,cam){
+  const z=cam?cam.z:1, cx=cam?cam.cx:W/2, cy=cam?cam.cy:H/2, pw=W/n;
+  const boxes=G.f.filter(f=>!(f.out||f.dead)).map(f=>{
+    const ht=(f.cfg.artH||f.cfg.h)*1.08;   // a little above the hit box, where hair and fists reach
+    return {x:W/2+(f.x-cx)*z, top:H/2+(f.y-ht-cy)*z, hw:20*z};
+  });
+  for(let i=0;i<n;i++){
+    const x0=i*pw, x1=x0+pw, under=boxes.some(b=>b.top<bottom && b.x+b.hw>x0 && b.x-b.hw<x1);
+    const tgt=under?0.25:1, a=HUD_FADE[i]=HUD_FADE[i]==null?tgt:HUD_FADE[i]+(tgt-HUD_FADE[i])*0.25;
+    ctx.save(); ctx.beginPath(); ctx.rect(x0,0,pw,H); ctx.clip(); ctx.globalAlpha=a; draw(); ctx.restore();
+  }
+}
 function hudMulti(){
   const n=G.f.length, pw=Math.floor((W-4)/n);
   G.f.forEach((f,i)=>{
@@ -2902,7 +2916,7 @@ function render(){
   }
   ctx.restore();
   if(G.flashT>0){ G.flashT--; ctx.fillStyle=G.flashCol||'rgba(255,226,60,.08)'; ctx.fillRect(0,0,W,H); if(!G.flashT) G.flashCol=null; }
-  if(G.f && G.mode==='play'){ if(G.phase==='vs') (G.multi?drawVSMulti:drawVS)(); else if(G.cine) drawCineBanner(); else if(G.multi){ drawTags(cam); hudMulti(); bannersMulti(); } else { hud(); banners(); } }
+  if(G.f && G.mode==='play'){ if(G.phase==='vs') (G.multi?drawVSMulti:drawVS)(); else if(G.cine) drawCineBanner(); else if(G.multi){ drawTags(cam); hudFaded(hudMulti,G.f.length,50,cam); bannersMulti(); } else { hudFaded(hud,2,46,null); banners(); } }
   if(NET.active && G.mode==='play' && NET.stall>20) txt('WAITING FOR OPPONENT…',W/2,104,8,'#ffd23f');
 }
 
