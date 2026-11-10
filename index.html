@@ -2163,21 +2163,21 @@ function superProj(p){
   if(G.multi) return superProjMulti(p);
   const o=p.owner===G.f[0]?G.f[1]:G.f[0], f=p.owner; p.t++; p.x+=p.vx;
   const live=G.phase==='fight' && o.state!=='ko';
-  if(p.type==='bquake'){   // Rising Quake wave: a jump clears it; a grounded hit confirms the combo
+  if(p.type==='bquake'){   // Rising Quake wave: catches the opponent at any height (it can't be jumped) and confirms the combo
     const dir=Math.sign(p.vx), dx=(o.x-p.x)*dir, reach=o.cfg.w/2+12;
     if(p.t%2===0) sparks(p.x-dir*8,GROUND-3,f.alt?BM_FX_ALT:BM_FX,2);
     if(!p.missed && live && f.sup && Math.abs(dx)<=reach){
-      if(o.y>GROUND-14 && !untouchable(o)){
+      if(!untouchable(o)){
         const keep=f.meter;
         applyHit(f,o,{dmg:14,kb:0,hs:70,bs:0,unblockable:true,noScale:true},p.x-dir*10,o.x,o.y-20);
-        f.meter=keep; o.vx=0; o.vy=0;
+        f.meter=keep; o.vx=0; o.vy=o.onGround?0:2;   // caught mid-jump: pulled back down for the stagger
         f.sup.ph=2; f.sup.kt=0; f.sup.lock=true;
         G.parts.push({type:'sfx',key:'bmoney',name:'burst',x:o.x,y:GROUND+2,life:18,max:18,sc:1,alt:f.alt});
         debris(o.x,GROUND-3,8); G.shake=Math.max(G.shake,6); sfx('heavy');
         return true;
       }
     }
-    if(dx<-reach) p.missed=true;   // it passed under a jumping opponent
+    if(dx<-reach) p.missed=true;   // it went past (they were untouchable as it reached them)
     if(p.x<6||p.x>AW-6){ sparks(clampX(p.x),GROUND-4,f.alt?BM_FX_ALT:BM_FX,8); dust(clampX(p.x),GROUND,6); return true; }
     return false;
   }
@@ -2218,10 +2218,10 @@ function superProjMulti(p){
   if(p.type==='bquake'){
     if(p.t%2===0) sparks(p.x-dir*8,GROUND-3,f.alt?BM_FX_ALT:BM_FX,2);
     for(const o of vs){
-      if(!fight || !f.sup || Math.abs(o.x-p.x)>o.cfg.w/2+12 || o.y<=GROUND-14 || untouchable(o)) continue;
+      if(!fight || !f.sup || Math.abs(o.x-p.x)>o.cfg.w/2+12 || untouchable(o)) continue;   // any height: it can't be jumped
       const keep=f.meter;
       applyHit(f,o,{dmg:14,kb:0,hs:70,bs:0,unblockable:true,noScale:true},p.x-dir*10,o.x,o.y-20);
-      f.meter=keep; o.vx=0; o.vy=0;
+      f.meter=keep; o.vx=0; o.vy=o.onGround?0:2;   // caught mid-jump: pulled back down for the stagger
       f.sup.ti=fidx(o); f.sup.ph=2; f.sup.kt=0; f.sup.lock=true;
       G.parts.push({type:'sfx',key:'bmoney',name:'burst',x:o.x,y:GROUND+2,life:18,max:18,sc:1,alt:f.alt});
       debris(o.x,GROUND-3,8); G.shake=Math.max(G.shake,6); sfx('heavy');
@@ -3408,7 +3408,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=8;
+const HASH_EVERY=30, KEEP=900, NET_V=9;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 function stateHash(){

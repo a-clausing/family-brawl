@@ -58,6 +58,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
 - **Facing.** Human players face the last way they pushed, on the ground and in the air (`steerFace`); they don't turn on their own when getting up or after Volt's sprint. CPUs always turn to face their target (Alex chose this, Nov 2026). Supers and throws still swing everyone around to their target. Block only stops hits from the front.
 - **Combat.** `applyHit`, combo scaling, knockdowns, throws.
   - Supers are cinematic, and each fighter's projectile is handled in `superProj` (1v1) or `superProjMulti`.
+  - **Supers can't be jumped** (Alex, Nov 2026): every super hits by position along the floor at any height. B-Money's Rising Quake was the only one a jump cleared; it now catches jumpers and pulls them down for the stagger and uppercut. Regular specials are unchanged and can still be jumped or ducked (except Becky's band). Alex first said "special" but meant super; a version that made every special unjumpable was undone before shipping.
   - Specials: AC's dumbbell, Brick's quake wave, Becky's band, Volt's sprint, B-Money's ripple, Winston's bone, Haddie's puke (`puke` projectile), Harper's Yap (`yap`, sound rings drawn in code, long range, stuns).
   - Haddie's super, Trash Pile Attack, throws `strash`, which works like AC's barbell (`superBlast` draws the impact). Harper's super, Anxiety Shakes, sends `sshake` rolling along the floor like Brick's quake (`quakeTrail`/`quakeBlast`/`quakeEnd` hold the per-fighter visuals).
 - **2v2 and free-for-all.**
