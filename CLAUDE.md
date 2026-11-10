@@ -108,6 +108,7 @@ Known issues and ideas:
 - Brick dominates free-for-all in CPU sims (~37% wins with 4 fighters); Volt is weakest (~6%). Alex was offered a 2v2/free-for-all-only balance pass.
 - If a player leaves mid-match, the match ends and everyone goes back to the lobby; a CPU doesn't take over.
 - Campaign isn't built yet.
+- **Planned (Nov 2026): two new dog fighters, Haddie and Harper.** Waiting on Alex's sprite sheets (one each, like Winston's). Decided so far: drawn 5% (Haddie, ~31 px) and 10% (Harper, ~30 px) smaller than Winston's 33 px, with Winston's 46 px hit box so standing punches still land; each gets her own style, special and super from Alex; fighter select becomes 4 across × 2 rows.
 - The 1v1 gym backdrop art still has the old "NEXT REP" logo painted on the wall. It needs new art or a repaint of that area.
 - Idea Alex shelved (Nov 2026): shrink Winston's hit box to his drawn 33 px so standing punches whiff over him, while kicks, crouching punches, jump attacks, specials and supers still hit. It would need a balance cost, a CPU change to kick/go low against him, and a MISS pop-up.
 
