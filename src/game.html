@@ -126,17 +126,8 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 #app.cinemode .mid{opacity:0;pointer-events:none}
 #app.multimode .mid{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 3vh)}
 #app.vsmode .stick,#app.vsmode .rightside{pointer-events:none}
-/* Main menu: logo over a fan of the fighter cards, on the gym */
-.mainmenu{background:radial-gradient(ellipse at 50% 45%,rgba(14,11,22,.55),rgba(14,11,22,.92) 75%);overflow:hidden;align-items:center}
-.mm-fan{position:absolute;left:50%;top:52%;width:0;height:0;pointer-events:none}
-.mm-fan img{position:absolute;height:min(74vh,310px);aspect-ratio:168/382;object-fit:cover;object-position:28% 30%;left:0;top:0;border-radius:6px;opacity:.42;
-  box-shadow:0 10px 30px rgba(0,0,0,.6);transform-origin:50% 120%;transition:transform .6s cubic-bezier(.2,.9,.25,1.2)}
-.mm-fan img:nth-child(1){transform:translate(-50%,-50%) translateX(-102vh) rotate(-19deg)}
-.mm-fan img:nth-child(2){transform:translate(-50%,-50%) translateX(-68vh) rotate(-12deg)}
-.mm-fan img:nth-child(3){transform:translate(-50%,-50%) translateX(-34vh) rotate(-5deg)}
-.mm-fan img:nth-child(4){transform:translate(-50%,-50%) translateX(34vh) rotate(5deg)}
-.mm-fan img:nth-child(5){transform:translate(-50%,-50%) translateX(68vh) rotate(12deg)}
-.mm-fan img:nth-child(6){transform:translate(-50%,-50%) translateX(102vh) rotate(19deg)}
+/* Main menu: logo and buttons over the title art (src/assets/title-bg.webp.b64) */
+.mainmenu{background:radial-gradient(ellipse 34% 60% at 50% 55%,rgba(10,8,20,.45),rgba(10,8,20,0) 100%),url("@@asset:title-bg.webp.b64@@") center/cover no-repeat #0b0f24;overflow:hidden;align-items:center}
 .mm-col{position:relative;margin:auto 0;display:flex;flex-direction:column;align-items:center;gap:min(3vh,14px)}
 .mm-logo{width:min(78vh,340px);height:auto;filter:drop-shadow(0 0 18px rgba(59,124,255,.4)) drop-shadow(0 8px 14px rgba(0,0,0,.6))}
 .mm-btns{display:flex;flex-direction:column;gap:min(2.2vh,10px);width:min(320px,80vw)}
@@ -221,9 +212,6 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 </div>
 
 <div class="overlay mainmenu" id="mainMenu">
-  <div class="mm-fan" aria-hidden="true">
-    <img data-card="ac" alt=""><img data-card="brick" alt=""><img data-card="becky" alt=""><img data-card="volt" alt=""><img data-card="bmoney" alt=""><img data-card="winston" alt="">
-  </div>
   <div class="mm-col">
     <img class="mm-logo" src="@@asset:logo.webp.b64@@" alt="Family Brawl">
     <div class="mm-btns" id="mmTop">
@@ -2876,7 +2864,6 @@ document.querySelectorAll('#diff button').forEach(b=>b.addEventListener('click',
 }));
 const mainMenu=document.getElementById('mainMenu'), optsOv=document.getElementById('optsOv'), menuEl=document.getElementById('menu');
 let appMode='arcade';
-document.querySelectorAll('.mm-fan img').forEach(im=>{ im.src=window.CARDS[im.dataset.card]; });
 function openSelect(mode){
   appMode=mode; audioInit(); sfx('select');
   menuEl.classList.toggle('online',mode==='online');

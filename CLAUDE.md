@@ -61,6 +61,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - **All CPU randomness must use `arnd()`, never `rnd()`/`Math.random`.** Online rooms swap `arnd` for a seeded generator so every phone agrees.
   - `rnd` is for visual effects only.
 - **Render and UI.** HUD (`hud`, `hudMulti`), VS screen, menus.
+  - Main menu backdrop is Alex's title art (`art/originals/family-brawl-title-bg.png`, embedded as `src/assets/title-bg.webp.b64`, 1600px WebP) under the logo and buttons. The old fanned fighter cards were removed from it.
   - Menu flow: main menu (Arcade / Campaign "coming soon") → Arcade → Solo / Online → fighter select.
   - Fighter select has the 1v1/2v2/free-for-all dropdown `#fmodeSel` and CPU pickers.
   - Fight Options are saved in localStorage under `nrb.*`.
