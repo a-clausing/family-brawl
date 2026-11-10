@@ -30,7 +30,7 @@ async def main():
             for pg in P: await pg.reload()
             await A.wait_for_timeout(400)
             await A.click('#mmArcade'); await A.click('#mmOnline'); await A.click('#hostBtn'); await A.wait_for_selector('#room', state='visible')
-            await A.select_option('#fmodeSel', 'ffa'); await A.select_option('#cpuSel0', 'off'); code = await A.inner_text('#codeOut')
+            await A.select_option('#fmodeSel', 'ffa'); await A.select_option('#lobbyCpu0', 'off'); code = await A.inner_text('#codeOut')
             for pg in P[1:]:
                 await pg.click('#mmArcade'); await pg.click('#mmOnline'); await pg.fill('#codeIn', code); await pg.click('#joinBtn')
                 await pg.wait_for_selector('#room', state='visible'); await pg.wait_for_timeout(300)

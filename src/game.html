@@ -1,7 +1,7 @@
 <title>Family Brawl</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Press+Start+2P&family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
 <style>
 /* Layout: landscape-only arcade screen. The stage fills the whole viewport edge to edge; thumb controls float over its lower corners. */
 :root{
@@ -9,6 +9,8 @@
   --ink:#f4ecd8; --dim:#a99fbf; --gold:#ffd23f; --ember:#ff6a1f; --steel:#3b7cff;
   --pixel:"Press Start 2P", ui-monospace, monospace;
   --ui:"Chakra Petch", system-ui, sans-serif;
+  --brush:"Bangers", "Impact", "Arial Black", sans-serif;
+  --titlebg:url("@@asset:title-bg.webp.b64@@");
   --b:clamp(50px,14.5vh,72px);
   color-scheme:dark;
 }
@@ -74,27 +76,12 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));
   padding-block:max(14px,env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-bottom,0px))}
 .panel{width:min(440px,100%);margin:auto 0;display:flex;flex-direction:column;gap:14px}
-.menu-grid{width:min(1000px,100%);margin:auto 0;display:grid;grid-template-columns:minmax(0,0.6fr) minmax(0,1.4fr);gap:22px;align-items:center}
-.mcol{display:flex;flex-direction:column;gap:12px;min-width:0}
-@media (max-width:620px){ .menu-grid{grid-template-columns:1fr} }
 .logo{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .logo .l1{font-family:var(--pixel);font-size:clamp(22px,7.5vh,40px);color:var(--gold);line-height:1;
   text-shadow:3px 3px 0 #120e14,5px 5px 0 var(--steel)}
 .logo .l2{font-family:var(--pixel);font-size:clamp(11px,3.4vh,18px);color:var(--ember);letter-spacing:.5em;padding-left:.5em;text-shadow:2px 2px 0 #120e14}
 .tag{margin:0;text-align:center;color:var(--dim);font-size:14px}
 .label{font-family:var(--pixel);font-size:9px;color:var(--dim);letter-spacing:.06em;margin:0}
-.picks{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
-.seg.seg4{grid-template-columns:repeat(7,1fr)}
-.seg4 button{font-size:13px;padding:8px 0;white-space:nowrap;overflow:hidden}
-@media (max-width:720px){.seg4 button{font-size:11px} .pick .ep{font-size:9px}}
-.pick{display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 4px;text-align:center;
-  background:var(--panel);border:2px solid var(--line);border-radius:8px;min-width:0}
-.pick[aria-pressed="true"]{border-color:var(--gold);background:#251d35;box-shadow:0 0 0 2px #120e14,0 0 20px rgba(255,210,63,.18)}
-.pick canvas{width:100%;max-width:min(100px,22vh);aspect-ratio:84/80;image-rendering:pixelated}
-.pick .nm{font-family:var(--pixel);font-size:12px}
-.pick .ep{font-size:10px;color:var(--dim);line-height:1.25}
-.pick .spc{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
-.pick[data-c="ac"] .spc{color:#7ea8ff} .pick[data-c="brick"] .spc{color:var(--ember)} .pick[data-c="becky"] .spc{color:#7ee052} .pick[data-c="volt"] .spc{color:#ffd400} .pick[data-c="bmoney"] .spc{color:#c77dff} .pick[data-c="winston"] .spc{color:#3fa9ff}
 .stats{display:grid;grid-template-columns:auto minmax(22px,1fr);gap:3px 4px;align-items:center;width:100%;max-width:170px;text-align:left;font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.02em}
 .pips{display:flex;gap:2px}
 .pips span{flex:1;height:6px;background:#2d2540;border-radius:1px}
@@ -127,7 +114,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 #app.multimode .mid{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 3vh)}
 #app.vsmode .stick,#app.vsmode .rightside{pointer-events:none}
 /* Main menu: logo and buttons over the title art (src/assets/title-bg.webp.b64) */
-.mainmenu{background:radial-gradient(ellipse 34% 60% at 50% 55%,rgba(10,8,20,.45),rgba(10,8,20,0) 100%),url("@@asset:title-bg.webp.b64@@") center/cover no-repeat #0b0f24;overflow:hidden;align-items:center}
+.mainmenu{background:radial-gradient(ellipse 34% 60% at 50% 55%,rgba(10,8,20,.45),rgba(10,8,20,0) 100%),var(--titlebg) center/cover no-repeat #0b0f24;overflow:hidden;align-items:center}
 .mainmenu{padding-top:0;padding-bottom:0}
 .mm-col{position:relative;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:max(1vh,env(safe-area-inset-top,0px)) 0 max(2vh,env(safe-area-inset-bottom,0px));box-sizing:border-box;min-height:100%}
 .mm-col .mm-btns{margin:auto 0}
@@ -141,27 +128,93 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 /* Fighter select header + options button */
 .fmode{appearance:none;-webkit-appearance:none;font-family:var(--pixel);font-size:11px;color:var(--gold);background:var(--panel) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M0 0h10L5 6z' fill='%23ffd23f'/%3E%3C/svg%3E") no-repeat right 10px center/10px 6px;
   border:2px solid var(--gold);border-radius:8px;padding:8px 28px 8px 10px;margin-left:auto;min-width:0}
-.fs-top{display:flex;align-items:center;gap:10px}
 .fmode:focus{outline:2px solid #fff;outline-offset:1px}
-.cpumulti{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.cpuslot{display:flex;flex-direction:column;gap:4px;min-width:0}
-.cpuslot label{font-family:var(--pixel);font-size:8px;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cpuslot select{appearance:none;-webkit-appearance:none;width:100%;min-width:0;font:700 13px var(--ui);color:var(--ink);background:var(--panel);border:2px solid var(--line);border-radius:8px;padding:8px 6px;text-align:center}
 .lobby{display:flex;flex-direction:column;gap:6px;width:100%}
 .lobby .row{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--panel);border:2px solid var(--line);border-radius:8px;padding:6px 10px;font-size:14px}
 .lobby .row b{font-family:var(--pixel);font-size:10px}
 .lobby .row span{color:var(--dim);font-size:13px}
 .fs-head{display:flex;align-items:center;gap:10px}
 .backbtn{width:44px;height:44px;padding:0;font-size:24px;line-height:1;display:grid;place-items:center}
-.fs-title{font-family:var(--pixel);font-size:clamp(18px,6vh,26px);color:var(--gold);text-shadow:2px 2px 0 #120e14,4px 4px 0 var(--steel)}
 .optbtn{display:flex;justify-content:space-between;align-items:center;font-family:var(--pixel);font-size:11px;gap:8px}
 .optbtn span{font-family:var(--ui);font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.02em}
 #menu.online .cpuonly{display:none}
+/* ---- Fighter select (also the online lobby): hero | portrait grid | side panel, with a bottom bar */
+.fsel{flex-direction:column;align-items:stretch;justify-content:flex-start;gap:6px;overflow-y:auto;
+  background:linear-gradient(rgba(8,10,26,.86),rgba(8,10,26,.9)),var(--titlebg) center/cover no-repeat #0b0f24;
+  padding-block:max(8px,env(safe-area-inset-top,0px)) max(6px,env(safe-area-inset-bottom,0px))}
+.fs-wrap{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,25fr) minmax(0,45fr) minmax(0,30fr);gap:clamp(8px,1.6vw,18px);width:min(1180px,100%);margin:0 auto}
+.fs-hero,.fs-center,.fs-side{display:flex;flex-direction:column;min-height:0;min-width:0}
+/* left: selected fighter */
+.fs-logo{height:clamp(40px,14vh,84px);width:auto;max-width:100%;object-fit:contain;align-self:center;margin-bottom:-4px;position:relative;z-index:2;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+.hero-card{position:relative;flex:1;min-height:70px;border:2px solid var(--fc,#3b7cff);border-radius:10px 10px 0 0;overflow:hidden;background:#0d1226}
+.hero-port{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.hero-name{position:absolute;left:8px;bottom:2px;font-family:var(--brush);font-size:clamp(26px,10vh,52px);line-height:1;color:#fff;transform:skewX(-8deg);
+  text-shadow:2px 2px 0 #0a0d1c,-2px -2px 0 #0a0d1c,2px -2px 0 #0a0d1c,-2px 2px 0 #0a0d1c,0 0 14px var(--fc,#3b7cff)}
+.hero-info{background:rgba(9,13,30,.94);border:2px solid var(--fc,#3b7cff);border-top:0;border-radius:0 0 10px 10px;padding:6px 8px;display:flex;flex-direction:column;gap:5px}
+.hero-ep{margin:0;font-size:11px;line-height:1.25;color:#d7dcf0}
+.hero-stats .stats{max-width:none;font-size:8px}
+.hero-stats .pips span{height:5px}
+.hero-sup{margin:0;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.hero-sup span{font-family:var(--pixel);font-size:7px;color:var(--dim)}
+.hero-sup b{font-family:var(--brush);font-weight:400;font-size:clamp(15px,5vh,22px);letter-spacing:.03em;color:var(--fc,#3b7cff);display:inline-block;transform:skewX(-8deg);line-height:1;text-shadow:1px 1px 0 #0a0d1c}
+/* middle: portrait grid */
+.fs-h{margin:0 0 6px;text-align:center;font-family:var(--brush);font-weight:400;font-size:clamp(24px,9vh,44px);line-height:1;color:#f4ead8;transform:skewX(-8deg) rotate(-2deg);
+  text-shadow:2px 2px 0 #0a0d1c,-1px -1px 0 #0a0d1c,3px 4px 0 rgba(0,0,0,.5)}
+.picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(6px,1.2vw,12px);width:min(100%,calc(3 * 34vh + 24px));margin:auto}
+.pick{--fc:#3b7cff;position:relative;display:block;padding:0;aspect-ratio:1;border:3px solid var(--fc);border-radius:9px;overflow:hidden;background:#0d1226;min-width:0;
+  box-shadow:0 3px 0 #05070f;transition:transform .12s}
+.pick .tport{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pick::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 52%,rgba(5,8,20,.85));pointer-events:none}
+.pick .nm{position:absolute;left:0;right:0;bottom:3px;z-index:1;font-family:var(--brush);font-size:clamp(16px,6vh,28px);line-height:1;color:#fff;text-align:center;transform:skewX(-8deg);
+  text-shadow:2px 2px 0 #0a0d1c,-1px -1px 0 #0a0d1c,1px -1px 0 #0a0d1c,-1px 1px 0 #0a0d1c}
+.pick .nm{white-space:nowrap;overflow:hidden;padding:0 2px}
+.pick[data-c="bmoney"] .nm,.pick[data-c="winston"] .nm{font-size:clamp(13px,4.8vh,24px)}
+.pick .ep,.pick .spc,.pick .stats{display:none}
+.pick[aria-pressed="true"]{border-color:#ffd23f;transform:translateY(-2px);box-shadow:0 0 0 2px #0a0d1c,0 0 18px rgba(255,210,63,.55)}
+.pick:not([aria-pressed="true"]) .tport{filter:saturate(.8) brightness(.82)}
+.badges{position:absolute;top:0;left:0;z-index:2;display:flex;gap:2px}
+.badges b{font-family:var(--brush);font-weight:400;font-size:clamp(11px,3.6vh,16px);line-height:1;padding:2px 6px 1px;color:#0a0d1c;background:var(--bc,#ffd23f);border-radius:0 0 6px 0}
+/* right: mode chips, panel, ready */
+.fs-chips{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.fs-chips .fmode{flex:1;margin:0;padding:7px 26px 7px 9px;font-size:10px;background-color:rgba(9,13,30,.9)}
+.fs-title{font-family:var(--pixel);font-size:9px;color:#3fa9ff;border:2px solid #3fa9ff;border-radius:8px;padding:8px;white-space:nowrap;background:rgba(9,13,30,.9)}
+.side-panel{flex:1;min-height:0;overflow-y:auto;background:rgba(9,13,30,.9);border:2px solid #2c6fd6;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.solo-cpu{display:flex;flex-direction:column;gap:6px}
+.solo-cpu .seg button{padding:6px 0;font-size:13px}
+.seg.seg4{grid-template-columns:repeat(3,1fr)}
+.seg4 button{font-size:12px;padding:5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg4 button[data-o="random"]{grid-column:1/-1}
+.cpumulti{display:flex;flex-direction:column;gap:5px}
+.cpuslot{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:6px;align-items:center;min-width:0}
+.cpuslot label{font-family:var(--pixel);font-size:7px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cpuslot select,.lobby select{appearance:none;-webkit-appearance:none;width:100%;min-width:0;font:700 12px var(--ui);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 4px;text-align:center}
+.lobby select{width:auto;min-width:92px;margin-left:auto;padding:2px 4px}
+.room{display:flex;flex-direction:column;gap:6px}
+.codebox{display:flex;align-items:center;gap:6px;border:2px solid #3fa9ff;border-radius:8px;background:#060a18;padding:4px 6px 4px 10px}
+.codetxt{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.codetxt span{font-family:var(--pixel);font-size:7px;color:#9fb6e8}
+.codetxt b{font-family:var(--brush);font-weight:400;font-size:clamp(28px,10vh,42px);line-height:1;letter-spacing:.12em;color:#ffd23f;text-shadow:2px 2px 0 #0a0d1c}
+.iconbtn{width:38px;height:38px;display:grid;place-items:center;background:transparent;border:2px solid #2c6fd6;border-radius:8px;color:#9fd0ff;padding:0}
+.iconbtn svg,.invite svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn.done{border-color:#7fdc5f;color:#7fdc5f}
+.invite{display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--brush);font-size:17px;letter-spacing:.04em;color:#fff;background:#10204a;border:2px solid #3fa9ff;border-radius:8px;padding:5px}
+.fs-go{margin-top:8px;font-family:var(--brush);font-weight:400;font-size:clamp(24px,8.5vh,38px);letter-spacing:.04em;padding:clamp(6px,2vh,12px) 10px;transform:skewX(-8deg);border-radius:10px}
+.fs-go:active{transform:skewX(-8deg) translateY(4px)}
+/* bottom bar */
+.fs-bar{display:flex;gap:clamp(6px,1.5vw,14px);align-items:center;width:min(1180px,100%);margin:0 auto}
+.barbtn{display:flex;align-items:center;gap:6px;padding:4px 10px 4px 4px;background:rgba(9,13,30,.85);border:1px solid #2a3560;border-radius:20px;font-family:var(--brush);font-size:16px;letter-spacing:.04em;color:#f4ead8;white-space:nowrap}
+.barbtn.optbtn span{font-family:var(--ui);font-size:12px;font-weight:700;color:var(--gold);letter-spacing:0}
+.dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-family:var(--ui);font-weight:700;font-size:14px;line-height:1;color:#fff;border:2px solid #0a0d1c}
+.dot.red{background:#d8432a}.dot.gold{background:#e2a51b;color:#0a0d1c}.dot.blue{background:#2f6fe0}
+.fs-bar .kbd{margin-left:auto;font-size:11px}
+.howpanel{width:min(620px,100%)}
+.howtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.howtop .ghostbtn{padding:6px 12px}
+.howpanel .howgrid{font-size:13px;color:var(--dim)}
+#howOv{z-index:31}
+@media (max-height:340px){ .fs-logo{display:none} .hero-ep{display:none} }
+@media (max-width:620px){ .fs-wrap{grid-template-columns:1fr} .fs-hero{display:none} }
 .room{display:flex;flex-direction:column;gap:5px}
-.fs-code{margin-left:auto;font-family:var(--pixel);font-size:9px;color:var(--dim);display:flex;flex-direction:column;align-items:flex-end;gap:3px}
-.fs-code b{font-size:16px;color:var(--gold);letter-spacing:.15em}
-#menu.online .mcol{gap:9px}
-#menu.online #goBtn{padding-top:11px;padding-bottom:11px}
 .room .lobby{gap:4px}
 .room .lobby .row{padding:3px 8px;font-size:13px;border-width:1px}
 .room .lobby .row span{font-size:12px}
@@ -275,85 +328,123 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
   </div>
 </div>
 
-<div class="overlay" id="menu" hidden>
-  <div class="menu-grid">
-    <div class="mcol">
-      <div class="fs-head"><button class="ghostbtn backbtn" id="fsBack" aria-label="Back to main menu">‹</button><span class="fs-title" id="fsTitle">SOLO</span><span class="fs-code" id="roomCode" hidden>ROOM<b id="codeOut">----</b></span></div>
-      <button class="ghostbtn optbtn" id="fsOpts">FIGHT OPTIONS <span id="fsOptsLbl">BEST OF 5</span></button>
-      <p class="label cpuonly">CPU DIFFICULTY</p>
-      <div class="seg cpuonly" id="diff">
-        <button data-d="easy" aria-pressed="false">Easy</button>
-        <button data-d="normal" aria-pressed="true">Normal</button>
-        <button data-d="hard" aria-pressed="false">Hard</button>
+<div class="overlay fsel" id="menu" hidden>
+  <div class="fs-wrap">
+    <aside class="fs-hero">
+      <img class="fs-logo" id="fsLogo" alt="Family Brawl">
+      <div class="hero-card" id="heroCard">
+        <img class="hero-port" id="heroPort" alt="">
+        <span class="hero-name" id="heroName">AC</span>
       </div>
-      <div class="room" id="room" hidden>
-        <div class="lobby" id="lobby"></div>
-        <p class="sub lobbystatus" id="lobbyStatus" role="status" aria-live="polite"></p>
+      <div class="hero-info">
+        <p class="hero-ep" id="heroEp"></p>
+        <div class="hero-stats" id="heroStats"></div>
+        <p class="hero-sup"><span>SUPER MOVE</span><b id="heroSup">MAX REP</b></p>
       </div>
-      <button class="go" id="goBtn">FIGHT</button>
-      <p class="kbd" id="fsNote" hidden>The game switches to full screen when the fight starts.</p>
-    </div>
-    <div class="mcol">
-      <div class="fs-top"><p class="label">CHOOSE YOUR FIGHTER</p>
-        <select class="fmode" id="fmodeSel" aria-label="Fight type"><option value="1v1">1 VS 1</option><option value="2v2">2 VS 2</option><option value="ffa">FREE-FOR-ALL</option></select></div>
+    </aside>
+    <section class="fs-center">
+      <h2 class="fs-h">Select your fighter</h2>
       <div class="picks">
-      <button class="pick" data-c="ac" aria-pressed="true">
-        <canvas id="pv-ac" width="168" height="160"></canvas>
+      <button class="pick" data-c="ac" aria-pressed="true" style="--fc:#3b7cff">
+        <img class="tport" alt="" data-port="ac">
+        <span class="badges"></span>
         <span class="nm">AC</span>
         <span class="ep">The lifter. Quick hands, and a jump high enough to clear Brick.</span>
         <span class="spc">Special: Dumbbell Throw</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
       </button>
-      <button class="pick" data-c="brick" aria-pressed="false">
-        <canvas id="pv-brick" width="168" height="160"></canvas>
+      <button class="pick" data-c="brick" aria-pressed="false" style="--fc:#e0402a">
+        <img class="tport" alt="" data-port="brick">
+        <span class="badges"></span>
         <span class="nm">BRICK</span>
         <span class="ep">The living wall. Too heavy to jump over AC, but shrugs off a third of every hit.</span>
         <span class="spc">Special: Quake Slam</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Jump</span><span class="pips"><span class="f"></span><span></span><span></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
       </button>
-      <button class="pick" data-c="becky" aria-pressed="false">
-        <canvas id="pv-becky" width="168" height="160"></canvas>
+      <button class="pick" data-c="becky" aria-pressed="false" style="--fc:#4cc93a">
+        <img class="tport" alt="" data-port="becky">
+        <span class="badges"></span>
         <span class="nm">BECKY</span>
         <span class="ep">The trainer. Fastest feet in the gym, and punches won't stop her.</span>
         <span class="spc">Special: Band Whip</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
       </button>
-      <button class="pick" data-c="volt" aria-pressed="false">
-        <canvas id="pv-volt" width="168" height="160"></canvas>
+      <button class="pick" data-c="volt" aria-pressed="false" style="--fc:#ffd400">
+        <img class="tport" alt="" data-port="volt">
+        <span class="badges"></span>
         <span class="nm">VOLT</span>
         <span class="ep">The storm. Fastest fighter in the gym, but he can't take a hit.</span>
         <span class="spc">Special: Hyper Sprint</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
       </button>
-      <button class="pick" data-c="bmoney" aria-pressed="false">
-        <canvas id="pv-bmoney" width="168" height="160"></canvas>
+      <button class="pick" data-c="bmoney" aria-pressed="false" style="--fc:#a24dff">
+        <img class="tport" alt="" data-port="bmoney">
+        <span class="badges"></span>
         <span class="nm">B-MONEY</span>
         <span class="ep">The prodigy. Fast hands, sharp technique, and a fist that shakes the floor.</span>
         <span class="spc">Special: Ground Ripple</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span></span>
       </button>
-      <button class="pick" data-c="winston" aria-pressed="false">
-        <canvas id="pv-winston" width="168" height="160"></canvas>
+      <button class="pick" data-c="winston" aria-pressed="false" style="--fc:#3fa9ff">
+        <img class="tport" alt="" data-port="winston">
+        <span class="badges"></span>
         <span class="nm">WINSTON</span>
         <span class="ep">The agile striker. Four fast paws, a quick bite, and a bone with your name on it.</span>
         <span class="spc">Special: Bone Throw</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
       </button>
-    </div>
-      <p class="label cpuonly" id="cpuLbl">CPU OPPONENT</p>
-      <div class="cpumulti" id="cpuMulti" hidden></div>
-      <div class="seg seg4 cpuonly" id="cpuPick">
-        <button data-o="ac" aria-pressed="false">AC</button>
-        <button data-o="brick" aria-pressed="false">Brick</button>
-        <button data-o="becky" aria-pressed="false">Becky</button>
-        <button data-o="volt" aria-pressed="false">Volt</button>
-        <button data-o="bmoney" aria-pressed="false">B-Money</button>
-        <button data-o="winston" aria-pressed="false">Winston</button>
-        <button data-o="random" aria-pressed="true">Random</button>
       </div>
-      <details class="howto">
-        <summary>How to play</summary>
-        <div class="howgrid">
+    </section>
+    <aside class="fs-side">
+      <div class="fs-chips">
+        <select class="fmode" id="fmodeSel" aria-label="Fight type"><option value="1v1">1 VS 1</option><option value="2v2">2 VS 2</option><option value="ffa">FREE-FOR-ALL</option></select>
+        <span class="fs-title" id="fsTitle">SOLO</span>
+      </div>
+      <div class="side-panel">
+        <div class="room" id="room" hidden>
+          <div class="codebox" id="roomCode" hidden>
+            <div class="codetxt"><span>ROOM CODE</span><b id="codeOut">----</b></div>
+            <button class="iconbtn" id="copyCode" aria-label="Copy room code" title="Copy code"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button>
+          </div>
+          <button class="invite" id="inviteBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 13.6c2.9.2 5 2.2 5 5.4"/></svg>INVITE PLAYERS</button>
+          <div class="lobby" id="lobby"></div>
+          <p class="sub lobbystatus" id="lobbyStatus" role="status" aria-live="polite"></p>
+        </div>
+        <div class="cpuonly solo-cpu">
+          <p class="label">CPU DIFFICULTY</p>
+          <div class="seg" id="diff">
+            <button data-d="easy" aria-pressed="false">Easy</button>
+            <button data-d="normal" aria-pressed="true">Normal</button>
+            <button data-d="hard" aria-pressed="false">Hard</button>
+          </div>
+          <p class="label" id="cpuLbl">CPU OPPONENT</p>
+          <div class="cpumulti" id="cpuMulti" hidden></div>
+          <div class="seg seg4" id="cpuPick">
+            <button data-o="ac" aria-pressed="false">AC</button>
+            <button data-o="brick" aria-pressed="false">Brick</button>
+            <button data-o="becky" aria-pressed="false">Becky</button>
+            <button data-o="volt" aria-pressed="false">Volt</button>
+            <button data-o="bmoney" aria-pressed="false">B-Money</button>
+            <button data-o="winston" aria-pressed="false">Winston</button>
+            <button data-o="random" aria-pressed="true">Random</button>
+          </div>
+        </div>
+      </div>
+      <button class="go fs-go" id="goBtn">FIGHT</button>
+    </aside>
+  </div>
+  <div class="fs-bar">
+    <button class="barbtn" id="fsBack" aria-label="Back"><i class="dot red">‹</i>BACK</button>
+    <button class="barbtn optbtn" id="fsOpts"><i class="dot gold">⚙</i>FIGHT OPTIONS <span id="fsOptsLbl">BEST OF 5</span></button>
+    <button class="barbtn" id="howBtn"><i class="dot blue">?</i>HOW TO PLAY</button>
+    <p class="kbd" id="fsNote" hidden>Full screen starts with the fight.</p>
+  </div>
+</div>
+
+<div class="overlay" id="howOv" hidden>
+  <div class="panel howpanel">
+    <div class="howtop"><p class="big" style="color:var(--gold);font-size:22px">HOW TO PLAY</p><button class="ghostbtn" id="howX" aria-label="Close">✕</button></div>
+    <div class="howgrid">
           <b>STICK</b><span>Slide left or right to walk. Walking away is a little slower.</span>
           <b>J</b><span>Jump. Steer with the stick while you're in the air, and press P or K for a jump kick. AC can jump right over Brick to escape a corner.</span>
           <b>B</b><span>Tap or hold to block. Blocked hits only chip a little health. Double-tap B right next to an opponent who isn’t attacking or blocking to throw them (no damage, but they’re knocked down).</span>
@@ -364,8 +455,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
           <b>SPECIAL</b><span>Costs 40 meter; the bar glows when it's ready. Jump or block the dumbbell, jump the quake, block the band (it reaches you even mid-jump), and jump Volt's Hyper Sprint (it can't be blocked).</span>
         </div>
         <p class="kbd" style="margin-top:10px;text-align:left">Keyboard: left/right or A/D walk, up/W/space jump, J punch, K kick, L special, U super, I block, P pause.</p>
-      </details>
-    </div>
+    <button class="go" id="howClose">GOT IT</button>
   </div>
 </div>
 
@@ -2846,19 +2936,29 @@ function drawVS(){
   if(!NET.active && t>40 && t<VS_LEN-14 && (t>>4)%2) txt('TAP TO SKIP',C,H-14,8,'#a99fbf');
 }
 
-/* ---------------- Menu previews ---------------- */
-const PV={ac:mkF('ac',0,true), brick:mkF('brick',0,true), becky:mkF('becky',0,true), volt:mkF('volt',0,true), bmoney:mkF('bmoney',0,true), winston:mkF('winston',0,true)};
-const pvCanvas={ac:document.getElementById('pv-ac'), brick:document.getElementById('pv-brick'), becky:document.getElementById('pv-becky'), volt:document.getElementById('pv-volt'), bmoney:document.getElementById('pv-bmoney'), winston:document.getElementById('pv-winston')};
-function drawPreviews(){
-  for(const k of FIGHTERS){
-    const f=PV[k], c=pvCanvas[k], g=c.getContext('2d');
-    g.imageSmoothingEnabled=false;
-    f.anim++; f.state=G.pick===k?'win':'idle';
-    g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,c.width,c.height); g.setTransform(2,0,0,2,0,0);
-    g.fillStyle='rgba(0,0,0,.35)'; g.fillRect(28,74,28,2);
-    drawFighterAny(g,f,42,75);
-  }
+/* ---------------- Fighter select: portraits, hero panel, pick badges ---------------- */
+const FC={ac:'#3b7cff',brick:'#e0402a',becky:'#4cc93a',volt:'#ffd400',bmoney:'#a24dff',winston:'#3fa9ff'};
+document.querySelectorAll('.pick .tport').forEach(im=>{ im.src=window.PORTRAITS[im.dataset.port]; });
+document.getElementById('fsLogo').src=document.querySelector('.mm-logo').src;
+function renderHero(){
+  const k=G.pick, b=document.querySelector(`.pick[data-c="${k}"]`);
+  document.querySelector('.fs-hero').style.setProperty('--fc',FC[k]);
+  document.getElementById('heroPort').src=window.PORTRAITS[k];
+  document.getElementById('heroName').textContent=CH[k].name.toUpperCase();
+  document.getElementById('heroEp').textContent=b.querySelector('.ep').textContent;
+  const st=document.getElementById('heroStats'); st.innerHTML=''; st.appendChild(b.querySelector('.stats').cloneNode(true));
+  document.getElementById('heroSup').textContent=SUPER_NAME[k];
 }
+let lastLobby=null;
+function renderBadges(){   // who picked which fighter: P1 in solo, every player's slot in an online room
+  const list=NET.room&&lastLobby?lastLobby.players.map((p,i)=>({k:p.slot===lastLobby.you?G.pick:p.pick,t:'P'+(i+1),c:SLOT_COL[i]})):[{k:G.pick,t:'P1',c:'#ffd23f'}];
+  document.querySelectorAll('.pick').forEach(b=>{
+    const box=b.querySelector('.badges'); box.innerHTML='';
+    for(const x of list) if(x.k===b.dataset.c){ const e=document.createElement('b'); e.textContent=x.t; e.style.setProperty('--bc',x.c); box.appendChild(e); }
+  });
+}
+function drawPreviews(){}
+renderHero(); renderBadges();
 
 /* ---------------- UI wiring ---------------- */
 const menu=document.getElementById('menu'), pauseOv=document.getElementById('pauseOv'), resultOv=document.getElementById('resultOv');
@@ -2866,7 +2966,7 @@ const spBtn=document.getElementById('spBtn');
 document.querySelectorAll('.pick').forEach(b=>b.addEventListener('click',()=>{
   audioInit(); G.pick=b.dataset.c; sfx('select');
   document.querySelectorAll('.pick').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
-  lobbyChanged();
+  renderHero(); renderBadges(); lobbyChanged();
 }));
 document.querySelectorAll('#cpuPick button').forEach(b=>b.addEventListener('click',()=>{
   audioInit(); G.cpuPick=b.dataset.o; sfx('select');
@@ -2884,15 +2984,31 @@ function openSelect(mode){
   document.getElementById('fsTitle').textContent='SOLO';
   fmodeSel.value=G.fmode; renderCpuSlots();
   const go=document.getElementById('goBtn'); go.textContent='FIGHT'; go.classList.remove('isready');
-  refreshOptsLabel(); mainMenu.hidden=true; menuEl.hidden=false;
+  refreshOptsLabel(); renderHero(); renderBadges(); mainMenu.hidden=true; menuEl.hidden=false;
 }
+// How to play, room code copy and invite
+const howOv=document.getElementById('howOv');
+document.getElementById('howBtn').addEventListener('click',()=>{ sfx('select'); howOv.hidden=false; });
+for(const id of ['howClose','howX']) document.getElementById(id).addEventListener('click',()=>{ sfx('select'); howOv.hidden=true; });
+function inviteLink(){ return location.origin+location.pathname+'?join='+NET.code; }
+function flashDone(btn){ btn.classList.add('done'); setTimeout(()=>btn.classList.remove('done'),1200); }
+function copyText(t,btn){
+  const ok=()=>flashDone(btn);
+  try{ navigator.clipboard.writeText(t).then(ok,()=>{}); }catch(e){}
+}
+document.getElementById('copyCode').addEventListener('click',e=>{ sfx('select'); copyText(NET.code,e.currentTarget); });
+document.getElementById('inviteBtn').addEventListener('click',e=>{
+  sfx('select'); const text=`Join my Family Brawl room! Code: ${NET.code}`, url=inviteLink(), btn=e.currentTarget;
+  if(navigator.share) navigator.share({title:'Family Brawl',text,url}).catch(()=>{});
+  else copyText(text+' '+url,btn);
+});
 const mmTop=document.getElementById('mmTop'), mmArc=document.getElementById('mmArc');
 document.getElementById('mmArcade').addEventListener('click',()=>{ audioInit(); sfx('select'); mmTop.hidden=true; mmArc.hidden=false; });
 document.getElementById('mmBack').addEventListener('click',()=>{ sfx('select'); mmArc.hidden=true; mmTop.hidden=false; });
 document.getElementById('mmSolo').addEventListener('click',()=>openSelect('arcade'));
 document.getElementById('mmOnline').addEventListener('click',()=>{ audioInit(); sfx('select'); openOnline(); });
 document.getElementById('fsBack').addEventListener('click',()=>{ sfx('select'); if(NET.room) netClose(); leaveLobbyScreen(); });
-function leaveLobbyScreen(){ menuEl.hidden=true; menuEl.classList.remove('online'); show('room',false); show('roomCode',false); setRoomControls(); mainMenu.hidden=false; mmTop.hidden=true; mmArc.hidden=false; }
+function leaveLobbyScreen(){ lastLobby=null; howOv.hidden=true; menuEl.hidden=true; menuEl.classList.remove('online'); show('room',false); show('roomCode',false); setRoomControls(); mainMenu.hidden=false; mmTop.hidden=true; mmArc.hidden=false; }
 // ---- 1v1 / 2v2 / free-for-all
 const fmodeSel=document.getElementById('fmodeSel'), cpuMulti=document.getElementById('cpuMulti');
 const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',winston:'Winston'};
@@ -3157,14 +3273,23 @@ function renderLobby(L){
   const state=p=>p.where==='fight'?['In a match','']:p.where==='results'?(p.ready?['Rematch ✓','ok']:['On results','']):(p.ready?['Ready ✓','ok']:['Picking…','']);
   const rows=L.players.map((p,i)=>({lbl:'P'+(i+1)+(p.slot===L.you?' · YOU':''),who:CH[p.pick]?CH[p.pick].name:'?',col:SLOT_COL[i],st:state(p)}));
   if(L.mode==='1v1' && n<2) rows.push({lbl:'P2',who:'Waiting for a friend…',col:'#a99fbf',st:['','']});
-  for(let i=0;i<cpuN;i++) rows.push({lbl:'CPU',who:'Fills an empty spot',col:'#a99fbf',st:['','']});
+  const cpuSpots=L.mode==='1v1'?0:4-n;
+  for(let i=0;i<cpuSpots;i++) rows.push({lbl:'CPU',col:L.mode==='2v2'?TEAM_COL[(n+i)%2]:SLOT_COL[n+i],cpu:i});
   box.innerHTML='';
-  for(const r of rows){ const d=document.createElement('div'); d.className='row'; const b=document.createElement('b'); b.textContent=r.lbl; b.style.color=r.col;
-    const sp=document.createElement('span'); sp.textContent=r.who; const st=document.createElement('i'); st.textContent=r.st[0]; if(r.st[1]) st.className=r.st[1];
-    d.append(b,sp,st); box.appendChild(d); }
+  for(const r of rows){ const d=document.createElement('div'); d.className='row'; const b=document.createElement('b'); b.textContent=r.lbl; b.style.color=r.col; d.append(b);
+    if(r.cpu!==undefined){   // the host picks each CPU (or none, in free-for-all); guests see the choice
+      const sel=document.createElement('select'); sel.id='lobbyCpu'+r.cpu; sel.setAttribute('aria-label','CPU '+(r.cpu+1));
+      const opts=[['random','Random CPU'],...FIGHTERS.map(k=>[k,NAMES[k]])]; if(L.mode==='ffa') opts.push(['off','No CPU']);
+      for(const [v,t] of opts){ const o=document.createElement('option'); o.value=v; o.textContent=t; sel.appendChild(o); }
+      sel.value=opts.some(o=>o[0]===L.cpus[r.cpu])?L.cpus[r.cpu]:'random'; sel.disabled=NET.role!=='host';
+      sel.addEventListener('change',()=>{ G.cpuPicks[r.cpu]=sel.value; sfx('select'); renderCpuSlots(); lobbyUpdate(); });
+      d.append(sel);
+    } else { const sp=document.createElement('span'); sp.textContent=r.who; const st=document.createElement('i'); st.textContent=r.st[0]; if(r.st[1]) st.className=r.st[1]; d.append(sp,st); }
+    box.appendChild(d); }
+  lastLobby=L; renderBadges();
   const host=NET.role==='host', allReady=n>=2&&L.players.every(p=>p.ready);
   const code=L.code||NET.code;
-  const msg=n<2?`Friends join with Online → Join and code ${code}.`
+  const msg=n<2?'Share the code so friends can join.'
     :allReady?'Everyone’s ready. Starting…'
     :host?'Fight starts when everyone is READY.'
     :'Host sets the rules. Fight starts when everyone is READY.';
@@ -3200,7 +3325,7 @@ function guestApplyLobby(L){   // a guest's screen mirrors the host's fight type
 function enterLobby(){
   NET.room=true; NET.where='lobby'; NET.ready=false; NET.over=false; appMode='online';
   onlineOv.hidden=true; mainMenu.hidden=true; resultOv.hidden=true; pauseOv.hidden=true;
-  menuEl.classList.add('online'); show('room',true); show('roomCode',true);
+  menuEl.classList.add('online'); show('room',true); show('roomCode',true); lastLobby=null; renderHero(); renderBadges();
   document.getElementById('fsTitle').textContent='ONLINE';
   fmodeSel.value=G.fmode; renderCpuSlots(); refreshOptsLabel(); setRoomControls(); renderReadyBtn();
   document.getElementById('lobbyStatus').textContent='';
@@ -3369,6 +3494,13 @@ document.getElementById('hostBtn').addEventListener('click',()=>{ audioInit(); o
 document.getElementById('joinBtn').addEventListener('click',()=>{ audioInit(); onlineJoin(); });
 document.getElementById('codeIn').addEventListener('keydown',e=>{ if(e.key==='Enter') onlineJoin(); });
 document.getElementById('onBack').addEventListener('click',()=>{ sfx('select'); if(NET.conn||NET.peer) netClose(); onlineOv.hidden=true; });
+// An invite link (?join=CODE) opens straight to Join with the code filled in
+setTimeout(()=>{ try{
+  const j=(new URLSearchParams(location.search).get('join')||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
+  if(j.length!==4) return;
+  history.replaceState(null,'',location.pathname);
+  document.getElementById('codeIn').value=j; mmTop.hidden=true; mmArc.hidden=false; openOnline(); setStatus('Tap JOIN to enter your friend’s room.');
+}catch(e){} },0);
 
 /* ---------------- Sizing & loop ---------------- */
 const wrap=document.getElementById('stageWrap');

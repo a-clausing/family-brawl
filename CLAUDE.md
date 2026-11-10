@@ -63,7 +63,9 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
 - **Render and UI.** HUD (`hud`, `hudMulti`), VS screen, menus.
   - Main menu backdrop is Alex's title art (`art/originals/family-brawl-title-bg.png`, embedded as `src/assets/title-bg.webp.b64`, 1600px WebP) under the logo and buttons. The old fanned fighter cards were removed from it.
   - Menu flow: main menu (Arcade / Campaign "coming soon") → Arcade → Solo → fighter select, or → Online → Host / Join (`#onlineOv`) → lobby.
-  - Fighter select has the 1v1/2v2/free-for-all dropdown `#fmodeSel` and CPU pickers.
+  - Fighter select (`#menu.fsel`, modeled on Alex's mockup) has three columns: left hero panel (logo, big portrait, blurb, stats, super name: `renderHero`), middle 3×2 grid of portrait tiles (`.pick`, with P1–P4 badges from `renderBadges`), right side panel (1v1/2v2/free-for-all dropdown `#fmodeSel`, SOLO/ONLINE chip, then CPU difficulty and opponents in solo, or room code, copy, Invite and the lobby list in online) above the big FIGHT/READY button. A bottom bar holds Back, Fight Options and How to Play (`#howOv` popup).
+  - Each tile still carries its description, special and stats markup (hidden); the hero panel copies from the selected tile. Headline font is Bangers (`--brush`), loaded from Google Fonts with an Impact/Arial Black fallback.
+  - Online CPU spots are picked by the host straight in the lobby list (`#lobbyCpu0..2`). Invite uses the phone's share sheet with a `?join=CODE` link that opens Join with the code filled in.
   - Fight Options are saved in localStorage under `nrb.*`.
 - **Online lobby.** After hosting or joining, the fighter select screen (`#menu.online`) *is* the lobby: room code in the header, player list (`#lobby`), status line, and `#goBtn` as a READY toggle.
   - The room (`NET.room`) stays open between matches. Each player has `ready` and `where` (`lobby`/`fight`/`results`). Guests send `{t:'me',pick,ready,where}`; the host broadcasts `{t:'lobby',...}` and starts the match (`maybeStart` → `hostStart`) once every human is ready.
