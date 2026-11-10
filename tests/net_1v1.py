@@ -14,10 +14,11 @@ async def main():
             ctx = await b.new_context(viewport={'width': 844, 'height': 390}); A = await ctx.new_page(); B = await ctx.new_page(); errs = []
             for n, pg in (('A', A), ('B', B)): pg.on('pageerror', lambda e, n=n: errs.append(n + ': ' + str(e)))
             await A.goto(URL); await B.goto(URL); await A.wait_for_timeout(500)
-            await A.click('#mmArcade'); await A.click('#mmOnline'); await A.select_option('#fmodeSel', '1v1')
-            await A.click('#goBtn'); await A.click('#hostBtn'); await A.wait_for_timeout(200); code = await A.inner_text('#codeOut')
-            await B.click('#mmArcade'); await B.click('#mmOnline'); await B.click('.pick[data-c="winston"]'); await B.click('#goBtn')
-            await B.fill('#codeIn', code); await B.click('#joinBtn')
+            await A.click('#mmArcade'); await A.click('#mmOnline'); await A.click('#hostBtn')
+            await A.wait_for_selector('#room', state='visible'); await A.select_option('#fmodeSel', '1v1'); code = await A.inner_text('#codeOut')
+            await B.click('#mmArcade'); await B.click('#mmOnline'); await B.fill('#codeIn', code); await B.click('#joinBtn')
+            await B.wait_for_selector('#room', state='visible'); await B.click('.pick[data-c="winston"]')
+            await B.click('#goBtn'); await A.wait_for_timeout(200); await A.click('#goBtn')   # both tap READY
             await A.wait_for_function("__G.phase==='fight'", timeout=15000)
             X = await A.evaluate("__NET.frame+20"); js = f"window.__posAt={X}; window.__mAt={X}"; await A.evaluate(js); await B.evaluate(js)
             await A.wait_for_timeout(700)
@@ -25,10 +26,11 @@ async def main():
             Y = await A.evaluate('__NET.frame+12'); await A.evaluate(f'window.__mAt={Y}'); await B.evaluate(f'window.__mAt={Y}'); await A.wait_for_timeout(1000)
             await B.keyboard.down('KeyU'); await B.wait_for_timeout(90); await B.keyboard.up('KeyU'); await A.wait_for_timeout(5800)   # super
             ha = json.loads(await A.evaluate("JSON.stringify(__NET.myHash)")); hb = json.loads(await B.evaluate("JSON.stringify(__NET.myHash)"))
+            keys = await A.evaluate("__G.f.map(f=>f.key)")
             common = [k for k in ha if k in hb]; bad = [k for k in common if ha[k] != hb[k]]
             print('hp host/guest:', await A.evaluate("__G.f.map(f=>f.hp)"), await B.evaluate("__G.f.map(f=>f.hp)"),
                   '| checkpoints', len(common), 'mismatches', bad, '| resyncs', await B.evaluate("__NET.synced"))
-            print('errors', errs or 'none'); await b.close()
-    sys.exit(1 if bad or errs or not common else 0)
+            print('fighters', keys); print('errors', errs or 'none'); await b.close()
+    sys.exit(1 if bad or errs or not common or keys != ['ac', 'winston'] else 0)
 
 asyncio.run(main())

@@ -59,7 +59,7 @@ window.__netTransport={
 
 
 def net_page(g):
-    g = once(g, NET_STATE, NET_STATE + "window.__G=G; window.__NET=NET;\n")
+    g = once(g, NET_STATE, NET_STATE + "window.__G=G; window.__NET=NET; window.__guestLeft=x=>guestLeft(x);\n")
     b = "  for(const s of NET.humans) G.f[s].netIn=dec(NET.inputs[s][n]);\n"
     # __posAt / __mAt / __koAt: at that lockstep frame, place fighters, fill meters, or KO everyone but P1.
     g = once(g, b, b + "  if(window.__posAt===NET.frame){ G.f[0].x=130; G.f[1].x=260; G.f.forEach(f=>f.vx=0); }\n"

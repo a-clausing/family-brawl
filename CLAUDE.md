@@ -62,9 +62,14 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - `rnd` is for visual effects only.
 - **Render and UI.** HUD (`hud`, `hudMulti`), VS screen, menus.
   - Main menu backdrop is Alex's title art (`art/originals/family-brawl-title-bg.png`, embedded as `src/assets/title-bg.webp.b64`, 1600px WebP) under the logo and buttons. The old fanned fighter cards were removed from it.
-  - Menu flow: main menu (Arcade / Campaign "coming soon") → Arcade → Solo / Online → fighter select.
+  - Menu flow: main menu (Arcade / Campaign "coming soon") → Arcade → Solo → fighter select, or → Online → Host / Join (`#onlineOv`) → lobby.
   - Fighter select has the 1v1/2v2/free-for-all dropdown `#fmodeSel` and CPU pickers.
   - Fight Options are saved in localStorage under `nrb.*`.
+- **Online lobby.** After hosting or joining, the fighter select screen (`#menu.online`) *is* the lobby: room code in the header, player list (`#lobby`), status line, and `#goBtn` as a READY toggle.
+  - The room (`NET.room`) stays open between matches. Each player has `ready` and `where` (`lobby`/`fight`/`results`). Guests send `{t:'me',pick,ready,where}`; the host broadcasts `{t:'lobby',...}` and starts the match (`maybeStart` → `hostStart`) once every human is ready.
+  - Only the host changes the fight type, CPU picks and Fight Options; guests mirror them (`guestApplyLobby`) with the controls disabled (`setRoomControls`), and get their own settings back on leaving (`NET.saved`). Changing the fight type or options clears everyone's ready.
+  - After a match: results show REMATCH (= ready) and "Back to lobby". `NET.over` stops the lockstep once results are up.
+  - Pause → "End match", a guest dropping mid-match, or a stall on the host: `netEndMatch` sends `{t:'end'}` and everyone returns to the lobby. Leaving the online area (lobby back button) leaves the room; the host leaving closes it for everyone (`netLost`).
 - **Online.** Lockstep netcode:
   - Phones exchange only button presses, `NET.D` frames ahead. The host is the hub for up to 4 phones.
   - Every 30 frames guests send a `stateHash()`; on a mismatch the host sends a `snapshot()`.
@@ -73,7 +78,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
 
 Known issues and ideas:
 - Brick dominates free-for-all in CPU sims (~37% wins with 4 fighters); Volt is weakest (~6%). Alex was offered a 2v2/free-for-all-only balance pass.
-- If a player leaves an online match, it ends for everyone; a CPU doesn't take over.
+- If a player leaves mid-match, the match ends and everyone goes back to the lobby; a CPU doesn't take over.
 - Campaign isn't built yet.
 
 ## Sprite pipelines (`tools/sprites/<fighter>/`)
@@ -106,6 +111,6 @@ Setup: Playwright with Chromium (`pip install playwright`, then `playwright inst
 | `python3 tests/sim_multi.py 50` | 4-fighter free-for-all and 2v2 CPU matches | `errors none`, no `CAP` (stuck match) |
 | `python3 tests/net_1v1.py` | Two tabs play online, with Winston's special and super | `mismatches []` |
 | `python3 tests/net_multi.py ffa 3` / `2v2 1` | Online rooms of 2–4 tabs, with CPUs filling the empty spots | `mismatched 0` |
-| `python3 tests/net_lifecycle.py` | Forced desync recovery, results screen, rematch, a player leaving | resyncs ≥ 1, `errors none` |
+| `python3 tests/net_lifecycle.py` | Lobby ready-up, forced desync recovery, results, rematch, ending a match back to the lobby, fighter change between matches, players dropping/leaving | every line `ok`, `errors none` |
 
 Before pushing gameplay changes, run at least `supers.py`, `net_1v1.py`, `net_multi.py ffa 3` and `sim_multi.py 20`. The test pages hook into the game at a few exact lines of code (see the `once()` anchors in `make_pages.py`); if those lines change, update the anchors.

@@ -23,13 +23,14 @@ async def main():
             for n, pg in enumerate(pages): pg.on('pageerror', lambda e, n=n: errs.append(f'{n}: {e}'))
             for pg in pages: await pg.goto(URL)
             await pages[0].wait_for_timeout(500); A = pages[0]
-            await A.click('#mmArcade'); await A.click('#mmOnline'); await A.select_option('#fmodeSel', MODE); await A.click(f'.pick[data-c="{PICKS[0]}"]')
-            await A.click('#goBtn'); await A.click('#hostBtn'); await A.wait_for_timeout(300); code = await A.inner_text('#codeOut')
+            await A.click('#mmArcade'); await A.click('#mmOnline'); await A.click('#hostBtn'); await A.wait_for_selector('#room', state='visible')
+            await A.select_option('#fmodeSel', MODE); await A.click(f'.pick[data-c="{PICKS[0]}"]'); code = await A.inner_text('#codeOut')
             for i, pg in enumerate(pages[1:], 1):
-                await pg.click('#mmArcade'); await pg.click('#mmOnline'); await pg.click(f'.pick[data-c="{PICKS[i]}"]'); await pg.click('#goBtn')
-                await pg.fill('#codeIn', code); await pg.click('#joinBtn'); await pg.wait_for_timeout(600)
+                await pg.click('#mmArcade'); await pg.click('#mmOnline'); await pg.fill('#codeIn', code); await pg.click('#joinBtn')
+                await pg.wait_for_selector('#room', state='visible'); await pg.click(f'.pick[data-c="{PICKS[i]}"]'); await pg.wait_for_timeout(300)
             await A.wait_for_timeout(500); await A.screenshot(path=os.path.join(OUT, f'net_lobby_{MODE}.png'))
-            await A.click('#lobbyStart')
+            await pages[-1].screenshot(path=os.path.join(OUT, f'net_lobby_{MODE}_guest.png'))
+            for pg in pages: await pg.click('#goBtn'); await pg.wait_for_timeout(150)   # everyone taps READY
             for pg in pages: await pg.wait_for_function("__G.phase==='fight'", timeout=20000)
             print('fighters [key, team, cpu, tag]:', await A.evaluate("JSON.stringify(__G.f.map(f=>[f.key,f.team,f.cpu,f.tag]))"))
             keys = ['KeyA', 'KeyD', 'KeyJ', 'KeyK', 'KeyW', 'KeyL', 'KeyU']

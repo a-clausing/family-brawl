@@ -175,6 +175,19 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 .optbtn{display:flex;justify-content:space-between;align-items:center;font-family:var(--pixel);font-size:11px;gap:8px}
 .optbtn span{font-family:var(--ui);font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.02em}
 #menu.online .cpuonly{display:none}
+.room{display:flex;flex-direction:column;gap:5px}
+.fs-code{margin-left:auto;font-family:var(--pixel);font-size:9px;color:var(--dim);display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.fs-code b{font-size:16px;color:var(--gold);letter-spacing:.15em}
+#menu.online .mcol{gap:9px}
+#menu.online #goBtn{padding-top:11px;padding-bottom:11px}
+.room .lobby{gap:4px}
+.room .lobby .row{padding:3px 8px;font-size:13px;border-width:1px}
+.room .lobby .row span{font-size:12px}
+.room .lobby .row i{font-style:normal;font-size:11px;color:var(--dim);margin-left:auto}
+.room .lobby .row i.ok{color:#7fdc5f}
+.lobbystatus{margin:0;font-size:12px;line-height:1.3}
+#goBtn.isready{background:#3a8f3c;color:#fff;box-shadow:0 5px 0 #24612a,0 5px 0 3px #120e14}
+.fmode:disabled,.cpuslot select:disabled,#fsOpts:disabled{opacity:.75;cursor:default}
 #optsOv{z-index:32}
 #onlineOv{z-index:30}
 .seg.seg2{grid-template-columns:1fr 1fr}
@@ -283,13 +296,17 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 <div class="overlay" id="menu" hidden>
   <div class="menu-grid">
     <div class="mcol">
-      <div class="fs-head"><button class="ghostbtn backbtn" id="fsBack" aria-label="Back to main menu">‹</button><span class="fs-title" id="fsTitle">SOLO</span></div>
+      <div class="fs-head"><button class="ghostbtn backbtn" id="fsBack" aria-label="Back to main menu">‹</button><span class="fs-title" id="fsTitle">SOLO</span><span class="fs-code" id="roomCode" hidden>ROOM<b id="codeOut">----</b></span></div>
       <button class="ghostbtn optbtn" id="fsOpts">FIGHT OPTIONS <span id="fsOptsLbl">BEST OF 5</span></button>
       <p class="label cpuonly">CPU DIFFICULTY</p>
       <div class="seg cpuonly" id="diff">
         <button data-d="easy" aria-pressed="false">Easy</button>
         <button data-d="normal" aria-pressed="true">Normal</button>
         <button data-d="hard" aria-pressed="false">Hard</button>
+      </div>
+      <div class="room" id="room" hidden>
+        <div class="lobby" id="lobby"></div>
+        <p class="sub lobbystatus" id="lobbyStatus" role="status" aria-live="polite"></p>
       </div>
       <button class="go" id="goBtn">FIGHT</button>
       <p class="kbd" id="fsNote" hidden>The game switches to full screen when the fight starts.</p>
@@ -375,19 +392,12 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
     <p class="big" style="color:var(--gold)">PLAY ONLINE</p>
     <p class="sub" id="onSub"></p>
     <div id="onChoose" class="onchoose">
-      <button class="go" id="hostBtn">HOST A MATCH</button>
+      <button class="go" id="hostBtn">HOST A ROOM</button>
       <div class="joinrow">
         <label class="label" for="codeIn">JOIN WITH A CODE</label>
         <div class="joinin"><input id="codeIn" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="go" id="joinBtn">JOIN</button></div>
       </div>
     </div>
-    <div id="onWait" hidden class="onwait">
-      <p class="label">ROOM CODE</p>
-      <p class="code" id="codeOut">----</p>
-      <p class="sub" id="onWaitSub">On your friend’s phone: Arcade, Online, then join with this code.</p>
-    </div>
-    <div class="lobby" id="lobby" hidden></div>
-    <button class="go" id="lobbyStart" hidden>START</button>
     <p class="sub" id="onStatus" role="status" aria-live="polite"></p>
     <button class="ghostbtn" id="onBack">Back</button>
   </div>
@@ -1446,6 +1456,7 @@ const METER_GAIN=0.9;   // meter fills 10% slower (specials and supers take a bi
 const ONLINE_W=390;   // fixed online arena width (typical phone shape) so both phones simulate the same space
 const NET={active:false, role:null, local:0, D:3, frame:0, nextLocal:0, inputs:[{},{}], humans:[0,1], conns:[], mode:'1v1', myHash:{}, theirHash:{}, snaps:{},
   stall:0, match:0, conn:null, peer:null, rematch:[false,false], picks:[null,null], resyncAt:-1, synced:0};
+Object.assign(NET,{room:false, over:false, code:'', where:'lobby', ready:false, saved:null, note:''});
 const pickKey=p=>p==='random'?FIGHTERS[Math.floor(Math.random()*FIGHTERS.length)]:p;
 // keys: fighter per slot; cpus: which slots the CPU plays; teamsOn: 2v2 (slots 0-1 vs 2-3)
 function setupMulti(keys,cpus,teamsOn,teamOf){
@@ -2873,6 +2884,7 @@ const spBtn=document.getElementById('spBtn');
 document.querySelectorAll('.pick').forEach(b=>b.addEventListener('click',()=>{
   audioInit(); G.pick=b.dataset.c; sfx('select');
   document.querySelectorAll('.pick').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  lobbyChanged();
 }));
 document.querySelectorAll('#cpuPick button').forEach(b=>b.addEventListener('click',()=>{
   audioInit(); G.cpuPick=b.dataset.o; sfx('select');
@@ -2886,18 +2898,19 @@ const mainMenu=document.getElementById('mainMenu'), optsOv=document.getElementBy
 let appMode='arcade';
 function openSelect(mode){
   appMode=mode; audioInit(); sfx('select');
-  menuEl.classList.toggle('online',mode==='online');
-  document.getElementById('fsTitle').textContent=mode==='online'?'ONLINE':'SOLO';
+  menuEl.classList.remove('online'); show('room',false); show('roomCode',false); setRoomControls();
+  document.getElementById('fsTitle').textContent='SOLO';
   fmodeSel.value=G.fmode; renderCpuSlots();
-  document.getElementById('goBtn').textContent=mode==='online'?'FIND MATCH':'FIGHT';
+  const go=document.getElementById('goBtn'); go.textContent='FIGHT'; go.classList.remove('isready');
   refreshOptsLabel(); mainMenu.hidden=true; menuEl.hidden=false;
 }
 const mmTop=document.getElementById('mmTop'), mmArc=document.getElementById('mmArc');
 document.getElementById('mmArcade').addEventListener('click',()=>{ audioInit(); sfx('select'); mmTop.hidden=true; mmArc.hidden=false; });
 document.getElementById('mmBack').addEventListener('click',()=>{ sfx('select'); mmArc.hidden=true; mmTop.hidden=false; });
 document.getElementById('mmSolo').addEventListener('click',()=>openSelect('arcade'));
-document.getElementById('mmOnline').addEventListener('click',()=>openSelect('online'));
-document.getElementById('fsBack').addEventListener('click',()=>{ sfx('select'); menuEl.hidden=true; mainMenu.hidden=false; mmTop.hidden=true; mmArc.hidden=false; });
+document.getElementById('mmOnline').addEventListener('click',()=>{ audioInit(); sfx('select'); openOnline(); });
+document.getElementById('fsBack').addEventListener('click',()=>{ sfx('select'); if(NET.room) netClose(); leaveLobbyScreen(); });
+function leaveLobbyScreen(){ menuEl.hidden=true; menuEl.classList.remove('online'); show('room',false); show('roomCode',false); setRoomControls(); mainMenu.hidden=false; mmTop.hidden=true; mmArc.hidden=false; }
 // ---- 1v1 / 2v2 / free-for-all
 const fmodeSel=document.getElementById('fmodeSel'), cpuMulti=document.getElementById('cpuMulti');
 const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',winston:'Winston'};
@@ -2919,12 +2932,18 @@ function renderCpuSlots(){
     for(const [v,t] of opts){ const o=document.createElement('option'); o.value=v; o.textContent=t; sel.appendChild(o); }
     if(!opts.some(o=>o[0]===G.cpuPicks[i])) G.cpuPicks[i]='random';
     sel.value=G.cpuPicks[i];
-    sel.addEventListener('change',()=>{ G.cpuPicks[i]=sel.value; sfx('select'); });
+    sel.disabled=NET.room&&NET.role!=='host';
+    sel.addEventListener('change',()=>{ G.cpuPicks[i]=sel.value; sfx('select'); lobbyChanged(); });
     d.append(l,sel); cpuMulti.appendChild(d);
   });
 }
 fmodeSel.value=G.fmode;
-fmodeSel.addEventListener('change',()=>{ G.fmode=fmodeSel.value; try{ localStorage.setItem('nrb.fmode',G.fmode); }catch(e){} sfx('select'); renderCpuSlots(); refreshOptsLabel(); });
+fmodeSel.addEventListener('change',()=>{
+  if(NET.room && NET.role==='host' && fmodeSel.value==='1v1' && lobbyPlayers().length>2){
+    fmodeSel.value=G.fmode; NET.note='1 VS 1 needs exactly two players in the room.'; lobbyUpdate(); return; }
+  G.fmode=fmodeSel.value; try{ localStorage.setItem('nrb.fmode',G.fmode); }catch(e){} sfx('select'); renderCpuSlots(); refreshOptsLabel();
+  if(NET.room && NET.role==='host'){ NET.mode=G.fmode; resetReady(); lobbyUpdate(); }
+});
 // ---- Fight Options
 function refreshOptsLabel(){ document.getElementById('fsOptsLbl').textContent=optLabel(G.opts); }
 function renderOpts(){
@@ -2945,21 +2964,32 @@ document.querySelectorAll('#optMode button').forEach(b=>b.addEventListener('clic
 document.querySelectorAll('#optBo button').forEach(b=>b.addEventListener('click',()=>{ G.opts.bestOf=+b.dataset.v; sfx('select'); renderOpts(); }));
 document.querySelectorAll('#optMin button').forEach(b=>b.addEventListener('click',()=>{ G.opts.minutes=+b.dataset.v; sfx('select'); renderOpts(); }));
 document.querySelectorAll('#optStk button').forEach(b=>b.addEventListener('click',()=>{ G.opts.stocks=+b.dataset.v; sfx('select'); renderOpts(); }));
-document.getElementById('optDone').addEventListener('click',()=>{ saveOpts(G.opts); refreshOptsLabel(); sfx('select'); optsOv.hidden=true; });
+document.getElementById('optDone').addEventListener('click',()=>{ saveOpts(G.opts); refreshOptsLabel(); sfx('select'); optsOv.hidden=true;
+  if(NET.room && NET.role==='host'){ resetReady(); lobbyUpdate(); } });
 function startGame(){ audioInit(); if(matchMedia('(pointer:coarse)').matches) enterFS(); menu.hidden=true; resultOv.hidden=true; pauseOv.hidden=true; G.paused=false; newMatch(); G.mode='play'; }
-document.getElementById('goBtn').addEventListener('click',()=>{ if(appMode==='online'){ audioInit(); sfx('select'); openOnline(); } else startGame(); });
+document.getElementById('goBtn').addEventListener('click',()=>{
+  if(!NET.room) return startGame();
+  audioInit(); sfx('select'); NET.ready=!NET.ready; NET.note=''; renderReadyBtn(); lobbyChanged();
+});
 document.getElementById('againBtn').addEventListener('click',()=>{
-  if(!NET.active) return startGame();
-  NET.rematch[NET.local]=true; if(NET.role==='host') tryRematch(); else netSend({t:'rematch'}); document.getElementById('againBtn').textContent='WAITING…';
+  if(!NET.room) return startGame();
+  audioInit(); sfx('select'); NET.ready=true; NET.note=''; document.getElementById('againBtn').textContent='WAITING FOR OTHERS…'; lobbyChanged();
 });
 function toMenu(){ if(NET.active||NET.conn) netClose(); G.multi=false; G.teams=false; AW=W; G.mode='menu'; G.paused=false; G.f=null; pauseOv.hidden=true; resultOv.hidden=true; menu.hidden=false; }
-document.getElementById('menuBtn').addEventListener('click',toMenu);
-document.getElementById('quitBtn').addEventListener('click',toMenu);
+document.getElementById('menuBtn').addEventListener('click',()=>{ if(NET.room){ sfx('select'); backToLobby(); } else toMenu(); });
+document.getElementById('quitBtn').addEventListener('click',()=>{
+  if(NET.room && NET.active && !NET.over){   // online: ends this match for everyone, the room stays open
+    pauseOv.hidden=true;
+    if(NET.role==='host') netEndMatch('The host ended the match.'); else netSend({t:'quit'});
+    return; }
+  toMenu();
+});
 function togglePause(){
   if(G.mode!=='play'||G.phase==='over') return;
   if(NET.active){   // online: the fight keeps running for both players
     pauseOv.hidden=!pauseOv.hidden; document.getElementById('pauseTitle').textContent=pauseOv.hidden?'PAUSED':'MENU';
-    document.getElementById('quitBtn').textContent='Leave match'; return; }
+    document.getElementById('quitBtn').textContent='End match (back to lobby)'; return; }
+  document.getElementById('quitBtn').textContent='Quit to fighter select';
   G.paused=!G.paused; pauseOv.hidden=!G.paused;
   if(G.paused) resetTouch();
 }
@@ -2991,8 +3021,8 @@ function showResult(){
   t.textContent=win?'YOU WIN':'YOU LOSE'; t.style.color=win?'var(--gold)':'var(--ember)';
   document.getElementById('resSub').textContent=`${a.cfg.name} ${a.wins} – ${b.wins} ${b.cfg.name}`;
   document.getElementById('againBtn').textContent='REMATCH';
-  document.getElementById('menuBtn').textContent=NET.active?'Leave match':'Change fighter';
-  resultOv.hidden=false;
+  document.getElementById('menuBtn').textContent=NET.room?'Back to lobby':'Change fighter';
+  resultOv.hidden=false; onlineMatchOver();
 }
 
 function showResultMulti(){
@@ -3001,8 +3031,8 @@ function showResultMulti(){
   t.textContent=!w?'DRAW':(win?'YOU WIN':'YOU LOSE'); t.style.color=win?'var(--gold)':'var(--ember)';
   document.getElementById('resSub').textContent=!w?'Nobody was left standing.':(G.teams?`${TEAM_NAME[w.team]} team wins: ${G.f.filter(f=>f.team===w.team).map(f=>f.cfg.name).join(' & ')}`:`${w.cfg.name} is the last one standing`);
   document.getElementById('againBtn').textContent='REMATCH';
-  document.getElementById('menuBtn').textContent=NET.active?'Leave match':'Change fighter';
-  resultOv.hidden=false;
+  document.getElementById('menuBtn').textContent=NET.room?'Back to lobby':'Change fighter';
+  resultOv.hidden=false; onlineMatchOver();
 }
 
 /* ---------------- Online play (lockstep netcode) ----------------
@@ -3014,7 +3044,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=4;
+const HASH_EVERY=30, KEEP=900, NET_V=5;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 function stateHash(){
@@ -3069,7 +3099,7 @@ function applySnap(f,S){   // guest: jump back to the host's state at frame f, t
   G.silent=false; NET.synced++;
 }
 function netTick(){
-  if(G.mode!=='play') return;
+  if(G.mode!=='play'||NET.over) return;
   // schedule this phone's input NET.D frames ahead
   if(NET.nextLocal<=NET.frame+NET.D){
     const b=enc(playerInput()); clearTaps();
@@ -3083,14 +3113,16 @@ function netTick(){
   if(ran){ NET.stall=0; } else {
     NET.stall++;
     G.t++;
-    if(NET.stall>60*12) netLost(NET.humans.length>2?'A player stopped responding.':'Your opponent stopped responding.');
+    if(NET.role==='host' && NET.stall>60*12) netEndMatch(NET.humans.length>2?'A player stopped responding.':'Your opponent stopped responding.');
+    else if(NET.role!=='host' && NET.stall>60*20) netLost('The connection to the host was lost.');
   }
 }
 // ---- messages a guest receives from the host
 function guestMsg(m){
   if(!m||typeof m!=='object') return;
-  if(m.t==='lobby'){ NET.local=m.you; renderLobby(m); return; }
-  if(m.t==='full'){ const why=m.why; netClose(); show('onChoose',true); show('lobby',false); document.getElementById('onSub').hidden=false; setStatus(why); return; }
+  if(m.t==='lobby'){ NET.local=m.you; if(!NET.room) enterLobby(); guestApplyLobby(m); renderLobby(m); return; }
+  if(m.t==='end'){ if(NET.active) backToLobby(m.why); return; }
+  if(m.t==='full'){ const why=m.why; netClose(); show('onChoose',true); document.getElementById('onSub').hidden=false; setStatus(why); return; }
   if(m.t==='ping'){ netSend({t:'pong',ts:m.ts}); return; }
   if(m.t==='start'){ startOnline(m); return; }
   if(m.t==='bye'){ netLost(m.why||'The host left the match.'); return; }
@@ -3103,13 +3135,14 @@ function hostMsg(m,x){
   if(!m||typeof m!=='object') return;
   if(m.t==='hello'){
     if(m.v!==NET_V){ sendTo(x.c,{t:'full',why:'That phone is running a different version of the game. Close and reopen the game on both phones.'}); dropGuest(x); return; }
-    if(NET.active||NET.conns.filter(y=>y.slot>0).length>=roomMax()){ sendTo(x.c,{t:'full',why:NET.active?'That match has already started.':'That room is full.'}); dropGuest(x); return; }
-    x.pick=m.pick; x.slot=nextSlot(); lobbyUpdate();
-    if(NET.mode==='1v1') hostStart();
+    const busy=NET.active&&!NET.over;
+    if(busy||NET.conns.filter(y=>y.slot>0).length>=roomMax()){ sendTo(x.c,{t:'full',why:busy?'That room is in the middle of a match. Try again when it ends.':'That room is full.'}); dropGuest(x); return; }
+    x.pick=FIGHTERS.includes(m.pick)?m.pick:'ac'; x.ready=false; x.where='lobby'; x.slot=nextSlot(); lobbyUpdate();
     return;
   }
+  if(m.t==='me'){ if(x.slot>0){ if(FIGHTERS.includes(m.pick)) x.pick=m.pick; x.ready=!!m.ready; x.where=m.where||'lobby'; lobbyUpdate(); } return; }
+  if(m.t==='quit'){ if(NET.active&&!NET.over) netEndMatch(`P${x.slot+1} ended the match.`); return; }
   if(m.t==='pong'){ x.rtts.push(performance.now()-m.ts); if(x.rtts.length<4) sendTo(x.c,{t:'ping',ts:performance.now()}); else if(NET.conns.every(y=>y.rtts.length>=4)) doStart(); return; }
-  if(m.t==='rematch'){ NET.rematch[x.slot]=true; tryRematch(); return; }
   if(m.t==='bye'){ guestLeft(x); return; }
   if(m.m!==NET.match) return;
   if(m.t==='i'){ if(NET.inputs[x.slot]){ NET.inputs[x.slot][m.f]=m.b; NET.conns.forEach(y=>{ if(y!==x) sendTo(y.c,{t:'i',m:m.m,f:m.f,b:m.b,s:x.slot}); }); } return; }
@@ -3121,30 +3154,89 @@ function dropGuest(x){ NET.conns=NET.conns.filter(y=>y!==x); setTimeout(()=>{ tr
 function guestLeft(x){
   if(!NET.conns.includes(x)) return;
   NET.conns=NET.conns.filter(y=>y!==x);
-  if(NET.active){ netSend({t:'bye',why:'A player left the match.'}); netLost(NET.mode==='1v1'?'Your opponent left the match.':'A player left the match.'); }
+  if(NET.active && !NET.over && NET.humans.includes(x.slot)) netEndMatch(`P${x.slot+1} left the room.`);
   else lobbyUpdate();
 }
 // ---- lobby
 const FM_NAME={'1v1':'1 VS 1','2v2':'2 VS 2','ffa':'FREE-FOR-ALL'};
-function lobbyPlayers(){ return [{slot:0,pick:G.pick},...NET.conns.filter(x=>x.slot>0).map(x=>({slot:x.slot,pick:x.pick}))].sort((a,b)=>a.slot-b.slot); }
+function lobbyPlayers(){ return [{slot:0,pick:G.pick,ready:NET.ready,where:NET.where},...NET.conns.filter(x=>x.slot>0).map(x=>({slot:x.slot,pick:x.pick,ready:!!x.ready,where:x.where||'lobby'}))].sort((a,b)=>a.slot-b.slot); }
 function lobbyUpdate(){
-  if(NET.role!=='host') return;
-  const L={t:'lobby',mode:NET.mode,players:lobbyPlayers(),cpus:G.cpuPicks};
+  if(NET.role!=='host'||!NET.room) return;
+  const L={t:'lobby',mode:NET.mode,players:lobbyPlayers(),cpus:G.cpuPicks,rules:G.opts,code:NET.code,note:NET.note};
   NET.conns.filter(x=>x.slot>0).forEach(x=>sendTo(x.c,{...L,you:x.slot}));
   renderLobby({...L,you:0});
+  maybeStart();
 }
 function renderLobby(L){
-  const box=document.getElementById('lobby'), host=NET.role==='host', multi=L.mode!=='1v1';
-  box.hidden=!multi; box.innerHTML='';
-  if(!multi) return;
-  const n=L.players.length, cpuN=L.mode==='2v2'?4-n:L.cpus.slice(0,4-n).filter(p=>p!=='off').length;
-  const rows=[...L.players.map((p,i)=>({lbl:'P'+(i+1)+(p.slot===L.you?' · YOU':''),who:CH[p.pick].name,col:SLOT_COL[i]})),
-    ...Array.from({length:cpuN},(_,i)=>({lbl:'CPU',who:'Fills the spot',col:'#a99fbf'}))];
-  for(const r of rows){ const d=document.createElement('div'); d.className='row'; const b=document.createElement('b'); b.textContent=r.lbl; b.style.color=r.col; const sp=document.createElement('span'); sp.textContent=r.who; d.append(b,sp); box.appendChild(d); }
-  document.getElementById('onWaitSub').textContent=`${FM_NAME[L.mode]} room. On your friends’ phones: Arcade, Online, then join with this code.`;
-  const st=document.getElementById('lobbyStart'); st.hidden=!host; st.disabled=n<2; st.textContent=n<2?'WAITING FOR PLAYERS…':`START (${n+cpuN} FIGHTERS)`;
-  if(!host) setStatus(`${FM_NAME[L.mode]} room. Waiting for the host to start…`);
-  else setStatus(n<2?'Waiting for friends to join…':`${n} players in the room.`);
+  const box=document.getElementById('lobby');
+  document.getElementById('codeOut').textContent=L.code||NET.code||'----';
+  const n=L.players.length, max=L.mode==='1v1'?2:4;
+  const cpuN=L.mode==='1v1'?0:(L.mode==='2v2'?4-n:L.cpus.slice(0,4-n).filter(p=>p!=='off').length);
+  const state=p=>p.where==='fight'?['In a match','']:p.where==='results'?(p.ready?['Rematch ✓','ok']:['On results','']):(p.ready?['Ready ✓','ok']:['Picking…','']);
+  const rows=L.players.map((p,i)=>({lbl:'P'+(i+1)+(p.slot===L.you?' · YOU':''),who:CH[p.pick]?CH[p.pick].name:'?',col:SLOT_COL[i],st:state(p)}));
+  if(L.mode==='1v1' && n<2) rows.push({lbl:'P2',who:'Waiting for a friend…',col:'#a99fbf',st:['','']});
+  for(let i=0;i<cpuN;i++) rows.push({lbl:'CPU',who:'Fills an empty spot',col:'#a99fbf',st:['','']});
+  box.innerHTML='';
+  for(const r of rows){ const d=document.createElement('div'); d.className='row'; const b=document.createElement('b'); b.textContent=r.lbl; b.style.color=r.col;
+    const sp=document.createElement('span'); sp.textContent=r.who; const st=document.createElement('i'); st.textContent=r.st[0]; if(r.st[1]) st.className=r.st[1];
+    d.append(b,sp,st); box.appendChild(d); }
+  const host=NET.role==='host', allReady=n>=2&&L.players.every(p=>p.ready);
+  const code=L.code||NET.code;
+  const msg=n<2?`Friends join with Online → Join and code ${code}.`
+    :allReady?'Everyone’s ready. Starting…'
+    :host?'Fight starts when everyone is READY.'
+    :'Host sets the rules. Fight starts when everyone is READY.';
+  document.getElementById('lobbyStatus').textContent=(L.note?L.note+' ':'')+msg;
+  renderReadyBtn();
+}
+function renderReadyBtn(){
+  const go=document.getElementById('goBtn'); if(!NET.room) return;
+  go.textContent=NET.ready?'READY ✓':'READY'; go.classList.toggle('isready',NET.ready);
+}
+function setRoomControls(){   // in a room only the host changes the fight type, CPUs and Fight Options
+  const lock=NET.room&&NET.role!=='host';
+  fmodeSel.disabled=lock; document.getElementById('fsOpts').disabled=lock;
+  cpuMulti.querySelectorAll('select').forEach(x=>{ x.disabled=lock; });
+}
+function lobbyChanged(){   // something about this player changed: tell the room
+  if(!NET.room) return;
+  if(NET.role==='host') lobbyUpdate(); else netSend({t:'me',pick:G.pick,ready:NET.ready,where:NET.where});
+}
+function resetReady(){ NET.ready=false; NET.conns.forEach(x=>{ x.ready=false; }); renderReadyBtn(); }
+function maybeStart(){   // host: start once every player in the room is ready
+  if(NET.role!=='host'||!NET.room||NET.pinging||(NET.active&&!NET.over)) return;
+  const P=lobbyPlayers(); if(P.length<2||!P.every(p=>p.ready)) return;
+  if(NET.mode==='1v1' && P.length!==2) return;
+  NET.note=''; hostStart();
+}
+function guestApplyLobby(L){   // a guest's screen mirrors the host's fight type, CPUs and rules
+  const me=L.players.find(p=>p.slot===L.you); if(me) NET.ready=!!me.ready;
+  const cpus=JSON.stringify(L.cpus)!==JSON.stringify(G.cpuPicks);
+  if(L.mode!==G.fmode||cpus){ G.fmode=L.mode; G.cpuPicks=[...L.cpus]; fmodeSel.value=G.fmode; renderCpuSlots(); }
+  G.opts={...OPT_DEFAULT,...L.rules}; refreshOptsLabel(); setRoomControls();
+}
+function enterLobby(){
+  NET.room=true; NET.where='lobby'; NET.ready=false; NET.over=false; appMode='online';
+  onlineOv.hidden=true; mainMenu.hidden=true; resultOv.hidden=true; pauseOv.hidden=true;
+  menuEl.classList.add('online'); show('room',true); show('roomCode',true);
+  document.getElementById('fsTitle').textContent='ONLINE';
+  fmodeSel.value=G.fmode; renderCpuSlots(); refreshOptsLabel(); setRoomControls(); renderReadyBtn();
+  document.getElementById('lobbyStatus').textContent='';
+  menuEl.hidden=false;
+}
+function onlineMatchOver(){   // results are up: stop the lockstep, everyone picks Rematch or Back to lobby
+  if(!NET.room) return;
+  NET.over=true; NET.where='results'; NET.ready=false; lobbyChanged();
+}
+function backToLobby(why){
+  NET.active=false; NET.over=false; NET.where='lobby'; NET.ready=false; NET.pinging=false; if(why) NET.note=why;
+  G.multi=false; G.teams=false; G.mode='menu'; G.paused=false; G.f=null; G.proj=[]; arnd=rnd;
+  pauseOv.hidden=true; resultOv.hidden=true; fit(); AW=W;
+  enterLobby(); lobbyChanged();
+  if(NET.role!=='host' && why) document.getElementById('lobbyStatus').textContent=why;
+}
+function netEndMatch(why){   // host: end the current match for everyone; the room stays open
+  netSend({t:'end',why}); backToLobby(why);
 }
 // ---- starting a match (host decides fighters, lag allowance and the CPUs' random seed)
 function hostStart(){
@@ -3163,11 +3255,13 @@ function doStart(){
     const free=4-keys.length;
     for(let i=0;i<free;i++){ const p=G.cpuPicks[i]||'random'; if(fm==='ffa' && p==='off') continue; keys.push(pickKey(p==='off'?'random':p)); cpus.push(true); }
   }
+  NET.ready=false; NET.conns.forEach(x=>{ x.ready=false; x.where='fight'; });
   const base={t:'start',keys,cpus,fm,D,m,rules:{...G.opts},seed:(Math.random()*4294967296)>>>0,diff:G.diff};
   guests.forEach(x=>sendTo(x.c,{...base,you:x.slot}));
   startOnline({...base,you:0});
 }
 function startOnline(o){
+  NET.over=false; NET.ready=false; NET.where='fight'; NET.note='';
   NET.active=true; NET.match=o.m; NET.D=o.D; NET.frame=0; NET.nextLocal=o.D; NET.stall=0; NET.local=o.you; NET.mode=o.fm;
   NET.humans=o.keys.map((k,i)=>i).filter(i=>!o.cpus[i]);
   NET.inputs=o.keys.map(()=>({})); NET.myHash={}; NET.theirHash={}; NET.snaps={}; NET.rematch={}; NET.resyncAt=-1;
@@ -3224,13 +3318,14 @@ let connTimer=0;
 function failNet(type,code){
   clearTimeout(connTimer);
   setStatus((ERR[type]||ERR.default)(code)); Transport.close(); NET.conn=null; NET.conns=[]; NET.peer=null;
-  show('onChoose',true); show('onWait',false); show('lobby',false); show('lobbyStart',false); document.getElementById('onSub').hidden=false;
+  NET.room=false; if(!menuEl.hidden) leaveLobbyScreen();
+  show('onChoose',true); document.getElementById('onSub').hidden=false; onlineOv.hidden=false;
 }
 function hostHandlers(code){
   const find=c=>NET.conns.find(x=>x.c===c);
   return {
-    open(){ setStatus(NET.mode==='1v1'?'Waiting for your friend to join…':'Waiting for friends to join…'); lobbyUpdate(); },
-    conn(c){ NET.conns.push({c,slot:0,pick:null,rtts:[]}); },
+    open(){ setStatus(''); enterLobby(); lobbyUpdate(); },
+    conn(c){ NET.conns.push({c,slot:0,pick:null,ready:false,where:'lobby',rtts:[]}); },
     data(d,c){ const x=find(c); if(x) hostMsg(d,x); },
     close(c){ const x=find(c); if(x) guestLeft(x); },
     error(type){
@@ -3241,7 +3336,7 @@ function hostHandlers(code){
 }
 function guestHandlers(code){
   return {
-    conn(c){ clearTimeout(connTimer); NET.conn=c; setStatus('Connected! Waiting for the host…'); netSend({t:'hello',pick:G.pick,v:NET_V}); },
+    conn(c){ clearTimeout(connTimer); NET.conn=c; setStatus('Connected! Joining the room…'); netSend({t:'hello',pick:G.pick,v:NET_V}); },
     data:d=>guestMsg(d),
     close(){ if(NET.conn) netLost('The connection to the host was lost.'); },
     error(type){ failNet(type,code); }
@@ -3250,22 +3345,19 @@ function guestHandlers(code){
 const CODE_CHARS='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function onlineHost(){
   const code=Array.from({length:4},()=>CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]).join('');
-  NET.role='host'; NET.local=0; NET.conns=[]; NET.conn=null; NET.mode=G.fmode; NET.pinging=false;
+  NET.role='host'; NET.local=0; NET.conns=[]; NET.conn=null; NET.mode=G.fmode; NET.pinging=false; NET.code=code; NET.note='';
   document.getElementById('codeOut').textContent=code;
-  document.getElementById('onWaitSub').textContent=NET.mode==='1v1'?'On your friend’s phone: Arcade, Online, then join with this code.':`${FM_NAME[NET.mode]} room. On your friends’ phones: Arcade, Online, then join with this code.`;
-  show('onChoose',false); show('onWait',true); document.getElementById('onSub').hidden=true; setStatus('Opening a room…');
+  show('onChoose',false); document.getElementById('onSub').hidden=true; setStatus('Opening a room…');
   Transport.host(code,hostHandlers(code));
 }
 function onlineJoin(){
   const code=(document.getElementById('codeIn').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(code.length!==4){ setStatus('Enter the 4-character code from your friend’s screen.'); return; }
-  NET.role='guest'; NET.local=1; NET.conns=[]; NET.conn=null;
+  NET.role='guest'; NET.local=1; NET.conns=[]; NET.conn=null; NET.code=code; NET.note='';
+  NET.saved={fmode:G.fmode,cpuPicks:[...G.cpuPicks],opts:{...G.opts}};   // the host's settings show while in the room; restored on leaving
   show('onChoose',false); document.getElementById('onSub').hidden=true; setStatus(`Joining ${code}…`);
   const h=guestHandlers(code); Transport.join(code,h);
   clearTimeout(connTimer); connTimer=setTimeout(()=>{ if(!NET.conn) h.error('timeout'); },15000);
-}
-function tryRematch(){
-  if(NET.role==='host' && NET.humans.every(s=>NET.rematch[s])) hostStart();
 }
 function netClose(){
   clearTimeout(connTimer);
@@ -3275,24 +3367,26 @@ function netClose(){
   const c=NET.conn; NET.conn=null;
   Transport.close(); NET.peer=null; NET.conns=[];
   G.f&&G.f.forEach(f=>{ f.netIn=null; });
-  arnd=rnd;
+  arnd=rnd; NET.room=false; NET.over=false; NET.ready=false;
+  if(NET.saved){ G.fmode=NET.saved.fmode; G.cpuPicks=NET.saved.cpuPicks; G.opts=NET.saved.opts; NET.saved=null; fmodeSel.value=G.fmode; refreshOptsLabel(); }
+  setRoomControls();
   fit();
 }
-function netLost(msg){
-  if(!NET.active && !NET.conn && !(NET.conns&&NET.conns.length)) return;
+function netLost(msg){   // the room is gone (the host left or the connection dropped): back to the Online screen
+  if(!NET.room && !NET.active && !NET.conn && !(NET.conns&&NET.conns.length)) return;
   netClose(); G.mode='menu'; G.f=null; G.multi=false; G.teams=false; AW=W;
-  resultOv.hidden=true; pauseOv.hidden=true; menu.hidden=false;
+  resultOv.hidden=true; pauseOv.hidden=true; leaveLobbyScreen();
   openOnline(); setStatus(msg);
 }
 function openOnline(){
-  document.getElementById('onSub').textContent=`You'll fight as ${CH[G.pick].name}. Hosting makes a ${FM_NAME[G.fmode]} room (change it with the dropdown). To switch fighters, go back first.`;
-  document.getElementById('onSub').hidden=false; show('onChoose',true); show('onWait',false); show('lobby',false); show('lobbyStart',false); setStatus(''); onlineOv.hidden=false;
+  appMode='online';
+  document.getElementById('onSub').textContent='Host a room and share its code, or join a friend’s room. Everyone picks fighters and gets ready together in the lobby.';
+  document.getElementById('onSub').hidden=false; show('onChoose',true); setStatus(''); onlineOv.hidden=false;
 }
 document.getElementById('hostBtn').addEventListener('click',()=>{ audioInit(); onlineHost(); });
 document.getElementById('joinBtn').addEventListener('click',()=>{ audioInit(); onlineJoin(); });
 document.getElementById('codeIn').addEventListener('keydown',e=>{ if(e.key==='Enter') onlineJoin(); });
-document.getElementById('lobbyStart').addEventListener('click',()=>{ audioInit(); sfx('select'); if(NET.role==='host' && lobbyPlayers().length>1) hostStart(); });
-document.getElementById('onBack').addEventListener('click',()=>{ if(NET.conn||NET.peer) netClose(); onlineOv.hidden=true; });
+document.getElementById('onBack').addEventListener('click',()=>{ sfx('select'); if(NET.conn||NET.peer) netClose(); onlineOv.hidden=true; });
 
 /* ---------------- Sizing & loop ---------------- */
 const wrap=document.getElementById('stageWrap');
