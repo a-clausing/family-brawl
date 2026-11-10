@@ -611,6 +611,13 @@ for(const c of Object.values(CH)){
 CH.ac.jump=-7.3;   // keeps AC's jump high enough to clear the taller Brick
 // Winston is drawn ~62% of a human's height (33px), but his hitbox stays tall enough that standing punches still land.
 CH.winston.h=46; CH.winston.w=28; CH.winston.artH=33;
+// Per-fighter heights in pixels (Alex's 60–99 ratings: 50px = 60, 59px = 99). Art, hit area and reach grow together.
+const FIGHTER_H={ac:53, becky:51};
+for(const [k,th] of Object.entries(FIGHTER_H)){
+  const c=CH[k], r=th/c.h;
+  c.drawK=r; c.h=th; c.w=Math.round(c.w*r);
+  for(const m of Object.values(c.moves)) if(m.box) m.box=m.box.map(v=>Math.round(v*r));
+}
 // ---- Balance pass (tuned with CPU-vs-CPU simulations: thousands of matches per pairing) ----
 const BAL={
   ac:   {punch:{rc:6, dmg:6}, low:{dmg:5}, kick:{dmg:10}, plateDmg:13},
@@ -1148,7 +1155,8 @@ function drawAC(g,f,x,y,tint,frameKey){
   }
   g.save(); g.translate(Math.round(x*2)/2,Math.round(y*2)/2); if(f.dir<0) g.scale(-1,1);
   if(f.inv>0 && !f.kd && (f.inv>>1)%2) g.globalAlpha*=0.55;
-  g.drawImage(src,ox,oy,w,h,-ax/dv,-ay/dv,w/dv,h/dv);
+  const k=(CH[f.key]&&CH[f.key].drawK)||1;   // per-fighter height tweak (see FIGHTER_H)
+  g.drawImage(src,ox,oy,w,h,-ax/dv*k,-ay/dv*k,w/dv*k,h/dv*k);
   g.restore();
 }
 function drawFighterAny(g,f,x,y){
@@ -3164,7 +3172,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=5;
+const HASH_EVERY=30, KEEP=900, NET_V=6;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 function stateHash(){

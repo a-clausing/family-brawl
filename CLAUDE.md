@@ -38,6 +38,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
 
 - **Fighters.** `CH` holds per-fighter config: stats, palette, and `moves` with frame data (`st` startup, `ac` active, `rc` recovery, `dmg`, `kb`, `hs`/`bs` hit/block stun, and `box` hitbox).
   - `FIGHTER_SCALE` and the per-fighter size overrides come after `CH`.
+  - `FIGHTER_H` sets a fighter's height in pixels. It scales their drawn art (`drawK`, used in `drawAC`), hit area and attack reach together. Currently AC 53, Becky 51.
   - `BAL` is the tuned balance layer and overrides `CH`.
   - Fighters: `ac`, `brick`, `becky`, `volt`, `bmoney`, `winston`.
 - **Sprites.** The `*_SHEET` atlases are drawn at 2× detail.
@@ -79,7 +80,27 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - **Anything that affects gameplay must be deterministic and included in `stateHash`/`snapshot`.** Fields that don't affect the outcome go in `SKIP_F`.
   - If you change the message protocol, bump `NET_V`.
 
+## Fighter ratings (Alex's Madden-style scale)
+Alex thinks about fighters as 60–99 ratings: the lowest current value of a trait = 60, the highest = 99, evenly spread between. For startup frames and weight, lower raw numbers rate higher. When he asks for a rating, convert it back to the raw number with these ranges:
+
+| Rating | 60 = | 99 = | Game value |
+|---|---|---|---|
+| Height | 50 px | 59 px | `h` (via `FIGHTER_H`) |
+| Speed | 0.95 | 2.3 | `speed` |
+| Jump height | 39 px | 83 px | `jump²/(2·grav)` |
+| Hang time | 0.5 s | 0.8 s | `2·jump/grav/60` |
+| Air drift | 1.3 | 2.5 | `jumpVx` |
+| Light hit damage | 4 | 6 | avg of punch/low `dmg` |
+| Kick damage | 7 | 11 | kick `dmg` |
+| Light hit speed | 6 frames | 2 frames | punch/low `st` |
+| Kick speed | 9 frames | 4 frames | kick `st` |
+| Armor | −10% | +18% | `armor` |
+| Stability | weight 1.1 | weight 0.6 | `weight` |
+
+Overall = plain average. Becky's flinch resistance (`lightArmor`) isn't on the scale yet; a Toughness rating was suggested. Last ratings shown: AC 81, Becky 75, B-Money 81 (AC height 74, Becky 65 after the Nov 2026 change). Brick, Volt and Winston haven't been rated yet. The 1–5 stars on fighter select are still hand-written and don't follow these ratings.
+
 Known issues and ideas:
+- The 1v1 gym backdrop art still shows the old "NEXT REP" logo on the wall.
 - Brick dominates free-for-all in CPU sims (~37% wins with 4 fighters); Volt is weakest (~6%). Alex was offered a 2v2/free-for-all-only balance pass.
 - If a player leaves mid-match, the match ends and everyone goes back to the lobby; a CPU doesn't take over.
 - Campaign isn't built yet.
