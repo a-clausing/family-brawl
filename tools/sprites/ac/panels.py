@@ -11,9 +11,10 @@ P={ # name: (x0,y0,x1,y1, expected frames)
  'hkick':(183,469,790,602,6),'combo':(802,469,1528,602,6),
  'dmg':(8,610,437,753,4),'down':(451,610,1032,753,5),'getup':(1047,610,1528,753,4),
  'special':(8,762,1528,1004,6)}
+TOP={'jump':23}   # AC's top-of-jump frame reaches above the usual 34px label band (his head crosses the panel border)
 def seg(name,T):
     x0,y0,x1,y1,n=P[name]
-    top=34
+    top=TOP.get(name,34)
     c=a[y0+top:y1-5,x0+5:x1-5]
     g=np.zeros(c.shape[:2],np.float32)
     for dy,dx in [(0,1),(1,0),(0,-1),(-1,0)]:
@@ -28,7 +29,15 @@ def seg(name,T):
             d=np.diff(np.concatenate([[0],r.astype(np.int8),[0]])); st=np.where(d==1)[0]; en=np.where(d==-1)[0]
             out[i]=len(st)>0 and (en-st).max()>0.5*M.shape[1]
         return out
-    fg[longrun(fg),:]=False
+    lr=longrun(fg); fg[lr,:]=False
+    if name in TOP:   # a frame pokes up past the panel border: bridge the figure across the border rows
+        rows=np.where(lr)[0]
+        for r in rows:
+            up=r-1
+            while up>=0 and lr[up]: up-=1
+            dn=r+1
+            while dn<len(lr) and lr[dn]: dn+=1
+            if up>=0 and dn<len(lr): fg[r]=fg[up]&fg[dn]&~((c[r,:,2]>120)&(c[r,:,0]<110)&(c[r,:,2]>c[r,:,0]+60))   # but not the border's blue
     fg=nd.binary_opening(fg,iterations=1)
     l2,k2=nd.label(fg); comps=[]
     for i,sl in enumerate(nd.find_objects(l2)):

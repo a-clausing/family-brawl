@@ -64,6 +64,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - `rnd` is for visual effects only.
 - **Render and UI.** HUD (`hud`, `hudMulti`), VS screen, menus.
   - The HUD is drawn through `hudFaded`, which splits the top bar into one column per panel and fades a column to 25% while any fighter's head is under it (so jumps never hide behind the bar).
+  - `fadeControls` (called at the end of `render`) checks every 4 frames whether a fighter's body overlaps each touch button or the stick, and adds `.behind` to fade just that control to ~.2 (.5 if pressed).
   - Touch controls are in their original spots (14px from the sides, 8px from the bottom). Alex tried them tucked further into the corners and found them harder to hold, so keep them there. They're a bit more see-through than they used to be: buttons and stick .52, Super/Special stronger when ready, .85 while pressed.
   - Main menu backdrop is Alex's title art (`art/originals/family-brawl-title-bg.png`, embedded as `src/assets/title-bg.webp.b64`, 1600px WebP) under the logo and buttons. The old fanned fighter cards were removed from it.
   - Menu flow: main menu (Arcade / Campaign "coming soon") → Arcade → Solo → fighter select, or → Online → Host / Join (`#onlineOv`) → lobby.
@@ -120,6 +121,8 @@ Run each script from inside its own folder. They read sheets from `art/originals
    - `winston/update_data.py` does this step for Winston and is the model to copy for a new fighter.
 
 Supers (`tools/sprites/supers/`) work the same way for the close-up sheets.
+
+Watch for frames that poke above a panel's border on Alex's sheets. The cutter skips the top 34 px of each panel (the label band), so anything above that gets sliced off. AC's top-of-jump frame lost its head this way. `TOP` in `ac/panels.py` starts the jump panel higher and bridges the figure across the border rows. Check `lineup.png` for missing heads or hands whenever you cut a new sheet.
 
 **Adding a fighter** has followed the same steps each time (see `art/specs/`):
 1. Ask Alex the design questions.

@@ -41,12 +41,16 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .sp{background:#3d4a69;color:#9fb0d6;border-radius:14px;width:calc(var(--b)*1.8);height:calc(var(--b)*0.78);font-size:11px;letter-spacing:.04em;margin-right:calc(var(--b)*-0.15)}
 .sp.ready{background:var(--steel);color:#fff;animation:ready 1s ease-in-out infinite}
 @keyframes ready{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810,0 0 18px 2px rgba(59,124,255,.7)}}
+.act,.track{transition:opacity .15s}
+.act.behind{opacity:.2} .su.behind{opacity:.16} .sp.ready.behind,.su.ready.behind{opacity:.4}
 .act.on{opacity:.85;transform:translateY(3px) scale(.95);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 #0a0810}
 .sp.ready{opacity:.8}
 .stick{width:calc(var(--b)*3);height:calc(var(--b)*2.4);display:grid;place-items:center;touch-action:none}
 .track{position:relative;width:100%;height:calc(var(--b)*1.3);border-radius:999px;background:var(--panel-hi);border:2px solid #120e14;
   box-shadow:inset 0 5px 0 #1a1424,0 3px 0 #0a0810;opacity:.52}
 .stick.held .track{opacity:.85}
+.stick.behind .track{opacity:.2} .stick.behind.held .track{opacity:.5}
+.act.on.behind{opacity:.5}
 .arr{position:absolute;top:50%;width:14px;height:14px;fill:#5b4f78;transform:translateY(-50%)}
 .arr.l{left:12px} .arr.r{right:12px}
 .stick.goL .arr.l,.stick.goR .arr.r{fill:var(--gold)}
@@ -2918,6 +2922,27 @@ function render(){
   if(G.flashT>0){ G.flashT--; ctx.fillStyle=G.flashCol||'rgba(255,226,60,.08)'; ctx.fillRect(0,0,W,H); if(!G.flashT) G.flashCol=null; }
   if(G.f && G.mode==='play'){ if(G.phase==='vs') (G.multi?drawVSMulti:drawVS)(); else if(G.cine) drawCineBanner(); else if(G.multi){ drawTags(cam); hudFaded(hudMulti,G.f.length,50,cam); bannersMulti(); } else { hudFaded(hud,2,46,null); banners(); } }
   if(NET.active && G.mode==='play' && NET.stall>20) txt('WAITING FOR OPPONENT…',W/2,104,8,'#ffd23f');
+  fadeControls(cam);
+}
+// Touch controls go extra see-through while a fighter is behind them (each button on its own)
+const CTL_EL=[...document.querySelectorAll('#controls .act'), document.getElementById('stick')];
+let ctlTick=0, ctlOn=false;
+function fadeControls(cam){
+  const live=G.f && G.mode==='play' && G.phase!=='vs' && !G.cine;
+  if(!live){ if(ctlOn){ CTL_EL.forEach(e=>e.classList.remove('behind')); ctlOn=false; } return; }
+  if((ctlTick++)%4) return;
+  const r=cv.getBoundingClientRect(), k=r.width/W;
+  const z=cam?cam.z:1, cx=cam?cam.cx:W/2, cy=cam?cam.cy:H/2;
+  const boxes=G.f.filter(f=>!(f.out||f.dead)).map(f=>{
+    const ht=(f.cfg.artH||f.cfg.h)*1.08, x=W/2+(f.x-cx)*z, top=H/2+(f.y-ht-cy)*z, bot=H/2+(f.y-cy)*z, hw=Math.max(14,(f.cfg.w||16)*0.9)*z;
+    return {l:r.left+(x-hw)*k, r:r.left+(x+hw)*k, t:r.top+top*k, b:r.top+bot*k};
+  });
+  for(const e of CTL_EL){
+    const b=(e.id==='stick'?e.querySelector('.track'):e).getBoundingClientRect();
+    const hit=boxes.some(q=>q.r>b.left&&q.l<b.right&&q.b>b.top&&q.t<b.bottom);
+    e.classList.toggle('behind',hit);
+  }
+  ctlOn=true;
 }
 
 /* ---------------- VS screen ---------------- */
