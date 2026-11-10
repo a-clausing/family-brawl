@@ -3402,7 +3402,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=7;
+const HASH_EVERY=30, KEEP=900, NET_V=8;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 function stateHash(){
