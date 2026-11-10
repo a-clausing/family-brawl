@@ -663,6 +663,12 @@ CH.winston.h=46; CH.winston.w=28; CH.winston.artH=33;
 CH.haddie.h=46; CH.haddie.w=24; CH.haddie.artH=31;
 // Harper is drawn 10% smaller than Winston (30px), same 46px hit area.
 CH.harper.h=46; CH.harper.w=22; CH.harper.artH=30;
+// Dog size tweaks (Nov 2026, Alex): Winston 10% bigger; Haddie down to just above Harper (her art reads big).
+// Art (drawK), body width and attack reach change together; the 46px hit height stays so punches land.
+for(const [k,r] of [['winston',1.1],['haddie',60/63]]){
+  const c=CH[k]; c.drawK=r; c.artH=Math.round(c.artH*r); c.w=Math.round(c.w*r);
+  for(const m of Object.values(c.moves)) if(m.box) m.box=m.box.map(v=>Math.round(v*r));
+}
 // Per-fighter heights in pixels (Alex's 60–99 ratings: 50px = 60, 59px = 99). Art, hit area and reach grow together.
 const FIGHTER_H={ac:53, becky:51};
 for(const [k,th] of Object.entries(FIGHTER_H)){
@@ -1813,8 +1819,8 @@ function airSteer(f){
 const SPRINT_SPEED=9.5;
 const BM_FX=['#c77dff','#8a2be2','#f1d6ff'], BM_FX_ALT=['#4dffc3','#16a37a','#d6fff2'];
 const WN_FX=['#2f9bff','#8fd0ff','#e6f6ff'], WN_FX_ALT=['#ff8a1f','#ffc27a','#fff1e0'];
-const WN_MOUTH=[21,27];   // Winston's mouth, measured from his frames: forward, up (game px)
-const HD_MOUTH=[22,18];   // Haddie's mouth on her puke frames: forward, up (game px)
+const WN_MOUTH=[23,30];   // Winston's mouth: forward, up (game px); was [21,27] before he grew 10%
+const HD_MOUTH=[21,17];   // Haddie's mouth on her puke frames: forward, up (game px); was [22,18] before she shrank
 const PUKE_FX=['#c6f23a','#8fd11e','#eaffb0'];
 const HP_MOUTH=[19,20];   // Harper's mouth on her yap frames: forward, up (game px)
 const YAP_FX=['#ff2fa0','#ff8fd0','#ffe0f2'], YAP_FX_ALT=['#2fe07a','#8ff0b8','#e0ffee'];
