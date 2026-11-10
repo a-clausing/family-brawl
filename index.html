@@ -467,7 +467,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
   <div class="panel howpanel">
     <div class="howtop"><p class="big" style="color:var(--gold);font-size:22px">HOW TO PLAY</p><button class="ghostbtn" id="howX" aria-label="Close">✕</button></div>
     <div class="howgrid">
-          <b>STICK</b><span>Slide left or right to walk. Walking away is a little slower.</span>
+          <b>STICK</b><span>Slide left or right to walk. You face the way you last pushed, so turn toward an opponent before you attack or block.</span>
           <b>J</b><span>Jump. Steer with the stick while you're in the air, and press P or K for a jump kick. AC can jump right over Brick to escape a corner.</span>
           <b>B</b><span>Tap or hold to block. Blocked hits only chip a little health. Double-tap B right next to an opponent who isn’t attacking or blocking to throw them (no damage, but they’re knocked down).</span>
           <b>SAME</b><span>Picking the same fighter as the CPU is fine: the CPU's copy wears different colors.</span>
@@ -2275,7 +2275,7 @@ function kdStep(f,o){
   } else {
     f.landT++; f.vx*=0.8; f.x=Math.max(12,Math.min(AW-12,f.x+f.vx));
     if(k.ph==='lie' && k.t>=KD_LIE){ k.ph='up'; k.t=0; }
-    else if(k.ph==='up' && k.t>=KD_UP){ f.kd=null; f.state='idle'; f.inv=WAKE_INV; o.combo=0; f.dir=o.x>=f.x?1:-1; }
+    else if(k.ph==='up' && k.t>=KD_UP){ f.kd=null; f.state='idle'; f.inv=WAKE_INV; o.combo=0; if(f.cpu) f.dir=o.x>=f.x?1:-1; }
   }
 }
 function kdFrame(f){
@@ -2315,6 +2315,12 @@ function commonFrame(f){
   if(f.move==='throw') return throwFrame(f);
   return null;
 }
+// Facing: players face the last way they pressed; CPUs always turn to face their target.
+// (Supers and throws still swing around to their target for everyone.)
+function steerFace(f,o){
+  if(f.cpu){ f.dir=o.x>=f.x?1:-1; return; }
+  const I=f.in; if(I.left!==I.right) f.dir=I.right?1:-1;
+}
 function updF(f,o){
   const c=f.cfg, I=f.in, E=k=>I[k]&&!f.prev[k];
   // Input buffer: a press made while busy (mid-move, hit or block stun, landing) is remembered for
@@ -2346,7 +2352,7 @@ function updF(f,o){
         if(f.mf===1) sfx('charge');
       }
       if(f.sprint){ sprintStep(f,o); if(f.sprint) f.mf=m.st; return; }
-      if(f.mf>m.st+10 && f.onGround) f.dir=o.x>=f.x?1:-1;   // turn to face the opponent once he's braked
+      if(f.mf>m.st+10 && f.onGround && f.cpu) f.dir=o.x>=f.x?1:-1;   // CPU turns to face the opponent once he's braked
     }
     if(m.dmg && !f.mhit && f.mf>m.st && f.mf<=m.st+m.ac){ if(G.multi){ for(const e of foes(f)) tryHit(f,e,m); } else tryHit(f,o,m); }
     if(f.mhit && f.onGround && f.move!=='special' && f.combo<5 && f.mf>m.st+1 && (B('punch')||B('kick'))){
@@ -2363,7 +2369,7 @@ function updF(f,o){
   }
   if(G.phase!=='fight'){ f.state=f.onGround?'idle':'jump'; f.vx=0; phys(f); return; }
   if(f.onGround){
-    f.dir=o.x>=f.x?1:-1;
+    steerFace(f,o);
     if(B('super') && f.meter>=SUPER_COST && G.phase==='fight' && !G.cine && !o.sup && !o.superArmor && !untouchable(o)){ useBuf(); startSuper(f,o); phys(f); return; }
     if(E('block')){   // double-tap Block next to an idle or walking opponent: throw
       if(f.lastBlk!==undefined && f.anim-f.lastBlk<=14 && canThrow(f,o)){ f.lastBlk=undefined; useBuf(); startThrow(f,o); phys(f); return; }
@@ -2380,7 +2386,7 @@ function updF(f,o){
   } else {
     f.state='jump';
     airSteer(f);
-    if(Math.abs(o.x-f.x)>4) f.dir=o.x>=f.x?1:-1;
+    if(f.cpu){ if(Math.abs(o.x-f.x)>4) f.dir=o.x>=f.x?1:-1; } else steerFace(f,o);
     if(B('kick')||B('punch')){ useBuf(); startMove(f,'air'); }
   }
   phys(f);
@@ -3230,7 +3236,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=6;
+const HASH_EVERY=30, KEEP=900, NET_V=7;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 function stateHash(){

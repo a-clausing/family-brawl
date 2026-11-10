@@ -52,6 +52,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - `G` holds everything that changes during a fight; `G.f` is the fighters array (2 to 4 entries).
   - Match setup: `newMatch` for 1v1, `setupMulti`/`newMatchMulti` for 2v2 and free-for-all.
   - `G.rules` holds Best Of or Most Wins, the minutes, and `stocks` (lives, 1–5).
+- **Facing.** Human players face the last way they pushed, on the ground and in the air (`steerFace`); they don't turn on their own when getting up or after Volt's sprint. CPUs always turn to face their target (Alex chose this, Nov 2026). Supers and throws still swing everyone around to their target. Block only stops hits from the front.
 - **Combat.** `applyHit`, combo scaling, knockdowns, throws.
   - Supers are cinematic, and each fighter's projectile is handled in `superProj` (1v1) or `superProjMulti`.
   - Specials: AC's dumbbell, Brick's quake wave, Becky's band, Volt's sprint, B-Money's ripple, Winston's bone.
