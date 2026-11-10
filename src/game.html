@@ -495,6 +495,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 <script>
 @@asset:brick-sheet.js@@
 @@asset:gym-backdrop.js@@
+@@asset:house-backdrop.js@@
 @@asset:becky-sheet.js@@
 @@asset:volt-sheet.js@@
 @@asset:portraits.js@@
@@ -1261,15 +1262,21 @@ function buildGym(){
   g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high';
   g.drawImage(GYMIMG,x0*2,y0*2,wd*2,hd*2);
 }
+// 2v2 and free-for-all use their own backdrop (Alex's house at night, art/originals/house-backdrop-multi.png),
+// falling back to the gym until it loads. MULTI_FLOOR_ROW is where feet land: just onto the street past the curb.
+const HOUSEIMG=new Image(); let houseReady=false; const MULTI_FLOOR_ROW=0.89;
+HOUSEIMG.onload=()=>{ houseReady=true; gymmFor=0; }; if(window.HOUSE_BG) HOUSEIMG.src=window.HOUSE_BG;
 const GYMM=mk(2,2); let GYMM_Y=0, GYMM_H=H, gymmFor=0;
 function buildGymMulti(){
-  if(!gymReady || gymmFor===AW*1000+W) return; gymmFor=AW*1000+W;
-  const zmin=W/AW, top=GROUND-GROUND/zmin-4, bot=GROUND+(H-GROUND)/zmin+4, ar=GYMIMG.naturalWidth/GYMIMG.naturalHeight;
-  const hd=Math.max(AW/ar,(GROUND-top)/FLOOR_ROW,(bot-GROUND)/(1-FLOOR_ROW)), wd=hd*ar, y0=GROUND-FLOOR_ROW*hd, x0=(AW-wd)/2;
+  const key=AW*1000+W+(houseReady?0.5:0);
+  if(!gymReady || gymmFor===key) return; gymmFor=key;
+  const IMG=houseReady?HOUSEIMG:GYMIMG, FR=houseReady?MULTI_FLOOR_ROW:FLOOR_ROW;
+  const zmin=W/AW, top=GROUND-GROUND/zmin-4, bot=GROUND+(H-GROUND)/zmin+4, ar=IMG.naturalWidth/IMG.naturalHeight;
+  const hd=Math.max(AW/ar,(GROUND-top)/FR,(bot-GROUND)/(1-FR)), wd=hd*ar, y0=GROUND-FR*hd, x0=(AW-wd)/2;
   GYMM_Y=Math.min(top,y0); GYMM_H=Math.max(bot,y0+hd)-GYMM_Y;
   GYMM.width=Math.round(AW*2); GYMM.height=Math.round(GYMM_H*2);
   const g=GYMM.getContext('2d'); g.fillStyle='#14121c'; g.fillRect(0,0,GYMM.width,GYMM.height);
-  g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high'; g.drawImage(GYMIMG,x0*2,(y0-GYMM_Y)*2,wd*2,hd*2);
+  g.imageSmoothingEnabled=true; g.imageSmoothingQuality='high'; g.drawImage(IMG,x0*2,(y0-GYMM_Y)*2,wd*2,hd*2);
 }
 GYMIMG.onload=()=>{ gymReady=true; buildGym(); }; GYMIMG.src=window.GYM_BG;
 
