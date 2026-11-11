@@ -56,7 +56,11 @@ async def main():
                 await H.wait_for_function(f"__NET.conns.filter(x=>x.slot>0&&x.ready).length==={GUESTS}", timeout=20000)   # every guest's READY reached the host
                 for pg in tabs: await pg.evaluate(COUNT)
                 await H.click('#goBtn')
-                await H.wait_for_function("__G.phase==='fight'", timeout=20000)
+                try: await H.wait_for_function("__G.phase==='fight'", timeout=20000)
+                except Exception:   # say where the start got stuck
+                    print('match did not start. host:', await H.evaluate("({ready:__NET.ready, pinging:__NET.pinging, active:__NET.active, note:__NET.note, guests:__NET.conns.map(x=>({slot:x.slot,ready:x.ready,where:x.where,rtts:x.rtts.length,peer:x.c.peer,label:x.c.label,meta:x.c.metadata,reliable:x.c.reliable,open:x.c.open})), fastBy:Object.keys(__NET.fastBy)})"))
+                    for g in tabs[1:]: print('  guest:', await g.evaluate("({ready:__NET.ready, where:__NET.where, active:__NET.active, room:!!__NET.room, myId:__NET.peer&&__NET.peer.id, conns:Object.keys(__NET.peer?__NET.peer.connections:{}).map(k=>[k,__NET.peer.connections[k].map(c=>({label:c.label,meta:c.metadata,open:c.open}))])})"))
+                    raise
                 keys = ['KeyJ', 'KeyK', 'KeyL', 'ArrowLeft', 'ArrowRight']
                 for t in range(48):   # ~12 s of everyone walking and attacking
                     for i, pg in enumerate(tabs): await pg.keyboard.down(keys[(t + i) % 5])

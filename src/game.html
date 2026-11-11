@@ -3506,7 +3506,7 @@ function hostMsg(m,x){
   }
   if(m.t==='me'){ if(x.slot>0){ if(FIGHTERS.includes(m.pick)) x.pick=m.pick; x.ready=!!m.ready; x.where=m.where||'lobby'; lobbyUpdate(); } return; }
   if(m.t==='quit'){ if(NET.active&&!NET.over) netEndMatch(`P${x.slot+1} ended the match.`); return; }
-  if(m.t==='pong'){ x.rtts.push(performance.now()-m.ts); if(x.rtts.length<4) sendTo(x.c,{t:'ping',ts:performance.now()}); else if(NET.conns.every(y=>y.rtts.length>=4)) doStart(); return; }
+  if(m.t==='pong'){ x.rtts.push(performance.now()-m.ts); if(x.rtts.length<4) sendTo(x.c,{t:'ping',ts:performance.now()}); else if(NET.conns.filter(y=>y.slot>0).every(y=>y.rtts.length>=4)) doStart(); return; }
   if(m.t==='bye'){ guestLeft(x); return; }
   if(x.slot<=0) return;   // not let in yet: nothing below may act for it (slot 0 is the host's)
   if(m.t==='away'){ setAway(x.slot,!!m.on); return; }
@@ -3533,7 +3533,7 @@ function keepAwake(){
 }
 setInterval(keepAwake,1500); document.addEventListener('visibilitychange',keepAwake);
 function nextSlot(){ for(let s=1;s<=3;s++) if(!NET.conns.some(y=>y.slot===s)) return s; return -1; }
-function dropGuest(x){ NET.conns=NET.conns.filter(y=>y!==x); setTimeout(()=>{ try{ x.c.close&&x.c.close(); const f=x.c.peer&&NET.fastBy[x.c.peer]; f&&f.close(); }catch(e){} },300); lobbyUpdate(); }
+function dropGuest(x){ NET.conns=NET.conns.filter(y=>y!==x); setTimeout(()=>{ try{ x.c.close&&x.c.close(); const f=x.c.peer&&!NET.conns.some(y=>y.c.peer===x.c.peer)&&NET.fastBy[x.c.peer]; f&&f.close(); }catch(e){} },300); lobbyUpdate(); }
 function guestLeft(x){
   if(!NET.conns.includes(x)) return;
   NET.conns=NET.conns.filter(y=>y!==x);
@@ -3643,7 +3643,7 @@ function netEndMatch(why){   // host: end the current match for everyone; the ro
 // ---- starting a match (host decides fighters, lag allowance and the CPUs' random seed)
 function hostStart(){
   if(NET.pinging) return; NET.pinging=true;
-  for(const x of NET.conns){ x.rtts=[]; sendTo(x.c,{t:'ping',ts:performance.now()}); }
+  for(const x of NET.conns.filter(y=>y.slot>0)){ x.rtts=[]; sendTo(x.c,{t:'ping',ts:performance.now()}); }   // only players let in: a phone that never said hello would hold the start forever
   if(!NET.conns.length) doStart();
 }
 function doStart(){
@@ -3651,7 +3651,7 @@ function doStart(){
   // Input delay in frames. Each guest's round trip: the 3rd of its 4 pings, so one hiccup during the check
   // doesn't saddle the whole match with extra delay. With 2+ guests, presses between guests relay through
   // the host, so the two slowest guests' one-way trips add up.
-  const per=NET.conns.map(x=>[...x.rtts].sort((a,b)=>a-b)[Math.min(2,x.rtts.length-1)]||0).sort((a,b)=>b-a);
+  const per=NET.conns.filter(x=>x.slot>0).map(x=>[...x.rtts].sort((a,b)=>a-b)[Math.min(2,x.rtts.length-1)]||0).sort((a,b)=>b-a);
   const path=per.length>1?(per[0]+per[1])/2:(per[0]||0)/2;
   const D=Math.max(2,Math.min(8,Math.ceil(path/16.67)+1));
   const m=(NET.match||0)+1, fm=NET.mode, guests=NET.conns.filter(x=>x.slot>0).sort((a,b)=>a.slot-b.slot);
@@ -3765,7 +3765,8 @@ function hostHandlers(code){
   const find=c=>NET.conns.find(x=>x.c===c);
   return {
     open(){ setStatus(''); enterLobby(); lobbyUpdate(); },
-    conn(c){ NET.conns.push({c,slot:0,pick:null,ready:false,where:'lobby',rtts:[]}); },
+    conn(c){ const x={c,slot:0,pick:null,ready:false,where:'lobby',rtts:[]}; NET.conns.push(x);
+      setTimeout(()=>{ if(x.slot===0 && NET.conns.includes(x)) dropGuest(x); },10000); },   // never said hello: close it
     data(d,c){ const x=find(c); if(x) hostMsg(d,x); },
     close(c){ const x=find(c); if(x) guestLeft(x); },
     error(type){
