@@ -3467,7 +3467,7 @@ function netTick(){
 // ---- messages a guest receives from the host
 function guestMsg(m){
   if(!m||typeof m!=='object') return;
-  if(m.t==='lobby'){ NET.local=m.you; if(!NET.room) enterLobby(); guestApplyLobby(m); renderLobby(m); return; }
+  if(m.t==='lobby'){ NET.local=m.you; if(!NET.room) enterLobby(); if(NET.conn&&NET.conn.openFast) NET.conn.openFast(); guestApplyLobby(m); renderLobby(m); return; }
   if(m.t==='end'){ if(NET.active) backToLobby(m.why); return; }
   if(m.t==='full'){ const why=m.why; netClose(); show('onChoose',true); document.getElementById('onSub').hidden=false; setStatus(why); return; }
   if(m.t==='ping'){ netSend({t:'pong',ts:m.ts}); return; }
@@ -3486,6 +3486,11 @@ function hostMsg(m,x){
   if(m.t==='hello'){
     if(m.v!==NET_V){ sendTo(x.c,{t:'full',why:'That phone is running a different version of the game. Close and reopen the game on both phones.'}); dropGuest(x); return; }
     const busy=NET.active&&!NET.over;
+    // A third phone joining a 1 VS 1 room: switch the room to Free-for-all so they get in (Alex, Nov 2026)
+    if(!busy && NET.mode==='1v1' && NET.conns.filter(y=>y.slot>0).length>=1){
+      fmodeSel.value='ffa'; fmodeSel.dispatchEvent(new Event('change'));
+      NET.note='A third player joined, so the room switched to Free-for-all. The host can change it to Teams.';
+    }
     if(busy||NET.conns.filter(y=>y.slot>0).length>=roomMax()){ sendTo(x.c,{t:'full',why:busy?'That room is in the middle of a match. Try again when it ends.':'That room is full.'}); dropGuest(x); return; }
     x.pick=FIGHTERS.includes(m.pick)?m.pick:'ac'; x.ready=false; x.where='lobby'; x.slot=nextSlot(); lobbyUpdate();
     return;
@@ -3681,11 +3686,14 @@ const Transport=window.__netTransport||{
     peer.on('open',()=>{
       const id='nrb-match-'+code.toLowerCase(), c=peer.connect(id,{reliable:true,serialization:'json'});
       wire(c,h);
-      c.on('open',()=>{   // then the fast connection for button presses (unordered, so nothing waits in line)
+      // the fast connection for button presses (unordered, so nothing waits in line) opens only once the host
+      // has let this phone in: a phone turned away (room full) must not leave a half-open connection behind
+      c.openFast=()=>{
+        if(c.fastOpening) return; c.fastOpening=true;
         const f=peer.connect(id,{reliable:false,serialization:'json',metadata:{fast:1}});
         f.on('open',()=>{ NET.fastBy[c.peer]=f; }); f.on('data',d=>h.data(d,c));
         f.on('close',()=>{ if(NET.fastBy[c.peer]===f) delete NET.fastBy[c.peer]; });
-      });
+      };
     });
     peer.on('error',e=>h.error(e&&e.type||'error'));
   },
@@ -3718,6 +3726,9 @@ function hostHandlers(code){
     close(c){ const x=find(c); if(x) guestLeft(x); },
     error(type){
       if(type==='unavailable-id'){ Transport.close(); NET.peer=null; return onlineHost(); }   // code taken: pick another
+      // Once the room is open, "peer-unavailable" only means one guest vanished mid-handshake (e.g. a phone
+      // turned away because the room was full); closing the room over it booted everyone (Nov 2026 bug).
+      if(NET.room && type==='peer-unavailable') return;
       failNet(type,code);
     }
   };
@@ -3727,7 +3738,7 @@ function guestHandlers(code){
     conn(c){ clearTimeout(connTimer); NET.conn=c; setStatus('Connected! Joining the room…'); netSend({t:'hello',pick:G.pick,v:NET_V}); },
     data:d=>guestMsg(d),
     close(){ if(NET.conn) netLost('The connection to the host was lost.'); },
-    error(type){ failNet(type,code); }
+    error(type){ if(NET.conn && type==='peer-unavailable') return; failNet(type,code); }   // already connected: a failed side connection isn't fatal
   };
 }
 const CODE_CHARS='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
