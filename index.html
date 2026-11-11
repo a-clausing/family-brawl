@@ -214,6 +214,12 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 #cpuPick button{padding-inline:0;font-size:clamp(10px,1.55vw,12px);text-overflow:clip;letter-spacing:-.02em}   /* 8 names in 3 columns: shrink a little on small phones */
 .cpumulti{display:flex;flex-direction:column;gap:5px}
 .cpuslot{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:6px;align-items:center;min-width:0}
+.cpuslot.teams{grid-template-columns:minmax(0,.8fr) minmax(0,1fr) auto}
+.tchip{font:700 10px var(--pixel);letter-spacing:.02em;min-width:58px;padding:6px 6px;border-radius:6px;border:2px solid var(--tc);color:#0a0d1c;background:var(--tc);cursor:pointer}
+.tchip:disabled{cursor:default;opacity:.85}
+.cpuslot .tchip:disabled{opacity:.3}
+.lobby .row .tchip{margin-left:6px;min-width:52px;padding:3px 4px;font-size:8px}
+#cpuLbl.warn{color:#ff5a4d}
 .cpuslot label{font-family:var(--pixel);font-size:7px;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cpuslot select,.lobby select{appearance:none;-webkit-appearance:none;width:100%;min-width:0;font:700 12px var(--ui);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 4px;text-align:center}
 .lobby select{width:auto;min-width:92px;margin-left:auto;padding:2px 4px}
@@ -437,7 +443,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
     </section>
     <aside class="fs-side">
       <div class="fs-chips">
-        <select class="fmode" id="fmodeSel" aria-label="Fight type"><option value="1v1">1 VS 1</option><option value="2v2">2 VS 2</option><option value="ffa">FREE-FOR-ALL</option></select>
+        <select class="fmode" id="fmodeSel" aria-label="Fight type"><option value="1v1">1 VS 1</option><option value="2v2">TEAMS</option><option value="ffa">FREE-FOR-ALL</option></select>
         <span class="fs-title" id="fsTitle">SOLO</span>
       </div>
       <div class="side-panel">
@@ -1655,7 +1661,7 @@ function playerInput(){ const o={}; KEYS.forEach(k=>o[k]=!!(touchHeld[k]||keyHel
 function clearTaps(){ KEYS.forEach(k=>taps[k]=false); }
 
 /* ---------------- Game state ---------------- */
-const G={fmode:(()=>{ try{ return localStorage.getItem('nrb.fmode')||'1v1'; }catch(e){ return '1v1'; } })(), cpuPicks:['random','random','random'], multi:false, teams:false,
+const G={fmode:(()=>{ try{ return localStorage.getItem('nrb.fmode')||'1v1'; }catch(e){ return '1v1'; } })(), cpuPicks:['random','random','random'], teamPicks:(()=>{ try{ const t=JSON.parse(localStorage.getItem('nrb.teams')); if(Array.isArray(t)&&t.length===4&&t.every(x=>x===0||x===1||x===2)) return t; }catch(e){} return [0,0,1,1]; })(), multi:false, teams:false,
   rules:{mode:'bestof',bestOf:5,minutes:2,stocks:3}, mclock:0, sudden:false, mode:'menu', paused:false, diff:'normal', pick:'ac', cpuPick:'random', f:null, proj:[], parts:[], shake:0, hitstop:0, slow:0,
   round:1, timer:60, ft:0, phase:'intro', pt:0, winner:null, combo:null, t:0};
 
@@ -1675,7 +1681,7 @@ const NET={active:false, role:null, local:0, D:3, frame:0, nextLocal:0, inputs:[
   stall:0, match:0, conn:null, peer:null, rematch:[false,false], picks:[null,null], resyncAt:-1, synced:0};
 Object.assign(NET,{room:false, over:false, code:'', where:'lobby', ready:false, saved:null, note:''});
 const pickKey=p=>p==='random'?FIGHTERS[Math.floor(Math.random()*FIGHTERS.length)]:p;
-// keys: fighter per slot; cpus: which slots the CPU plays; teamsOn: 2v2 (slots 0-1 vs 2-3)
+// keys: fighter per slot; cpus: which slots the CPU plays; teamsOn: Teams mode; teamOf(i): fighter i's team (0 blue, 1 red, 2 green; default 0-1 vs 2-3)
 function setupMulti(keys,cpus,teamsOn,teamOf){
   G.multi=true; G.teams=teamsOn; AW=MULTI_AW; CAM.init=false;
   G.f=keys.map((k,i)=>{ const f=mkF(k,i,cpus[i]); f.slot=i; f.team=teamsOn?(teamOf?teamOf(i):(i<2?0:1)):i; return f; });
@@ -1684,9 +1690,9 @@ function setupMulti(keys,cpus,teamsOn,teamOf){
 }
 function newMatchMulti(){
   const teamsOn=G.fmode==='2v2';
-  const keys=[G.pick], cpus=[false];
-  G.cpuPicks.forEach((p,i)=>{ if(p==='off' && !teamsOn && i>0) return; keys.push(pickKey(p==='off'?'random':p)); cpus.push(true); });
-  setupMulti(keys,cpus,teamsOn);
+  const keys=[G.pick], cpus=[false], teams=[G.teamPicks[0]];
+  G.cpuPicks.forEach((p,i)=>{ if(p==='off' && (teamsOn || i>0)) return; keys.push(pickKey(p==='off'?'random':p)); cpus.push(true); teams.push(G.teamPicks[i+1]); });
+  setupMulti(keys,cpus,teamsOn,i=>teams[i]);
   G.f.forEach(f=>{ f.tag=f.cpu?'CPU':'YOU'; });
   G.rules={...G.opts}; G.mclock=0; G.sudden=false;
   G.round=1; startRound(); G.phase='vs';
@@ -2372,7 +2378,10 @@ function deadStep(f,o){
 }
 function spawnX(i){
   const n=G.f.length;
-  if(G.teams){ const t=G.f[i].team, k=G.f.slice(0,i).filter(o=>o.team===t).length; return AW*(t?[0.8,0.68]:[0.2,0.32])[k]; }
+  if(G.teams){   // each team starts together: two teams at the sides, a third in the middle
+    const T=[...new Set(G.f.map(f=>f.team))].sort(), t=G.f[i].team, r=T.indexOf(t), k=G.f.slice(0,i).filter(o=>o.team===t).length;
+    const base=T.length<2?0.5:0.2+0.6*r/(T.length-1), dir=base<0.5?1:base>0.5?-1:(k%2?1:-1);
+    return AW*(base+dir*0.12*(base===0.5?Math.ceil(k/2):k)); }
   return AW*(i+0.5)/n;
 }
 // extra victims of a dash super: anyone else it runs through takes that pass's hit once
@@ -2930,8 +2939,11 @@ function hud(){
   }
   if(G.combo){ const left=G.combo.side===0; txt(`${G.combo.n} HIT COMBO`,left?6:W-6,44,8,'#ffd23f',left?'left':'right'); }
 }
-const SLOT_COL=['#ff5a4d','#4da6ff','#5ee06e','#ffd23f'], TEAM_COL=['#4da6ff','#ff5a4d'], TEAM_NAME=['BLUE','RED'];
+const SLOT_COL=['#ff5a4d','#4da6ff','#5ee06e','#ffd23f'], TEAM_COL=['#4da6ff','#ff5a4d','#5ee06e'], TEAM_NAME=['BLUE','RED','GREEN'];
 const tagCol=f=>G.teams?TEAM_COL[f.team]:SLOT_COL[f.slot||0];
+// "2 VS 2", "1 VS 3", "1 VS 1 VS 2": team sizes in color order
+function teamsLabel(list){ const n=[0,1,2].map(t=>list.filter(x=>x===t).length).filter(c=>c>0); return n.join(' VS '); }
+const fightLabel=()=>G.teams?teamsLabel(G.f.map(f=>f.team)):'FREE-FOR-ALL';
 const tagTxt=f=>f.tag||(f.cpu?'CPU':'YOU');
 function drawTags(cam){   // a label over every fighter so you can tell four fighters apart
   if(G.phase==='over') return;
@@ -2990,7 +3002,7 @@ function hudMulti(){
 function bannersMulti(){
   const pt=G.pt;
   if(G.phase==='intro'){
-    if(pt>12&&pt<80) txt(G.teams?'2 VS 2':'FREE-FOR-ALL',W/2,66,16,'#ffd23f');
+    if(pt>12&&pt<80) txt(fightLabel(),W/2,66,16,'#ffd23f');
     else if(pt>=80) txt('FIGHT!',W/2,62,24,'#ff6a1f');
   } else if(G.phase==='fight'){
     if(G.kofeed){ const f=G.f[G.kofeed.i]; if(f) txt(f.elim?`${f.cfg.name} IS OUT!`:`${f.cfg.name} K.O.!`,W/2,58,f.elim?16:8,f.elim?'#ff3b30':'#ffffff'); }
@@ -3085,19 +3097,22 @@ function drawVSMulti(){   // 2v2 / free-for-all intro: every fighter's card in a
   const ease=x=>{ x=Math.min(1,Math.max(0,x)); return 1-Math.pow(1-x,3); };
   const leave=ease((t-(VS_LEN-14))/14);
   ctx.fillStyle=`rgba(10,8,16,${0.82*(1-leave)})`; ctx.fillRect(0,0,W,H);
-  const CH_=112, gap=G.teams?22:8;
-  const ws=G.f.map(f=>{ const im=cardImg(f); return Math.round(CH_*((im&&im.naturalWidth)?im.naturalWidth/im.naturalHeight:(im&&im.width?im.width/im.height:168/382))); });
-  const total=ws.reduce((a,b)=>a+b,0)+gap*(n-1)+(G.teams?16:0);
+  let CH_=112, gap=G.teams?22:8, vsW=16;
+  const order=G.teams?G.f.map((f,i)=>i).sort((a,b)=>G.f[a].team-G.f[b].team||a-b):G.f.map((f,i)=>i);
+  const groups=G.teams?new Set(G.f.map(f=>f.team)).size:1;
+  const ws=order.map(j=>G.f[j]).map(f=>{ const im=cardImg(f); return Math.round(CH_*((im&&im.naturalWidth)?im.naturalWidth/im.naturalHeight:(im&&im.width?im.width/im.height:168/382))); });
+  let total=ws.reduce((a,b)=>a+b,0)+gap*(n-1)+vsW*(groups-1);
+  if(total>W-12){ const k=(W-12)/total; CH_=Math.round(CH_*k); gap*=k; vsW*=k; for(let i=0;i<ws.length;i++) ws[i]=Math.round(ws[i]*k); total=ws.reduce((a,b)=>a+b,0)+gap*(n-1)+vsW*(groups-1); }
   let x=(W-total)/2;
-  G.f.forEach((f,i)=>{
+  order.map(j=>G.f[j]).forEach((f,i,arr)=>{
     const enter=ease((t-2-i*5)/14), off=(1-enter)*H+leave*H*(i%2?1:-1), w=ws[i], col=tagCol(f), im=cardImg(f), y=22+off;
     ctx.fillStyle='rgba(0,0,0,.55)'; ctx.fillRect(x+3,y+3,w,CH_);
     if(im&&(im.naturalWidth||im.width)){ ctx.imageSmoothingEnabled=true; ctx.drawImage(im,x,y,w,CH_); ctx.imageSmoothingEnabled=false; }
     ctx.strokeStyle=col; ctx.lineWidth=2; ctx.strokeRect(x-1,y-1,w+2,CH_+2);
     txt(tagTxt(f),x+w/2,y+CH_+6,8,tagTxt(f)==='YOU'?'#ffd23f':col);
-    x+=w+gap; if(G.teams && i===1){ if(t>=VS_SLAM&&leave<1) txt('VS',x-gap/2+8,y+CH_/2-8,16,'#ffd23f'); x+=16; }
+    x+=w+gap; if(G.teams && arr[i+1] && arr[i+1].team!==f.team){ if(t>=VS_SLAM&&leave<1) txt('VS',x-gap/2+vsW/2,y+CH_/2-8,16,'#ffd23f'); x+=vsW; }
   });
-  if(leave<1 && t>VS_SLAM){ ctx.save(); ctx.globalAlpha=1-leave; txt(G.teams?'2 VS 2':'FREE-FOR-ALL',W/2,6,8,'#ffd23f'); txt(`${G.rules.stocks||3} ${(G.rules.stocks||3)===1?'LIFE':'LIVES'} EACH`,W/2,H-16,8,'#ffffff'); ctx.restore(); }
+  if(leave<1 && t>VS_SLAM){ ctx.save(); ctx.globalAlpha=1-leave; txt(fightLabel(),W/2,6,8,'#ffd23f'); txt(`${G.rules.stocks||3} ${(G.rules.stocks||3)===1?'LIFE':'LIVES'} EACH`,W/2,H-16,8,'#ffffff'); ctx.restore(); }
   if(!NET.active && t>40 && t<VS_LEN-14 && (t>>4)%2) txt('TAP TO SKIP',W-60,H-16,8,'#a99fbf');
 }
 const VS_LEN=156, VS_SLAM=26;
@@ -3171,7 +3186,7 @@ function renderHero(){
 }
 let lastLobby=null;
 function renderBadges(){   // who picked which fighter: P1 in solo, every player's slot in an online room
-  const list=NET.room&&lastLobby?lastLobby.players.map((p,i)=>({k:p.slot===lastLobby.you?G.pick:p.pick,t:'P'+(i+1),c:SLOT_COL[i]})):[{k:G.pick,t:'P1',c:'#ffd23f'}];
+  const list=NET.room&&lastLobby?lastLobby.players.map((p,i)=>({k:p.slot===lastLobby.you?G.pick:p.pick,t:'P'+(i+1),c:lastLobby.mode==='2v2'?TEAM_COL[(lastLobby.teams||[0,0,1,1])[i]]:SLOT_COL[i]})):[{k:G.pick,t:'P1',c:'#ffd23f'}];
   document.querySelectorAll('.pick').forEach(b=>{
     const box=b.querySelector('.badges'); box.innerHTML='';
     for(const x of list) if(x.k===b.dataset.c){ const e=document.createElement('b'); e.textContent=x.t; e.style.setProperty('--bc',x.c); box.appendChild(e); }
@@ -3186,7 +3201,7 @@ const spBtn=document.getElementById('spBtn');
 document.querySelectorAll('.pick').forEach(b=>b.addEventListener('click',()=>{
   audioInit(); G.pick=b.dataset.c; sfx('select'); showPickPage(true);
   document.querySelectorAll('.pick').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
-  renderHero(); renderBadges(); lobbyChanged();
+  renderHero(); renderBadges(); if(G.fmode==='2v2' && !NET.room) renderCpuSlots(); lobbyChanged();
 }));
 document.querySelectorAll('#cpuPick button').forEach(b=>b.addEventListener('click',()=>{
   audioInit(); G.cpuPick=b.dataset.o; sfx('select');
@@ -3235,26 +3250,45 @@ const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',wi
 function renderCpuSlots(){
   const fm=G.fmode, multi=fm!=='1v1', online=appMode==='online';
   document.getElementById('cpuPick').hidden=multi; cpuMulti.hidden=!multi;
-  document.getElementById('cpuLbl').textContent=multi?(online?'CPUS FILL EMPTY SPOTS':(fm==='2v2'?'YOUR PARTNER & OPPONENTS':'CPU OPPONENTS')):'CPU OPPONENT';
+  document.getElementById('cpuLbl').textContent=multi?(online?'CPUS FILL EMPTY SPOTS':(fm==='2v2'?'FIGHTERS & TEAMS (TAP A COLOR)':'CPU OPPONENTS')):'CPU OPPONENT';
+  document.getElementById('cpuLbl').classList.remove('warn');
   document.getElementById('cpuLbl').hidden=online&&!multi;
   if(!multi) return;
-  const labels=fm==='2v2'?['PARTNER','OPPONENT 1','OPPONENT 2']:['CPU 1','CPU 2','CPU 3'];
-  cpuMulti.innerHTML='';
+  const teams=fm==='2v2', labels=['CPU 1','CPU 2','CPU 3'];
+  cpuMulti.innerHTML=''; cpuMulti.classList.toggle('teams',teams);
+  if(teams){   // your own row: just your team
+    const d=document.createElement('div'); d.className='cpuslot teams';
+    const l=document.createElement('label'); l.textContent='YOU · '+NAMES[G.pick]; l.style.color='#ffd23f';
+    d.append(l,document.createElement('span'),teamChip(0)); cpuMulti.appendChild(d);
+  }
   labels.forEach((lb,i)=>{
-    const d=document.createElement('div'); d.className='cpuslot';
+    const d=document.createElement('div'); d.className='cpuslot'+(teams?' teams':'');
     const id='cpuSel'+i, l=document.createElement('label'); l.htmlFor=id; l.textContent=lb;
-    l.style.color=fm==='2v2'?(i===0?TEAM_COL[0]:TEAM_COL[1]):SLOT_COL[i+1];
+    l.style.color=teams?TEAM_COL[G.teamPicks[i+1]]:SLOT_COL[i+1];
     const sel=document.createElement('select'); sel.id=id;
     const opts=[['random','Random'],...FIGHTERS.map(k=>[k,NAMES[k]])];
-    if(fm==='ffa' && (i>0||online)) opts.push(['off','None']);
+    if((fm==='ffa' && (i>0||online)) || teams) opts.push(['off','None']);
     for(const [v,t] of opts){ const o=document.createElement('option'); o.value=v; o.textContent=t; sel.appendChild(o); }
     if(!opts.some(o=>o[0]===G.cpuPicks[i])) G.cpuPicks[i]='random';
     sel.value=G.cpuPicks[i];
     sel.disabled=NET.room&&NET.role!=='host';
-    sel.addEventListener('change',()=>{ G.cpuPicks[i]=sel.value; sfx('select'); lobbyChanged(); });
-    d.append(l,sel); cpuMulti.appendChild(d);
+    sel.addEventListener('change',()=>{ G.cpuPicks[i]=sel.value; sfx('select'); if(teams) renderCpuSlots(); lobbyChanged(); });
+    d.append(l,sel); if(teams){ const c=teamChip(i+1); c.disabled=G.cpuPicks[i]==='off'; d.append(c); } cpuMulti.appendChild(d);
   });
 }
+// A tap-to-cycle team chip for fighter spot s (Blue → Red → Green)
+function teamChip(s,locked){
+  const b=document.createElement('button'), t=G.teamPicks[s];
+  b.className='tchip'; b.type='button'; b.textContent=TEAM_NAME[t]; b.style.setProperty('--tc',TEAM_COL[t]);
+  b.setAttribute('aria-label',`Team: ${TEAM_NAME[t]}. Tap to change`); b.disabled=!!locked;
+  b.addEventListener('click',e=>{ e.stopPropagation(); G.teamPicks[s]=(G.teamPicks[s]+1)%3; saveTeams(); sfx('select');
+    if(NET.room){ if(NET.role==='host'){ resetReady(); lobbyUpdate(); } } else renderCpuSlots(); });
+  return b;
+}
+function saveTeams(){ try{ localStorage.setItem('nrb.teams',JSON.stringify(G.teamPicks)); }catch(e){} }
+// Teams need fighters on at least two different teams (spots that are filled)
+function teamsOk(spots){ return new Set(spots.map(s=>G.teamPicks[s])).size>=2; }
+function soloSpots(){ return [0,...G.cpuPicks.map((p,i)=>p==='off'?-1:i+1).filter(s=>s>0)]; }
 fmodeSel.value=G.fmode;
 fmodeSel.addEventListener('change',()=>{
   if(NET.room && NET.role==='host' && fmodeSel.value==='1v1' && lobbyPlayers().length>2){
@@ -3286,7 +3320,9 @@ document.getElementById('optDone').addEventListener('click',()=>{ saveOpts(G.opt
   if(NET.room && NET.role==='host'){ resetReady(); lobbyUpdate(); } });
 function startGame(){ audioInit(); if(matchMedia('(pointer:coarse)').matches) enterFS(); menu.hidden=true; resultOv.hidden=true; pauseOv.hidden=true; G.paused=false; newMatch(); G.mode='play'; }
 document.getElementById('goBtn').addEventListener('click',()=>{
-  if(!NET.room) return startGame();
+  if(!NET.room){
+    if(G.fmode==='2v2' && !teamsOk(soloSpots())){ const l=document.getElementById('cpuLbl'); l.textContent='PUT FIGHTERS ON AT LEAST 2 TEAMS'; l.classList.add('warn'); sfx('select'); return; }
+    return startGame(); }
   audioInit(); sfx('select'); NET.ready=!NET.ready; NET.note=''; renderReadyBtn(); lobbyChanged();
 });
 document.getElementById('againBtn').addEventListener('click',()=>{
@@ -3362,7 +3398,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=9;
+const HASH_EVERY=30, KEEP=900, NET_V=10;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 function stateHash(){
@@ -3476,11 +3512,11 @@ function guestLeft(x){
   else lobbyUpdate();
 }
 // ---- lobby
-const FM_NAME={'1v1':'1 VS 1','2v2':'2 VS 2','ffa':'FREE-FOR-ALL'};
+const FM_NAME={'1v1':'1 VS 1','2v2':'TEAMS','ffa':'FREE-FOR-ALL'};
 function lobbyPlayers(){ return [{slot:0,pick:G.pick,ready:NET.ready,where:NET.where},...NET.conns.filter(x=>x.slot>0).map(x=>({slot:x.slot,pick:x.pick,ready:!!x.ready,where:x.where||'lobby'}))].sort((a,b)=>a.slot-b.slot); }
 function lobbyUpdate(){
   if(NET.role!=='host'||!NET.room) return;
-  const L={t:'lobby',mode:NET.mode,players:lobbyPlayers(),cpus:G.cpuPicks,rules:G.opts,code:NET.code,note:NET.note};
+  const L={t:'lobby',mode:NET.mode,players:lobbyPlayers(),cpus:G.cpuPicks,teams:G.teamPicks,rules:G.opts,code:NET.code,note:NET.note};
   NET.conns.filter(x=>x.slot>0).forEach(x=>sendTo(x.c,{...L,you:x.slot}));
   renderLobby({...L,you:0});
   maybeStart();
@@ -3489,33 +3525,38 @@ function renderLobby(L){
   const box=document.getElementById('lobby');
   document.getElementById('codeOut').textContent=L.code||NET.code||'----';
   const n=L.players.length, max=L.mode==='1v1'?2:4;
-  const cpuN=L.mode==='1v1'?0:(L.mode==='2v2'?4-n:L.cpus.slice(0,4-n).filter(p=>p!=='off').length);
+  const cpuN=L.mode==='1v1'?0:L.cpus.slice(0,4-n).filter(p=>p!=='off').length;
+  const tm=L.mode==='2v2', T=L.teams||[0,0,1,1];
   const state=p=>p.where==='fight'?['In a match','']:p.where==='results'?(p.ready?['Rematch ✓','ok']:['On results','']):(p.ready?['Ready ✓','ok']:['Picking…','']);
-  const rows=L.players.map((p,i)=>({lbl:'P'+(i+1)+(p.slot===L.you?' · YOU':''),who:CH[p.pick]?CH[p.pick].name:'?',col:SLOT_COL[i],st:state(p)}));
+  const rows=L.players.map((p,i)=>({lbl:'P'+(i+1)+(p.slot===L.you?' · YOU':''),who:CH[p.pick]?CH[p.pick].name:'?',col:tm?TEAM_COL[T[i]]:SLOT_COL[i],st:state(p),spot:i}));
   if(L.mode==='1v1' && n<2) rows.push({lbl:'P2',who:'Waiting for a friend…',col:'#a99fbf',st:['','']});
   const cpuSpots=L.mode==='1v1'?0:4-n;
-  for(let i=0;i<cpuSpots;i++) rows.push({lbl:'CPU',col:L.mode==='2v2'?TEAM_COL[(n+i)%2]:SLOT_COL[n+i],cpu:i});
+  for(let i=0;i<cpuSpots;i++) rows.push({lbl:'CPU',col:tm?TEAM_COL[T[n+i]]:SLOT_COL[n+i],cpu:i,spot:n+i});
   box.innerHTML='';
   for(const r of rows){ const d=document.createElement('div'); d.className='row'; const b=document.createElement('b'); b.textContent=r.lbl; b.style.color=r.col; d.append(b);
     if(r.cpu!==undefined){   // the host picks each CPU (or none, in free-for-all); guests see the choice
       const sel=document.createElement('select'); sel.id='lobbyCpu'+r.cpu; sel.setAttribute('aria-label','CPU '+(r.cpu+1));
-      const opts=[['random','Random CPU'],...FIGHTERS.map(k=>[k,NAMES[k]])]; if(L.mode==='ffa') opts.push(['off','No CPU']);
+      const opts=[['random','Random CPU'],...FIGHTERS.map(k=>[k,NAMES[k]])]; if(L.mode!=='1v1') opts.push(['off','No CPU']);
       for(const [v,t] of opts){ const o=document.createElement('option'); o.value=v; o.textContent=t; sel.appendChild(o); }
       sel.value=opts.some(o=>o[0]===L.cpus[r.cpu])?L.cpus[r.cpu]:'random'; sel.disabled=NET.role!=='host';
       sel.addEventListener('change',()=>{ G.cpuPicks[r.cpu]=sel.value; sfx('select'); renderCpuSlots(); lobbyUpdate(); });
       d.append(sel);
     } else { const sp=document.createElement('span'); sp.textContent=r.who; const st=document.createElement('i'); st.textContent=r.st[0]; if(r.st[1]) st.className=r.st[1]; d.append(sp,st); }
+    if(tm && r.spot!==undefined){ const c=teamChip(r.spot,NET.role!=='host'||(r.cpu!==undefined&&L.cpus[r.cpu]==='off')); d.append(c); }
     box.appendChild(d); }
   lastLobby=L; renderBadges();
   const host=NET.role==='host', allReady=n>=2&&L.players.every(p=>p.ready);
   const code=L.code||NET.code;
   const msg=n<2?'Share the code so friends can join.'
     :allReady?'Everyone’s ready. Starting…'
-    :host?'Fight starts when everyone is READY.'
+    :(tm && !teamsOkLobby(L))?'Put fighters on at least 2 teams.'
+    :host?(tm?'Tap a color to change teams. Fight starts when everyone is READY.':'Fight starts when everyone is READY.')
     :'Host sets the rules. Fight starts when everyone is READY.';
   document.getElementById('lobbyStatus').textContent=(L.note?L.note+' ':'')+msg;
   renderReadyBtn();
 }
+function lobbySpots(L){ const n=L.players.length; return [...L.players.map((p,i)=>i),...L.cpus.slice(0,4-n).map((p,i)=>p==='off'?-1:n+i).filter(s=>s>=0)]; }
+function teamsOkLobby(L){ const T=L.teams||G.teamPicks; return new Set(lobbySpots(L).map(s=>T[s])).size>=2; }
 function renderReadyBtn(){
   const go=document.getElementById('goBtn'); if(!NET.room) return;
   go.textContent=NET.ready?'READY ✓':'READY'; go.classList.toggle('isready',NET.ready);
@@ -3534,11 +3575,13 @@ function maybeStart(){   // host: start once every player in the room is ready
   if(NET.role!=='host'||!NET.room||NET.pinging||(NET.active&&!NET.over)) return;
   const P=lobbyPlayers(); if(P.length<2||!P.every(p=>p.ready)) return;
   if(NET.mode==='1v1' && P.length!==2) return;
+  if(NET.mode==='2v2' && !teamsOkLobby({players:P,cpus:G.cpuPicks,teams:G.teamPicks})) return;
   NET.note=''; hostStart();
 }
 function guestApplyLobby(L){   // a guest's screen mirrors the host's fight type, CPUs and rules
   const me=L.players.find(p=>p.slot===L.you); if(me) NET.ready=!!me.ready;
   const cpus=JSON.stringify(L.cpus)!==JSON.stringify(G.cpuPicks);
+  if(L.teams) G.teamPicks=[...L.teams];
   if(L.mode!==G.fmode||cpus){ G.fmode=L.mode; G.cpuPicks=[...L.cpus]; fmodeSel.value=G.fmode; renderCpuSlots(); }
   G.opts={...OPT_DEFAULT,...L.rules}; refreshOptsLabel(); setRoomControls();
 }
@@ -3577,13 +3620,13 @@ function doStart(){
   const D=Math.max(2,Math.min(8,Math.ceil(rtt/2/16.67)+1));   // input delay in frames
   const m=(NET.match||0)+1, fm=NET.mode, guests=NET.conns.filter(x=>x.slot>0).sort((a,b)=>a.slot-b.slot);
   guests.forEach((x,i)=>{ x.slot=i+1; });   // humans take slots 0..n-1
-  const keys=[G.pick,...guests.map(x=>x.pick)], cpus=keys.map(()=>false);
+  const keys=[G.pick,...guests.map(x=>x.pick)], cpus=keys.map(()=>false), teams=keys.map((k,i)=>G.teamPicks[i]);
   if(fm!=='1v1'){
-    const free=4-keys.length;
-    for(let i=0;i<free;i++){ const p=G.cpuPicks[i]||'random'; if(fm==='ffa' && p==='off') continue; keys.push(pickKey(p==='off'?'random':p)); cpus.push(true); }
+    const n=keys.length, free=4-n;
+    for(let i=0;i<free;i++){ const p=G.cpuPicks[i]||'random'; if(p==='off') continue; keys.push(pickKey(p)); cpus.push(true); teams.push(G.teamPicks[n+i]); }
   }
   NET.ready=false; NET.conns.forEach(x=>{ x.ready=false; x.where='fight'; });
-  const base={t:'start',keys,cpus,fm,D,m,rules:{...G.opts},seed:(Math.random()*4294967296)>>>0,diff:G.diff};
+  const base={t:'start',keys,cpus,teams,fm,D,m,rules:{...G.opts},seed:(Math.random()*4294967296)>>>0,diff:G.diff};
   guests.forEach(x=>sendTo(x.c,{...base,you:x.slot}));
   startOnline({...base,you:0});
 }
@@ -3598,7 +3641,7 @@ function startOnline(o){
     G.multi=false; G.teams=false; AW=W;
     G.f=[mkF(o.keys[0],0,false),mkF(o.keys[1],1,false)];
     G.f[1].alt=o.keys[0]===o.keys[1];
-  } else setupMulti(o.keys,o.cpus,o.fm==='2v2',i=>i%2);   // 2v2 online: P1 & P3 vs P2 & P4
+  } else setupMulti(o.keys,o.cpus,o.fm==='2v2',i=>(o.teams||[0,0,1,1])[i]);   // Teams: the host's team picks
   fit(); buildScene(); buildGym();
   G.f.forEach((f,i)=>{ f.tag=f.cpu?'CPU':(i===NET.local?'YOU':'P'+(i+1)); });
   G.diff=o.diff||G.diff;
@@ -3681,7 +3724,7 @@ function onlineJoin(){
   const code=(document.getElementById('codeIn').value||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
   if(code.length!==4){ setStatus('Enter the 4-character code from your friend’s screen.'); return; }
   NET.role='guest'; NET.local=1; NET.conns=[]; NET.conn=null; NET.code=code; NET.note='';
-  NET.saved={fmode:G.fmode,cpuPicks:[...G.cpuPicks],opts:{...G.opts}};   // the host's settings show while in the room; restored on leaving
+  NET.saved={fmode:G.fmode,cpuPicks:[...G.cpuPicks],teamPicks:[...G.teamPicks],opts:{...G.opts}};   // the host's settings show while in the room; restored on leaving
   show('onChoose',false); document.getElementById('onSub').hidden=true; setStatus(`Joining ${code}…`);
   const h=guestHandlers(code); Transport.join(code,h);
   clearTimeout(connTimer); connTimer=setTimeout(()=>{ if(!NET.conn) h.error('timeout'); },15000);
@@ -3695,7 +3738,7 @@ function netClose(){
   Transport.close(); NET.peer=null; NET.conns=[];
   G.f&&G.f.forEach(f=>{ f.netIn=null; });
   arnd=rnd; NET.room=false; NET.over=false; NET.ready=false;
-  if(NET.saved){ G.fmode=NET.saved.fmode; G.cpuPicks=NET.saved.cpuPicks; G.opts=NET.saved.opts; NET.saved=null; fmodeSel.value=G.fmode; refreshOptsLabel(); }
+  if(NET.saved){ G.fmode=NET.saved.fmode; G.cpuPicks=NET.saved.cpuPicks; G.teamPicks=NET.saved.teamPicks||G.teamPicks; G.opts=NET.saved.opts; NET.saved=null; fmodeSel.value=G.fmode; refreshOptsLabel(); }
   setRoomControls();
   fit();
 }
