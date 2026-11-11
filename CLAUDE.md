@@ -78,7 +78,7 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - `fadeControls` (called at the end of `render`) checks every 4 frames whether a fighter's body overlaps each touch button or the stick, and fades it with `.behind`. The right-hand buttons fade together as one group if a fighter is behind any of them (Alex found one-at-a-time distracting); the stick fades on its own. Faded is ~.28 (.58 if pressed).
   - Touch controls are in their original spots (14px from the sides, 8px from the bottom). Alex tried them tucked further into the corners and found them harder to hold, so keep them there. They're a bit more see-through than they used to be: buttons and stick .52, Super/Special stronger when ready, .85 while pressed.
   - Main menu backdrop is Alex's title art (`art/originals/family-brawl-title-bg.png`, embedded as `src/assets/title-bg.webp.b64`, 1600px WebP) under the logo and buttons. The old fanned fighter cards were removed from it.
-  - Menu flow: main menu (Arcade / Campaign "coming soon") → Arcade → Solo → fighter select, or → Online → Host / Join (`#onlineOv`) → lobby.
+  - Menu flow: main menu (Arcade / Campaign) → Campaign → level list (Level 0), or → Arcade → Solo → fighter select, or → Online → Host / Join (`#onlineOv`) → lobby.
   - Fighter select (`#menu.fsel`, modeled on Alex's mockup) has three columns: left hero panel (logo, the selected fighter's card, stat bars, super name: `renderHero`), middle pages of card tiles (`.pick`, with P1–P4 badges from `renderBadges`), right side panel (1v1/2v2/free-for-all dropdown `#fmodeSel`, SOLO/ONLINE chip, then CPU difficulty and opponents in solo, or room code, copy, Invite and the lobby list in online) above the big FIGHT/READY button. A bottom bar holds Back, Fight Options and How to Play (`#howOv` popup).
   - **Fighter pages** (Alex, Nov 2026): 3×2 card pages with a group name between ‹ › arrows; a sideways swipe also flips. Page 1 FAMILY: AC, Becky, B-Money / Haddie, Harper, Winston. Page 2 MONSTERS: Brick, Volt, centered. Each page is a `.picks` div with `data-group` inside `#pagerTrack`; add a fighter by putting their tile on a page (or a new page). `showPage`/`showPickPage` flip pages; the pager undoes any browser scrolling so pages only move by flipping. The CPU opponent buttons follow the same order.
   - Alex dropped the fighter descriptions. Each tile carries hidden special/stats markup that the hero panel copies.
@@ -108,6 +108,18 @@ Use the section banners `/* ---------------- Name ---------------- */` to find y
   - **Anything that affects gameplay must be deterministic and included in `stateHash`/`snapshot`.** Fields that don't affect the outcome go in `SKIP_F`.
   - If you change the message protocol, bump `NET_V`.
 
+## Campaign (branch `campaign`, Nov 2026; not merged to `main` yet)
+A side-scrolling action platformer, separate from the fight engine. Section "Campaign (side-scrolling levels)" in `src/game.html`.
+- `G.mode==='camp'`; the running level is `C`. `step()` and `render()` hand off to `campStep()`/`campRender()` at their top, so fight code never runs during a level. Pause, touch controls, the SPECIAL/SUPER glow and the bottom pause buttons (`multimode` class) were extended to `camp`.
+- **Level 0 "Training Day"** (Alex's choices): Becky only, with her full fight moves (walk, jump, punch, kick, combos, block, jump kick, coffee mug special, Book Stack Throw super), placeholder goons drawn in code, a boss at the end. No crouch/low punch: the touch stick is left/right only.
+- Becky reuses her sprites (`drawAC`) and frame data (`CH.becky.moves`) but has her own update `campBecky` (no `updF`), 100 health, meter starts at 0. Her super here is a short pose (enemies freeze for `CAMP_POSE` frames) then a book stack that hits every goon in its path.
+- Levels are data in `CAMP_LEVELS`: `ground` segments (gaps = pits), solid `crates`, one-way `plats`, `checks` (checkpoint flags), `enemies`, `bossAt` (camera locks, boss fight), and `tips`.
+- **Tutorial tips** show one at a time when Becky reaches `x`, stay until `done(C)` is true ("NICE!"), and move on anyway if she walks past the next tip or after 15 s. A tip's `meter` tops up her meter so she can try the special/super. Entering the boss arena fills her meter.
+- Goons (`ENEMY`, `campEnemyStep`, drawn by `campDrawEnemy`): grunt (walks up, punches), thrower (keeps distance, throws a red ball: teaches blocking), boss BIG GOON (punch, red-glow charge, jump slam with shockwaves both ways; hits don't interrupt his charge/slam). Becky bumps into standing goons. Falling in a pit or losing all health respawns at the last flag; standing goons reset and the boss heals.
+- Clearing a level saves `nrb.camp` (`{l0:1}`) and shows a ✓ on the level button; `#campEnd` offers Play again / Campaign menu.
+- Enemy timers must hit exactly 0 (`Math.max(0,cool-1)`): a fractional cooldown once skipped past 0 and froze the boss.
+- Testing: no test script yet. A copy of `index.html` with `let C=null;` replaced by `let C=null; window.__camp=()=>C;` lets Playwright read and move Becky (that's how Level 0 was checked: block, special, super, boss, clear screen).
+
 ## Fighter ratings (Alex's Madden-style scale)
 Alex thinks about fighters as 60–99 ratings: the lowest current value of a trait = 60, the highest = 99, evenly spread between. For startup frames and weight, lower raw numbers rate higher. When he asks for a rating, convert it back to the raw number with these ranges:
 
@@ -132,7 +144,6 @@ Known issues and ideas:
 - In the last 8-fighter 1v1 sim Winston read ~63%, but 50–55% in three runs just before; likely noise from 10-match samples. Run `sim_1v1.py 20` before tuning him.
 - Brick dominates free-for-all in CPU sims (~37% wins with 4 fighters); Volt is weakest (~6%). Alex was offered a 2v2/free-for-all-only balance pass.
 - If a player leaves mid-match, the match ends and everyone goes back to the lobby; a CPU doesn't take over.
-- Campaign isn't built yet.
 - The 1v1 gym backdrop art still has the old "NEXT REP" logo painted on the wall. It needs new art or a repaint of that area.
 - Idea Alex passed on (Nov 2026): a "TV mode" where a TV/laptop hosts and shows the fight while phones act as controllers only. He felt it was too much for this game; mirroring the host phone with AirPlay/Chromecast works today.
 - Idea Alex shelved (Nov 2026): shrink Winston's hit box to his drawn 33 px so standing punches whiff over him, while kicks, crouching punches, jump attacks, specials and supers still hit. It would need a balance cost, a CPU change to kick/go low against him, and a MISS pop-up.

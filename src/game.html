@@ -117,6 +117,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 #app.cinemode .mid{opacity:0;pointer-events:none}
 #app.multimode .mid{top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 3vh)}
 #app.vsmode .stick,#app.vsmode .rightside{pointer-events:none}
+#lvl0Btn span{display:block;font-size:.5em;opacity:.85;margin-top:2px}#lvl0Btn b{color:#7dff6a}
 /* Main menu: logo and buttons over the title art (src/assets/title-bg.webp.b64) */
 .mainmenu{background:radial-gradient(ellipse 34% 60% at 50% 55%,rgba(10,8,20,.45),rgba(10,8,20,0) 100%),var(--titlebg) center/cover no-repeat #0b0f24;overflow:hidden;align-items:center}
 .mainmenu{padding-top:0;padding-bottom:0}
@@ -300,12 +301,16 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
     <img class="mm-logo" src="@@asset:logo.webp.b64@@" alt="Family Brawl">
     <div class="mm-btns" id="mmTop">
       <button class="go" id="mmArcade">ARCADE</button>
-      <button class="ghostbtn mm-soon" id="mmCampaign" disabled aria-disabled="true">CAMPAIGN <span>Coming soon</span></button>
+      <button class="go mm-alt" id="mmCampaign">CAMPAIGN</button>
     </div>
     <div class="mm-btns" id="mmArc" hidden>
       <button class="go" id="mmSolo">SOLO</button>
       <button class="go mm-alt" id="mmOnline">ONLINE</button>
       <button class="ghostbtn" id="mmBack">Back</button>
+    </div>
+    <div class="mm-btns" id="mmCamp" hidden>
+      <button class="go" id="lvl0Btn">LEVEL 0 <b id="lvl0Done" hidden>✓</b><span>Training Day</span></button>
+      <button class="ghostbtn" id="mmCampBack">Back</button>
     </div>
   </div>
 </div>
@@ -502,6 +507,15 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
     </div>
     <p class="sub" id="onStatus" role="status" aria-live="polite"></p>
     <button class="ghostbtn" id="onBack">Back</button>
+  </div>
+</div>
+
+<div class="overlay" id="campEnd" hidden>
+  <div class="panel">
+    <p class="big" style="color:var(--gold)">LEVEL CLEAR!</p>
+    <p class="sub">Becky beat the Big Goon.</p>
+    <button class="go" id="campAgain">PLAY AGAIN</button>
+    <button class="ghostbtn" id="campMenuBtn">Campaign menu</button>
   </div>
 </div>
 
@@ -1570,7 +1584,7 @@ function refreshTouch(){
 function resetTouch(){ ptrs.clear(); touchActions.clear(); stickId=null; stickTouch=null; setStick(null); refreshTouch(); }
 // Touch: rebuilt from the fingers actually on the screen at every touch event, so a button can never stay
 // stuck down when the browser loses a release (zoom gesture, finger sliding off, notifications, app switch).
-const inGame=()=>G.mode==='play' && pauseOv.hidden && resultOv.hidden;
+const inGame=()=>(G.mode==='play'||G.mode==='camp') && pauseOv.hidden && resultOv.hidden;
 function syncTouches(e){
   const list=[...e.touches];
   if(e.type==='touchstart' && stickTouch===null){
@@ -1629,10 +1643,10 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden) resetTouc
 const KMAP={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',Space:'up',
   KeyJ:'punch',KeyK:'kick',KeyL:'special',KeyU:'super',KeyI:'block',ShiftLeft:'block',ShiftRight:'block'};
 addEventListener('keydown',e=>{
-  if((e.code==='KeyP'||e.code==='Escape') && G.mode==='play'){ togglePause(); return; }
+  if((e.code==='KeyP'||e.code==='Escape') && (G.mode==='play'||G.mode==='camp')){ togglePause(); return; }
   vsSkip();
   const k=KMAP[e.code]; if(!k) return;
-  if(G.mode==='play') e.preventDefault();
+  if(G.mode==='play'||G.mode==='camp') e.preventDefault();
   audioInit();
   if(!e.repeat){ keyHeld[k]=true; taps[k]=true; }
 });
@@ -2633,6 +2647,7 @@ function updProj(){
 function step(){
   G.t++;
   clouds.forEach(c=>{ c.x+=c.v; if(c.x>W+4) c.x=-48; });
+  if(G.mode==='camp'){ if(G.paused){ clearTaps(); return; } if(G.hitstop>0){ G.hitstop--; return; } campStep(); return; }
   if(G.mode!=='play'||G.paused){ clearTaps(); return; }
   if(G.hitstop>0){ G.hitstop--; return; }
   if(G.slow>0){ G.slow--; if(G.slow%2) return; }
@@ -3013,6 +3028,7 @@ function banners(){
   }
 }
 function render(){
+  if(G.mode==='camp' && C){ campRender(); return; }
   ctx.setTransform(2,0,0,2,0,0); ctx.imageSmoothingEnabled=false;
   if(!gymReady){ ctx.drawImage(SKY,0,0); clouds.forEach(c=>ctx.drawImage(CLOUD,Math.round(c.x),c.y)); }
   else { ctx.fillStyle='#14121c'; ctx.fillRect(0,0,W,H); }
@@ -3318,6 +3334,7 @@ document.getElementById('againBtn').addEventListener('click',()=>{
 function toMenu(){ if(NET.active||NET.conn) netClose(); G.multi=false; G.teams=false; AW=W; G.mode='menu'; G.paused=false; G.f=null; pauseOv.hidden=true; resultOv.hidden=true; menu.hidden=false; }
 document.getElementById('menuBtn').addEventListener('click',()=>{ if(NET.room){ sfx('select'); backToLobby(); } else toMenu(); });
 document.getElementById('quitBtn').addEventListener('click',()=>{
+  if(G.mode==='camp') return campQuit();
   if(NET.room && NET.active && !NET.over){   // online: ends this match for everyone, the room stays open
     pauseOv.hidden=true;
     if(NET.role==='host') netEndMatch('The host ended the match.'); else netSend({t:'quit'});
@@ -3325,6 +3342,8 @@ document.getElementById('quitBtn').addEventListener('click',()=>{
   toMenu();
 });
 function togglePause(){
+  if(G.mode==='camp'){ if(!C||C.phase==='clear') return;
+    document.getElementById('quitBtn').textContent='Quit to campaign menu'; G.paused=!G.paused; pauseOv.hidden=!G.paused; if(G.paused) resetTouch(); return; }
   if(G.mode!=='play'||G.phase==='over') return;
   if(NET.active){   // online: the fight keeps running for both players
     pauseOv.hidden=!pauseOv.hidden; document.getElementById('pauseTitle').textContent=pauseOv.hidden?'PAUSED':'MENU';
@@ -3337,9 +3356,9 @@ document.getElementById('pauseBtn').addEventListener('click',togglePause);
 document.getElementById('resumeBtn').addEventListener('click',togglePause);
 const muteBtn=document.getElementById('muteBtn');
 muteBtn.addEventListener('click',()=>{ audioInit(); setMuted(!muted); muteBtn.setAttribute('aria-pressed',String(muted)); muteBtn.setAttribute('aria-label',muted?'Unmute sound':'Mute sound'); });
-document.addEventListener('visibilitychange',()=>{ if(document.hidden && !NET.active && G.mode==='play' && !G.paused && G.phase!=='over') togglePause(); });
+document.addEventListener('visibilitychange',()=>{ if(document.hidden && !NET.active && ((G.mode==='play'&&G.phase!=='over')||G.mode==='camp') && !G.paused) togglePause(); });
 const portraitMQ=matchMedia('(orientation:portrait) and (pointer:coarse)');
-const onOrient=()=>{ if(portraitMQ.matches && !NET.active && G.mode==='play' && !G.paused && G.phase!=='over') togglePause(); };
+const onOrient=()=>{ if(portraitMQ.matches && !NET.active && ((G.mode==='play'&&G.phase!=='over')||G.mode==='camp') && !G.paused) togglePause(); };
 portraitMQ.addEventListener?portraitMQ.addEventListener('change',onOrient):portraitMQ.addListener(onOrient);
 const root=document.documentElement;
 const fsOK=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
@@ -3855,6 +3874,442 @@ setTimeout(()=>{ try{
   document.getElementById('codeIn').value=j; mmTop.hidden=true; mmArc.hidden=false; openOnline(); setStatus('Tap JOIN to enter your friend’s room.');
 }catch(e){} },0);
 
+/* ---------------- Campaign (side-scrolling levels) ----------------
+   G.mode==='camp'. Its own little engine, separate from the fight code: Becky (drawn with her real sprites and
+   using her fight frame data from CH.becky) runs right through a level of ground, crates and platforms, fighting
+   simple code-drawn goons and a boss. World y: the main floor is GROUND; pits drop below the screen.
+   Levels live in CAMP_LEVELS; tutorial tips are zones that show until the move is done. */
+const CAMP_HP=100;
+const CAMP_LEVELS=[{
+  id:0, name:'TRAINING DAY', len:2600,
+  // solid blocks [x, top, width, height]; one-way platforms [x, top, width] (jump up through, stand on top)
+  ground:[[0,520],[568,1100],[1150,2600]],
+  crates:[[200,136,24,22],[300,140,24,18],[324,122,24,36],[1260,140,22,18]],
+  plats:[[1440,126,52],[1516,104,60],[1600,120,56]],
+  checks:[40,600,1180,1460,1820,2240],
+  enemies:[
+    {t:'grunt',x:740},
+    {t:'grunt',x:920},{t:'grunt',x:990},
+    {t:'thrower',x:1360},
+    {t:'grunt',x:1690},
+    {t:'grunt',x:1960},{t:'thrower',x:2090},
+    {t:'boss',x:2560}
+  ],
+  bossAt:2280,
+  tips:[
+    {x:0,   title:'WALK',   text:'Slide the stick on the left to walk. Head right!', done:C=>C.b.x>110},
+    {x:150, title:'JUMP',   text:'Tap J to jump. Hold the stick while jumping to go farther. Hop up the crates!', done:C=>C.b.onGround&&C.b.y<GROUND-30},
+    {x:430, title:'GAPS',   text:'Jump over the gap. If you fall in, you start again from the last flag.', done:C=>C.b.x>580},
+    {x:600, title:'PUNCH',  text:'Tap P to punch. Tap it fast for a combo!', done:C=>C.enemyDown(0)},
+    {x:830, title:'KICK',   text:'Tap K to kick. Kicks hit harder and reach farther. Try P, P, K!', done:C=>C.kicked},
+    {x:1170,title:'BLOCK',  text:'Hold B to block. Blocking stops hits from the front. Block a ball, then get him!', done:C=>C.blocked},
+    {x:1430,title:'JUMP ATTACK', text:'While in the air, tap P or K for a flying kick. Try it on the next goon!', done:C=>C.airHit},
+    {x:1800,title:'SPECIAL',text:'Your green meter fills as you fight. At half full, tap SPECIAL to throw your coffee mug!', done:C=>C.mugHit, meter:45},
+    {x:2280,title:'SUPER',  text:'Meter full! Tap SUPER for Becky\'s BOOK STACK THROW. It hits everything in its path!', done:C=>C.supered, meter:100},
+    {x:2281,title:'BOSS: BIG GOON', text:'When he glows red he is about to charge. Jump over his shockwaves!', done:C=>C.tipT>420}
+  ]
+}];
+let C=null;   // the running level
+const campSave=()=>{ try{ return JSON.parse(localStorage.getItem('nrb.camp')||'{}')||{}; }catch(e){ return {}; } };
+function campMark(id){ try{ const s=campSave(); s['l'+id]=1; localStorage.setItem('nrb.camp',JSON.stringify(s)); }catch(e){} }
+
+const ENEMY={
+  grunt:  {w:16,h:40,hp:28,speed:0.9,col:'#5a6b8c',dark:'#3a4660',skin:'#e0b48a'},
+  thrower:{w:16,h:40,hp:22,speed:0.7,col:'#d9792b',dark:'#9c4f14',skin:'#c99068'},
+  boss:   {w:26,h:58,hp:170,speed:1.0,col:'#8c2f3a',dark:'#5a1a22',skin:'#d8a47c'}
+};
+function campStart(id){
+  const L=CAMP_LEVELS[id];
+  const solids=[...L.ground.map(([a,b])=>({x:a,y:GROUND,w:b-a,h:60,kind:'ground'})),...L.crates.map(([x,y,w,h])=>({x,y,w,h,kind:'crate'})),
+    ...L.plats.map(([x,y,w])=>({x,y,w,h:5,kind:'plat',oneWay:true}))];
+  const b={key:'becky',cfg:CH.becky,alt:0,x:40,y:GROUND,vx:0,vy:0,dir:1,hp:CAMP_HP,meter:0,state:'idle',anim:0,move:null,mf:0,
+    onGround:true,landT:10,bstun:0,stun:0,flash:0,inv:0,combo:0,kd:null,held:false,sup:null,ib:null,prev:blankIn(),in:blankIn(),hitSet:new Set(),gap:0};
+  C={L,b,solids,proj:[],en:L.enemies.map((e,i)=>campEnemy(e,i)),tipI:0,tipDone:-1,tipT:0,check:L.checks[0],camX:0,t:0,
+    phase:'intro',pt:0,freeze:0,boss:null,bossOn:false,kicked:false,blocked:false,airHit:false,mugHit:false,supered:false,deathT:0,banner:null,
+    enemyDown:i=>C.en[i].hp<=0};
+  G.parts=[]; G.shake=0; G.hitstop=0; G.flashT=0; G.paused=false; G.f=null; G.multi=false;
+  G.mode='camp';
+}
+function campEnemy(e,i){
+  const s=ENEMY[e.t];
+  return {t:e.t,i,cfg:s,x:e.x,y:GROUND-1,sx:e.x,vx:0,vy:0,dir:-1,w:s.w,h:s.h,hp:s.hp,max:s.hp,state:'idle',st:0,stun:0,flash:0,cool:40+i*7,dead:0,onGround:false,hitBy:-1,anim:0};
+}
+
+/* ---- physics: boxes against crates/ground (solid) and platforms (one-way) ---- */
+function campBody(o,w,grav){
+  o.vy=Math.min(7,o.vy+grav);
+  const half=w/2, H_=o.h||40;
+  o.x+=o.vx;
+  for(const s of C.solids){ if(s.oneWay) continue;
+    if(o.y>s.y+0.5 && o.y-H_<s.y+s.h && o.x+half>s.x && o.x-half<s.x+s.w){
+      if(o.vx>0||o.x<s.x+s.w/2) o.x=s.x-half; else o.x=s.x+s.w+half; o.vx=0; o.wall=true; } }
+  const py=o.y; o.y+=o.vy; const was=o.onGround; o.onGround=false;
+  if(o.vy>=0) for(const s of C.solids){
+    if(o.x+half-2<=s.x||o.x-half+2>=s.x+s.w) continue;
+    if(py<=s.y+0.5 && o.y>=s.y){ o.y=s.y; o.vy=0; o.onGround=true; }
+  } else for(const s of C.solids){ if(s.oneWay) continue;
+    if(o.x+half-2<=s.x||o.x-half+2>=s.x+s.w) continue;
+    const top=o.y-H_; if(top<s.y+s.h && py-H_>=s.y+s.h-0.5){ o.y=s.y+s.h+H_; o.vy=0; } }
+  if(o.onGround && !was && o.landT!==undefined) o.landT=0;
+  return was;
+}
+function campSurfaceBelow(x,y){   // nearest surface top at or below y (for jump-frame timing and shadows)
+  let best=999;
+  for(const s of C.solids) if(x>=s.x&&x<=s.x+s.w&&s.y>=y-0.5&&s.y<best) best=s.y;
+  return best;
+}
+function campHurt(o){ const h=o.t?o.h:o.cfg.h; return {x0:o.x-o.w/2,x1:o.x+o.w/2,y0:o.y-h,y1:o.y}; }
+const overlap=(a,b)=>!(a.x1<b.x0||a.x0>b.x1||a.y1<b.y0||a.y0>b.y1);
+
+/* ---- Becky ---- */
+function campStartMove(b,k){
+  b.move=k; b.mf=0; b.state='attack'; b.hitSet=new Set();
+  if(b.onGround) b.vx=(k==='punch'||k==='kick')?b.dir*0.4:0;
+  if(k==='special') b.meter-=b.cfg.moves.special.cost; else sfx('whoosh');
+}
+function campBecky(){
+  const b=C.b, c=b.cfg, I=b.in, E=k=>I[k]&&!b.prev[k];
+  let fresh=null; for(const k of ['super','special','kick','punch','up']) if(E(k)){ fresh=k; break; }
+  if(fresh) b.ib={k:fresh,t:BUFFER_FRAMES}; else if(b.ib && --b.ib.t<=0) b.ib=null;
+  const B=k=>E(k)||(!!b.ib&&b.ib.k===k), use=()=>{ b.ib=null; };
+  b.anim++; if(b.flash>0) b.flash--; if(b.inv>0) b.inv--;
+  const phys=()=>{ const was=campBody(b,b.cfg.w,c.grav); b.landT++;
+    if(b.onGround&&!was&&b.vy>=0){ dust(b.x,b.y,5); sfx('land'); }
+    if(b.onGround && b.state!=='walk') b.vx*=0.82;
+    const lo=(C.bossOn?C.camX:0)+10, hi=C.L.len-10; if(b.x<lo){ b.x=lo; b.vx=Math.max(0,b.vx); } if(b.x>hi) b.x=hi;
+    b.gap=campSurfaceBelow(b.x,b.y)-b.y; };
+  if(b.state==='ko'){ phys(); return; }
+  if(b.stun>0){ b.stun--; b.state='hit'; phys(); if(!b.stun){ b.state=b.onGround?'idle':'jump'; } return; }
+  if(b.bstun>0){ b.bstun--; b.state='block'; phys(); if(!b.bstun) b.state='idle'; return; }
+  if(b.move==='super'){ campSuperStep(b); phys(); return; }
+  if(b.move){
+    const m=c.moves[b.move]; b.mf++;
+    if(b.move==='special' && b.mf===m.st){
+      const k=c.drawK||1;
+      C.proj.push({type:'mug',mine:true,x:b.x+b.dir*BK_HAND[0]*k,y:b.y-BK_HAND[1]*k,vx:b.dir*4.8,t:0,dmg:12,kb:2.4,hs:20}); sfx('whoosh');
+    }
+    if(m.dmg && b.mf>m.st && b.mf<=m.st+m.ac){
+      const bx=m.box, box={x0:b.dir>0?b.x+bx[0]:b.x-bx[1], x1:b.dir>0?b.x+bx[1]:b.x-bx[0], y0:b.y+bx[2], y1:b.y+bx[3]};
+      for(const e of C.en) if(e.hp>0 && !e.dead && !b.hitSet.has(e.i) && overlap(box,campHurt(e))){
+        b.hitSet.add(e.i);
+        const hx=(Math.max(box.x0,e.x-e.w/2)+Math.min(box.x1,e.x+e.w/2))/2;
+        campHitEnemy(e,m,b.x,hx,(box.y0+box.y1)/2,b.move);
+        b.combo++; b.meter=Math.min(100,b.meter+8);
+        if(b.move==='kick') C.kicked=true;
+        if(b.move==='air') C.airHit=true;
+      }
+    }
+    if(b.hitSet.size && b.onGround && b.move!=='special' && b.combo<5 && b.mf>m.st+1 && (B('punch')||B('kick'))){
+      const k=B('kick')?'kick':'punch'; use(); campStartMove(b,k); phys(); return;
+    }
+    if(b.move==='air'){ airSteer(b); if(b.onGround && b.mf>2){ b.move=null; b.state='idle'; } }
+    else if(b.mf>=m.st+m.ac+m.rc){ b.move=null; b.state='idle'; b.combo=b.hitSet.size?b.combo:0; }
+    phys(); return;
+  }
+  if(C.phase!=='play'){ b.state=C.phase==='clear'&&b.onGround?'win':(b.onGround?'idle':'jump'); b.vx*=0.8; phys(); return; }
+  if(I.left!==I.right) b.dir=I.right?1:-1;
+  if(b.onGround){
+    if(B('super')){ use(); if(b.meter>=SUPER_COST) return campSuper(b); sfx('deny'); }
+    if(I.block){ b.state='block'; b.vx=0; b.combo=0; }
+    else if(B('special')){ use(); if(b.meter>=c.moves.special.cost) campStartMove(b,'special'); else sfx('deny'); }
+    else if(B('punch')){ use(); campStartMove(b,'punch'); }
+    else if(B('kick')){ use(); campStartMove(b,'kick'); }
+    else if((I.up||B('up')) && b.landT>3){ use(); b.vy=c.jump; b.onGround=false; b.vx=(I.right?1:I.left?-1:0)*c.jumpVx; b.state='jump'; sfx('jump'); }
+    else if(I.left!==I.right){ b.vx=b.dir*c.speed; b.state='walk'; b.combo=0; }
+    else { b.vx=0; b.state='idle'; }
+  } else {
+    b.state='jump'; airSteer(b);
+    if(B('kick')||B('punch')){ use(); campStartMove(b,'air'); }
+  }
+  phys();
+}
+// BOOK STACK THROW, campaign version: a short close-up pause (enemies freeze), then the stack flies through every goon in its path
+const CAMP_POSE=40;
+function campSuper(b){
+  b.move='super'; b.state='attack'; b.mf=0; b.vx=0; b.meter=0; b.combo=0;
+  b.sup={t:0,fr:0}; C.freeze=CAMP_POSE+8; C.supered=true;
+  C.banner={s:'BOOK STACK THROW!',t:70}; G.flashT=4; sfx('super');
+}
+function campPuff(b){ const x=b.x+b.dir*(SUPERS.becky.meta.shelf+16)*(CH.becky.drawK||1);
+  G.parts.push({type:'sfx',key:'becky',name:'puff',x,y:b.y+2,life:22,max:22,sc:1.1}); dust(x,b.y,8); }
+function campSuperStep(b){
+  const s=b.sup, t=++s.t;
+  if(t===1) campPuff(b);
+  if(t===16) sfx('buildup');
+  if(t<=CAMP_POSE){ s.fr=t<8?0:t<16?1:t<26?2:3; return; }
+  const u=t-CAMP_POSE;
+  if(u<6) s.fr=4;
+  else if(u<16){ s.fr=5;
+    if(u===6){ const k=CH.becky.drawK||1;
+      C.proj.push({type:'book',mine:true,x:b.x+b.dir*BK_REL[0]*k,y:b.y-BK_REL[1]*k,vx:b.dir*6.5,t:0,dmg:SUPER_DMG.becky+12,kb:4,hs:46,hitl:new Set()});
+      sfx('release'); G.shake=Math.max(G.shake,5); } }
+  else { if(u===16) campPuff(b); s.fr=6; if(u>=34){ b.move=null; b.sup=null; b.state='idle'; } }
+}
+function campHitBecky(dmg,srcX,kb,launch){
+  const b=C.b; if(b.inv>0||b.move==='super'||C.phase!=='play') return false;
+  const away=b.x>=srcX?1:-1, hx=b.x-away*5, hy=b.y-28;
+  if(b.state==='block' && b.onGround && b.dir===-away){
+    b.bstun=10; b.vx=away*kb*0.7; b.meter=Math.min(100,b.meter+3);
+    sparks(hx,hy,['#bfe0ff','#ffffff','#5aa0ff'],7); G.hitstop=3; sfx('block'); return 'block';
+  }
+  b.hp=Math.max(0,b.hp-dmg); b.stun=18; b.state='hit'; b.move=null; b.sup=null; b.combo=0;
+  b.vx=away*kb; if(launch||!b.onGround){ b.vy=-2.6; b.onGround=false; }
+  b.flash=5; b.inv=70; b.meter=Math.min(100,b.meter+4);
+  G.hitstop=5; G.shake=Math.max(G.shake,3); burst(hx,hy); sparks(hx,hy,['#fff6c2','#ffd23f','#ff9a3c'],8); sfx('hit');
+  if(b.hp<=0) campDie();
+  return 'hit';
+}
+function campDie(){ const b=C.b; b.state='ko'; b.stun=0; b.vy=-3.2; b.onGround=false; C.deathT=1; sfx('ko'); G.shake=6; }
+function campRespawn(){
+  const b=C.b;
+  Object.assign(b,{x:C.check,y:GROUND-60,vx:0,vy:0,hp:CAMP_HP,state:'jump',move:null,sup:null,stun:0,bstun:0,inv:90,dir:1,combo:0,onGround:false});
+  // goons that are still standing go back to their spots (the boss heals too)
+  for(const e of C.en) if(e.hp>0&&!e.dead){ e.x=e.sx; e.y=GROUND-1; e.vx=0; e.vy=0; e.state='idle'; e.st=0; e.stun=0; if(e.t==='boss') e.hp=e.max; }
+  if(C.bossOn && C.check<C.L.bossAt){ C.bossOn=false; C.boss=null; }
+  C.proj=C.proj.filter(p=>p.mine); C.deathT=0;
+  C.banner={s:'TRY AGAIN!',t:70};
+}
+
+/* ---- goons ---- */
+function campHitEnemy(e,m,srcX,hx,hy,how){
+  const away=e.x>=srcX?1:-1, boss=e.t==='boss';
+  e.hp=Math.max(0,e.hp-m.dmg); e.flash=5;
+  const busy=boss&&(e.state==='charge'||e.state==='slam');   // the boss shrugs off hits mid-attack
+  if(!busy){ e.stun=boss?8:(m.hs||14); e.state='hit'; e.vx=away*(m.kb||2)*(boss?0.4:1); }
+  if(e.hp<=0){ e.state='ko'; e.vy=-3.4; e.vx=away*2.2; e.onGround=false; e.dead=1; sfx('ko'); G.shake=Math.max(G.shake,boss?10:4);
+    G.parts.push({type:'word',s:boss?'K.O.!':'+1',x:e.x,y:e.y-e.h-6,vy:-0.4,life:40,max:40,col:'#ffd23f'}); }
+  const heavy=m.dmg>=9; G.hitstop=Math.max(G.hitstop,heavy?6:4); G.shake=Math.max(G.shake,heavy?4:2);
+  burst(hx,hy); sparks(hx,hy,['#fff6c2','#ffd23f','#ff9a3c'],heavy?12:8); sfx(heavy?'heavy':'hit');
+}
+function campEnemyStep(e){
+  const b=C.b, s=e.cfg; e.anim++; if(e.flash>0) e.flash--;
+  if(e.dead){ e.dead++; campBody(e,e.w,0.25); if(e.y>H+40) e.dead=999; return; }
+  const dx=b.x-e.x, adx=Math.abs(dx), near=Math.abs(b.y-e.y)<44 && b.state!=='ko';
+  const awake=e.t==='boss'?C.bossOn:(adx<190&&near);
+  if(e.stun>0){ e.stun--; if(!e.stun) e.state='idle'; campBody(e,e.w,0.3); if(e.onGround) e.vx*=0.85; return; }
+  if(e.cool>0) e.cool=Math.max(0,e.cool-1);
+  if(e.state==='idle'||e.state==='walk'){
+    if(awake) e.dir=dx>=0?1:-1;
+    e.vx=0; e.state='idle';
+    if(awake){
+      if(e.t==='grunt'){
+        if(adx>22){ e.vx=e.dir*s.speed; e.state='walk'; }
+        else if(!e.cool){ e.state='wind'; e.st=0; }
+      } else if(e.t==='thrower'){
+        if(adx<70){ e.vx=-e.dir*s.speed; e.state='walk'; }
+        if(!e.cool && adx<240){ e.state='wind'; e.st=0; }
+      } else {   // boss: punches up close, charges or slams from range
+        if(adx>30 && e.cool<20){ e.vx=e.dir*s.speed; e.state='walk'; }
+        if(!e.cool){ const r=Math.random(); e.st=0;
+          e.state=adx<34?(r<0.7?'wind':'slamUp'):(r<0.55?'charge':'slamUp');
+          if(e.state==='slamUp'){ e.vy=-4.6; e.onGround=false; sfx('jump'); } }
+      }
+    }
+  } else if(e.state==='wind'){   // punch / throw wind-up, then the hit
+    e.st++; e.vx=0;
+    const W_=e.t==='boss'?20:e.t==='thrower'?26:20;
+    if(e.st===W_){
+      if(e.t==='thrower'){ C.proj.push({type:'ball',x:e.x+e.dir*8,y:e.y-30,vx:e.dir*2.6,t:0,dmg:8}); sfx('whoosh'); }
+      else { sfx('whoosh'); const reach=e.t==='boss'?34:26, top=e.y-e.h*0.85, bot=e.y-e.h*0.5;
+        const box={x0:e.dir>0?e.x:e.x-reach,x1:e.dir>0?e.x+reach:e.x,y0:top,y1:bot};
+        if(overlap(box,campHurt({x:b.x,y:b.y,w:b.cfg.w,cfg:b.cfg}))) campHitBecky(e.t==='boss'?12:8,e.x,e.t==='boss'?3:2.2); }
+    }
+    if(e.st>=W_+(e.t==='boss'?24:30)){ e.state='idle'; e.cool=(e.t==='boss'?50:e.t==='thrower'?90:55)+Math.random()*30; }
+  } else if(e.state==='charge'){   // boss: glows red, then rushes across the floor
+    e.st++;
+    if(e.st<40){ e.vx=0; if(e.st===1) sfx('charge'); }
+    else { if(e.st===40){ sfx('zap'); G.shake=Math.max(G.shake,3); }
+      e.vx=e.dir*4.2; if(e.st%3===0) dust(e.x-e.dir*10,e.y,2);
+      if(adx<(e.w+b.cfg.w)/2 && b.y>e.y-e.h+6 && !e.hitDone){ const r=campHitBecky(14,e.x,3.4,true); if(r) e.hitDone=true; }
+      if(e.st>95||e.wall){ e.state='idle'; e.cool=70; e.hitDone=false; e.vx=0; e.wall=false; G.shake=Math.max(G.shake,e.st<95?4:0); } }
+  } else if(e.state==='slamUp'){   // boss: jumps, lands, sends a shockwave both ways along the floor
+    e.st++; e.vx=e.dir*0.6;
+    if(e.onGround && e.st>4){ e.state='slamLand'; e.st=0; G.shake=Math.max(G.shake,7); sfx('quake'); debris(e.x,e.y-2,10); dust(e.x,e.y,8);
+      for(const d of [-1,1]) C.proj.push({type:'wave',x:e.x+d*14,y:e.y,vx:d*3,t:0,dmg:10}); }
+  } else if(e.state==='slamLand'){ e.vx=0; if(++e.st>30){ e.state='idle'; e.cool=60; } }
+  e.wall=false; campBody(e,e.w,0.3);
+  if(e.state==='hit'||e.state==='idle') { if(e.onGround) e.vx*=0.85; }
+  if(e.t==='boss'){ const lo=C.L.len-W+14; if(e.x<lo){ e.x=lo; e.wall=true; } if(e.x>C.L.len-14){ e.x=C.L.len-14; e.wall=true; } }
+  if(e.y>H+40){ e.hp=0; e.dead=999; }
+}
+function campProjStep(){
+  const b=C.b;
+  for(let i=C.proj.length-1;i>=0;i--){
+    const p=C.proj[i]; p.x+=p.vx; p.t++;
+    let gone=p.t>(p.type==='book'?140:p.type==='wave'?70:80);
+    const box=p.type==='wave'?{x0:p.x-7,x1:p.x+7,y0:p.y-11,y1:p.y}:p.type==='book'?{x0:p.x-12,x1:p.x+12,y0:p.y-14,y1:p.y+14}:{x0:p.x-5,x1:p.x+5,y0:p.y-4,y1:p.y+4};
+    if(p.type!=='book' && C.solids.some(s=>!s.oneWay && s.kind==='crate' && overlap(box,{x0:s.x,x1:s.x+s.w,y0:s.y,y1:s.y+s.h}))){ sparks(p.x,p.y,['#d9b38a','#fff'],5); gone=true; }
+    if(p.type==='wave'){ if(p.t%3===0) debris(p.x,p.y-2,2,true); if(campSurfaceBelow(p.x,p.y-2)>p.y+2) gone=true; }
+    if(p.mine){
+      for(const e of C.en){ if(e.hp<=0||e.dead) continue; if(p.hitl&&p.hitl.has(e.i)) continue;
+        if(overlap(box,campHurt(e))){
+          const hx=e.x-Math.sign(p.vx)*4;
+          if(p.type==='book'){ p.hitl.add(e.i); campHitEnemy(e,{dmg:p.dmg,kb:p.kb,hs:p.hs},p.x-p.vx*10,hx,p.y);
+            if(e.hp>0){ e.vy=-3; e.onGround=false; } sfx('superhit'); G.shake=Math.max(G.shake,8);
+            G.parts.push({type:'sfx',key:'becky',name:'flybooks',x:e.x,y:e.y-22,life:24,max:24,sc:1}); }
+          else { campHitEnemy(e,p,p.x-p.vx*10,hx,p.y); C.mugHit=true; b.meter=Math.min(100,b.meter+6);
+            sparks(hx,p.y,COFFEE_FX,12); G.parts.push({type:'sfx',key:'becky',name:'star',x:hx,y:p.y,life:10,max:10,sc:0.7}); gone=true; break; }
+        } }
+    } else if(b.state!=='ko' && overlap(box,campHurt({x:b.x,y:b.y,w:b.cfg.w,cfg:b.cfg}))){
+      const r=campHitBecky(p.dmg,p.x-p.vx*10,p.type==='wave'?2.4:1.8,p.type==='wave');
+      if(r==='block'&&p.type==='ball') C.blocked=true;
+      if(r) gone=true;
+    }
+    if(p.x<C.camX-40||p.x>C.camX+W+40) gone=true;
+    if(gone) C.proj.splice(i,1);
+  }
+}
+
+/* ---- step ---- */
+function campStep(){
+  const b=C.b; C.t++; C.pt++;
+  b.in=playerInput();
+  if(C.freeze>0){ C.freeze--; campBecky(); b.prev={...b.in}; clearTaps(); updParts(); return; }
+  campBecky(); b.prev={...b.in}; clearTaps();
+  for(const e of C.en) if(e.t!=='boss'||C.bossOn) campEnemyStep(e);
+  campProjStep(); updParts();
+  // bodies bump: Becky can't walk through a standing goon (she can still jump over); the boss's charge passes through
+  if(b.state!=='ko') for(const e of C.en){ if(e.hp<=0||e.dead||(e.t==='boss'&&!C.bossOn)||e.state==='charge') continue;
+    const minD=(e.w+b.cfg.w)/2-2, dx=b.x-e.x;
+    if(Math.abs(dx)<minD && b.y>e.y-e.h+4 && e.y>b.y-b.cfg.h+4){ const sgn=dx!==0?Math.sign(dx):-e.dir, push=minD-Math.abs(dx);
+      if(e.t==='boss'||e.stun>0) b.x+=sgn*push; else { b.x+=sgn*push*0.5; e.x-=sgn*push*0.5; } } }
+  if(C.banner && --C.banner.t<=0) C.banner=null;
+  if(C.phase==='intro' && C.pt>=90){ C.phase='play'; C.pt=0; }
+  // checkpoints (flags) and falling into a pit
+  for(const x of C.L.checks) if(b.x>=x && x>C.check && b.onGround){ C.check=x; if(x>40){ sfx('select'); C.banner={s:'CHECKPOINT',t:50}; } }
+  if(b.y>H+30 && !C.deathT){ C.deathT=1; b.state='ko'; sfx('ko'); }
+  if(C.deathT && ++C.deathT>70) campRespawn();
+  // boss arena: the camera locks and the boss walks in
+  if(!C.bossOn && b.x>=C.L.bossAt && C.phase==='play'){ C.bossOn=true; C.boss=C.en.find(e=>e.t==='boss'); b.meter=100; sfx('round'); C.banner={s:'BOSS FIGHT!',t:80}; }
+  if(C.boss && C.boss.dead && C.phase==='play'){ C.phase='clear'; C.pt=0; G.slow=0; sfx('cheer'); campMark(C.L.id); C.banner={s:'LEVEL CLEAR!',t:9999}; }
+  if(C.phase==='clear' && C.pt===150) document.getElementById('campEnd').hidden=false;
+  // tutorial tips
+  const tips=C.L.tips, tip=tips[C.tipI];
+  if(tip){
+    const prevDone=C.tipI===0||C.tipDone===C.tipI-1;
+    if(b.x>=tip.x && prevDone && C.tipT===0){ C.tipT=1; if(tip.meter&&b.meter<tip.meter){ b.meter=tip.meter; } sfx('select'); }
+    if(C.tipT>0){ C.tipT++; if(C.tipT>(tip.after||30) && tip.done(C)){ C.tipDone=C.tipI; C.tipI++; C.tipT=0;
+      G.parts.push({type:'word',s:'NICE!',x:b.x,y:b.y-60,vy:-0.4,life:40,max:40,col:'#7dff6a'}); } }
+    else if(tip.done(C) && prevDone && b.x>=tip.x){ C.tipDone=C.tipI; C.tipI++; }
+    // never get stuck on a tip: move on if she walks well past the next one, or after 15 seconds
+    const nx=tips[C.tipI+1];
+    if(tips[C.tipI]===tip && C.tipT>0 && ((nx && b.x>nx.x+60) || C.tipT>900)){ C.tipDone=C.tipI; C.tipI++; C.tipT=0; }
+  }
+  // camera
+  const want=C.bossOn?C.L.len-W:Math.max(0,Math.min(C.L.len-W,b.x-W*0.4));
+  C.camX+=(want-C.camX)*0.12; if(Math.abs(want-C.camX)<0.3) C.camX=want;
+}
+
+/* ---- drawing (placeholder art, all in code) ---- */
+const CAMP_BLD=(()=>{ let s=7; const r=()=>(s=(s*16807)%2147483647)/2147483647, out=[]; let x=0;
+  while(x<1400){ const w=30+r()*40, h=40+r()*70; out.push({x,w,h,lit:Math.floor(r()*99)}); x+=w+4+r()*14; } return out; })();
+function campBg(){
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#2b1d4a'); g.addColorStop(0.6,'#c2577a'); g.addColorStop(1,'#f0a35c');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#ffe2a8'; ctx.beginPath(); ctx.arc(W*0.72-C.camX*0.05,70,16,0,7); ctx.fill();
+  const off=C.camX*0.35;
+  for(const d of CAMP_BLD){ const x=Math.round(d.x-off%1400); for(const xx of [x,x+1400]){ if(xx>W||xx+d.w<0) continue;
+    ctx.fillStyle='#3a2a52'; ctx.fillRect(xx,GROUND-d.h,d.w,d.h);
+    ctx.fillStyle='#ffd77a'; for(let wy=GROUND-d.h+6;wy<GROUND-8;wy+=10) for(let wx=xx+5;wx<xx+d.w-5;wx+=9) if(((wx*7+wy*3+d.lit)%5)===0) ctx.fillRect(wx,wy,3,4); } }
+}
+function campDrawEnemy(e){
+  const s=e.cfg, x=Math.round(e.x), y=Math.round(e.y), d=e.dir, h=e.h, w=e.w;
+  if(e.dead){ ctx.globalAlpha=Math.max(0,1-e.dead/50); if(e.dead>50) return; }
+  const red=e.state==='charge'&&e.st<40&&(e.st>>2)%2;
+  const col=e.flash>0?'#ffffff':red?'#ff3030':s.col, dark=e.flash>0?'#dddddd':s.dark;
+  ctx.save(); ctx.translate(x,y); if(e.dead){ ctx.rotate(-d*Math.min(1.4,e.dead*0.06)); }
+  const step=e.state==='walk'?Math.sin(e.anim*0.3)*3:0, leg=Math.round(h*0.32), body=Math.round(h*0.42), head=Math.round(h*0.22);
+  P(-w/2+2+step,-leg,4,leg,dark); P(w/2-6-step,-leg,4,leg,dark);              // legs
+  P(-w/2,-leg-body,w,body,col);                                               // body
+  P(-w/2,-leg-body,w,3,dark);
+  P(-head/2-1+d*1,-leg-body-head,head+2,head,s.skin);                         // head
+  P(d>0?2:-4,-leg-body-head+Math.round(head*0.35),2,2,'#120e14');            // eye
+  if(e.t==='boss') P(-head/2-1,-leg-body-head,head+2,4,'#222');               // boss beanie
+  // arm: pulled back while winding up, straight out on the hit
+  const wind=e.state==='wind', reach=wind&&e.st>=(e.t==='boss'?20:e.t==='thrower'?26:20);
+  const ax=reach?d*(w/2+8):wind?-d*(w/2+2):d*(w/2-2), ay=e.t==='thrower'&&wind&&!reach?-leg-body-6:-leg-body+6;
+  P(Math.min(0,ax)+(ax<0?0:-2),ay,Math.abs(ax)+2,4,col); P(ax-2,ay-1,5,5,s.skin);
+  if(e.t==='thrower'&&wind&&!reach){ ctx.fillStyle='#e8402a'; ctx.beginPath(); ctx.arc(ax,ay-2,3.5,0,7); ctx.fill(); }
+  if(e.t==='boss'&&e.state==='charge'&&e.st<40) txt('!',0,-h-16,8,'#ff4040');
+  ctx.restore(); ctx.globalAlpha=1;
+  if(e.t!=='boss' && e.hp>0 && e.hp<e.max){ P(x-10,y-h-6,20,2,'#120e14'); P(x-10,y-h-6,Math.round(20*e.hp/e.max),2,'#ff5a4a'); }
+}
+function campDrawProj(p){
+  const dir=Math.sign(p.vx)||1;
+  if(p.type==='mug'){ drawSup('becky',0,'speed',p.x-dir*15,p.y,dir,0.9,0.8); drawSup('becky',0,'mug_fly',p.x,p.y,dir,1.5,1,Math.sin(p.t*0.5)*0.15); }
+  else if(p.type==='book'){ drawSup('becky',0,'speed',p.x-dir*16,p.y,dir,1,0.9); drawSup('becky',0,'stack',p.x,p.y,dir,1.15,1,Math.sin(p.t*0.4)*0.12); }
+  else if(p.type==='ball'){ ctx.fillStyle='#e8402a'; ctx.beginPath(); ctx.arc(p.x,p.y,3.5,0,7); ctx.fill(); P(p.x-2,p.y-2,2,1,'#ffb0a0'); }
+  else if(p.type==='wave'){ for(let k=0;k<3;k++){ ctx.fillStyle=k?'rgba(255,190,90,.55)':'#ffe7a0'; ctx.fillRect(Math.round(p.x-3+k*-dir*4),Math.round(p.y-10+k*3),5-k,10-k*3); } }
+}
+function campRender(){
+  ctx.setTransform(2,0,0,2,0,0); ctx.imageSmoothingEnabled=false;
+  campBg();
+  let sx=0,sy=0;
+  if(G.shake>0){ const A=G.shake*SHAKE_SCALE; sx=Math.round((rnd()*2-1)*A); sy=Math.round((rnd()*2-1)*A); G.shake*=0.86; if(G.shake<0.4) G.shake=0; }
+  const cx=Math.round(C.camX);
+  ctx.save(); ctx.translate(-cx+sx,sy);
+  // ground, crates, platforms
+  for(const s of C.solids){ if(s.x>cx+W||s.x+s.w<cx) continue;
+    if(s.kind==='ground'){ P(s.x,s.y,s.w,H-s.y,'#5b3d2a'); P(s.x,s.y,s.w,3,'#5fbf3a'); P(s.x,s.y+3,s.w,2,'#3f8a28');
+      for(let x=s.x+6;x<s.x+s.w-4;x+=17) P(x,s.y+9+(x%3)*3,3,2,'#4a301f'); }
+    else if(s.kind==='crate'){ P(s.x,s.y,s.w,s.h,'#a8743f'); P(s.x+1,s.y+1,s.w-2,s.h-2,'#c98f52'); ctx.strokeStyle='#7a5128'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(s.x+2,s.y+2); ctx.lineTo(s.x+s.w-2,s.y+s.h-2); ctx.moveTo(s.x+s.w-2,s.y+2); ctx.lineTo(s.x+2,s.y+s.h-2); ctx.stroke(); P(s.x,s.y,s.w,2,'#7a5128'); }
+    else { P(s.x,s.y,s.w,4,'#8a6a4a'); P(s.x,s.y,s.w,1,'#c8a27a'); P(s.x+3,s.y+4,2,3,'#5b4630'); P(s.x+s.w-5,s.y+4,2,3,'#5b4630'); }
+  }
+  // checkpoint flags
+  for(const x of C.L.checks.slice(1)){ if(x<cx-20||x>cx+W+20) continue; const y=campSurfaceBelow(x,GROUND-200), on=C.check>=x;
+    P(x,y-26,2,26,'#ddd'); P(x+2,y-26,12,8,on?'#5fd63a':'#888'); }
+  // end of level sign
+  { const x=C.L.len-40; P(x,GROUND-30,3,30,'#6b4a2a'); }
+  // shadows, goons, Becky
+  const b=C.b;
+  for(const e of C.en){ if(e.x<cx-40||e.x>cx+W+40) continue; if(e.t==='boss'&&!C.bossOn) continue; campDrawEnemy(e); }
+  if(b.state!=='ko'||C.deathT<60){ const wy=b.y; b.y=GROUND-Math.min(60,b.gap); drawAC(ctx,b,b.x,wy); b.y=wy; }
+  C.proj.forEach(campDrawProj);
+  drawParts();
+  ctx.restore();
+  if(G.flashT>0){ G.flashT--; ctx.fillStyle='rgba(255,226,60,.12)'; ctx.fillRect(0,0,W,H); }
+  campHud();
+}
+function campWrap(s,maxW){ ctx.font=`8px ${FONT}`; const out=[]; let line='';
+  for(const w of s.split(' ')){ const t=line?line+' '+w:w; if(ctx.measureText(t).width>maxW&&line){ out.push(line); line=w; } else line=t; }
+  if(line) out.push(line); return out; }
+function campHud(){
+  const b=C.b;
+  // health and meter, top left
+  txt('BECKY',8,6,8,'#ffffff','left');
+  P(8,16,82,7,'#120e14'); P(9,17,80,5,'#5a1a22'); P(9,17,Math.round(80*b.hp/CAMP_HP),5,b.hp>30?'#ffd23f':'#ff4a3d');
+  P(8,25,62,5,'#120e14'); P(9,26,60,3,'#2a2238'); P(9,26,Math.round(60*b.meter/100),3,b.meter>=100?(C.t>>3)%2?'#ffe066':'#ff8a1f':'#5fd63a');
+  P(9+Math.round(60*0.4),25,1,5,'#ffffff');
+  txt('LEVEL 0',W-8,6,8,'#ffd23f','right');
+  if(C.bossOn && C.boss && C.boss.hp>0){ const bw=Math.min(150,W-120), x=W-8-bw;
+    txt('BIG GOON',W-8,16,8,'#ff8080','right'); P(x,26,bw,6,'#120e14'); P(x+1,27,Math.round((bw-2)*C.boss.hp/C.boss.max),4,'#ff4a3d'); }
+  // tutorial tip
+  const tip=C.L.tips[C.tipI];
+  if(tip && C.tipT>0 && C.phase==='play'){
+    const pw=Math.min(W-130,250), lines=campWrap(tip.text,pw-12), ph=18+lines.length*11, px=Math.round(W/2-pw/2), py=34;
+    const a=Math.min(1,C.tipT/10); ctx.globalAlpha=a;
+    ctx.fillStyle='rgba(18,14,20,.82)'; ctx.fillRect(px,py,pw,ph); P(px,py,pw,1,'#ffd23f'); P(px,py+ph-1,pw,1,'#ffd23f');
+    txt(tip.title,W/2,py+5,8,'#ffd23f'); lines.forEach((l,i)=>txt(l,W/2,py+17+i*11,8,'#ffffff'));
+    ctx.globalAlpha=1;
+  }
+  if(C.phase==='intro'){ const a=Math.min(1,C.pt/15,(90-C.pt)/15);
+    ctx.globalAlpha=Math.max(0,a); txt('LEVEL 0',W/2,62,16,'#ffd23f'); txt('TRAINING DAY',W/2,86,8,'#ffffff'); ctx.globalAlpha=1; }
+  if(C.banner) txt(C.banner.s,W/2,C.phase==='clear'?70:96,C.banner.s.length>12?8:16,C.phase==='clear'?'#7dff6a':'#ffd23f');
+}
+function campQuit(){ C=null; G.mode='menu'; G.paused=false; G.parts=[]; pauseOv.hidden=true; document.getElementById('campEnd').hidden=true; resetTouch(); showCampMenu(); }
+function showCampMenu(){
+  const s=campSave(); document.getElementById('lvl0Done').hidden=!s.l0;
+  mainMenu.hidden=false; mmTop.hidden=true; mmArc.hidden=true; document.getElementById('mmCamp').hidden=false;
+}
+document.getElementById('mmCampaign').addEventListener('click',()=>{ audioInit(); sfx('select'); showCampMenu(); });
+document.getElementById('mmCampBack').addEventListener('click',()=>{ sfx('select'); document.getElementById('mmCamp').hidden=true; mmTop.hidden=false; });
+function playLevel(id){ audioInit(); sfx('select'); if(matchMedia('(pointer:coarse)').matches) enterFS();
+  mainMenu.hidden=true; menu.hidden=true; pauseOv.hidden=true; resultOv.hidden=true; document.getElementById('campEnd').hidden=true; resetTouch(); campStart(id); }
+document.getElementById('lvl0Btn').addEventListener('click',()=>playLevel(0));
+document.getElementById('campAgain').addEventListener('click',()=>playLevel(0));
+document.getElementById('campMenuBtn').addEventListener('click',()=>{ sfx('select'); campQuit(); });
+
 /* ---------------- Sizing & loop ---------------- */
 const wrap=document.getElementById('stageWrap');
 function fit(){
@@ -3882,11 +4337,12 @@ function loop(now){
   const vsOn=!!(G.f && G.mode==='play' && G.phase==='vs');
   if(vsOn!==lastVs){ appEl.classList.toggle('vsmode',vsOn); lastVs=vsOn; }
   const cineOn=!!(G.cine&&G.mode==='play'); if(cineOn!==lastCine){ appEl.classList.toggle('cinemode',cineOn); lastCine=cineOn; }
-  const multiOn=!!(G.multi&&G.mode==='play'); if(multiOn!==lastMulti){ appEl.classList.toggle('multimode',multiOn); lastMulti=multiOn; }
-  const me=G.f&&G.f[NET.active?NET.local:0];
-  const ready=!!(me && G.mode==='play' && me.meter>=me.cfg.moves.special.cost);
+  const multiOn=!!((G.multi&&G.mode==='play')||G.mode==='camp'); if(multiOn!==lastMulti){ appEl.classList.toggle('multimode',multiOn); lastMulti=multiOn; }
+  const me=G.mode==='camp'&&C?C.b:(G.f&&G.f[NET.active?NET.local:0]);
+  const live=G.mode==='play'||G.mode==='camp';
+  const ready=!!(me && live && me.meter>=me.cfg.moves.special.cost);
   if(ready!==lastSp){ spBtn.classList.toggle('ready',ready); lastSp=ready; }
-  const sready=!!(me && G.mode==='play' && me.meter>=SUPER_COST);
+  const sready=!!(me && live && me.meter>=SUPER_COST);
   if(sready!==lastSu){ suBtn.classList.toggle('ready',sready); lastSu=sready; }
   requestAnimationFrame(loop);
 }
