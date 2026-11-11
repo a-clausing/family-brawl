@@ -118,6 +118,7 @@ A side-scrolling action platformer, separate from the fight engine. Section "Cam
 - Goons (`ENEMY`, `campEnemyStep`, drawn by `campDrawEnemy`): grunt (walks up, punches), thrower (keeps distance, throws a red ball: teaches blocking), boss BIG GOON (punch, red-glow charge, jump slam with shockwaves both ways; hits don't interrupt his charge/slam). Becky bumps into standing goons. Falling in a pit or losing all health respawns at the last flag; standing goons reset and the boss heals.
 - Clearing a level saves `nrb.camp` (`{l0:1}`) and shows a ✓ on the level button; `#campEnd` offers Play again / Campaign menu.
 - Enemy timers must hit exactly 0 (`Math.max(0,cool-1)`): a fractional cooldown once skipped past 0 and froze the boss.
+- Private preview for Alex (solo only, separate from the main artifact copy): https://claude.ai/artifact/TzPY7aE3oBC5sG5FS4QTQm. Update it with `python3 tools/build.py --artifact <scratch>/campaign-preview.html` from this branch, then publish to that URL.
 - Testing: no test script yet. A copy of `index.html` with `let C=null;` replaced by `let C=null; window.__camp=()=>C;` lets Playwright read and move Becky (that's how Level 0 was checked: block, special, super, boss, clear screen).
 
 ## Fighter ratings (Alex's Madden-style scale)
