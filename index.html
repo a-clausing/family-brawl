@@ -1677,7 +1677,7 @@ const optLabel=(o,fm)=>(fm||G.fmode||'1v1')!=='1v1'?`${o.stocks||3} ${(o.stocks|
 G.opts=loadOpts();
 const METER_GAIN=0.9;   // meter fills 10% slower (specials and supers take a bit longer to earn)
 const ONLINE_W=390;   // fixed online arena width (typical phone shape) so both phones simulate the same space
-const NET={active:false, role:null, local:0, D:3, fastBy:{}, early:{}, away:{}, frame:0, nextLocal:0, inputs:[{},{}], humans:[0,1], conns:[], mode:'1v1', myHash:{}, theirHash:{}, snaps:{},
+const NET={active:false, role:null, local:0, D:3, fastBy:{}, early:{}, away:{}, slow:new Set(), frame:0, nextLocal:0, inputs:[{},{}], humans:[0,1], conns:[], mode:'1v1', myHash:{}, theirHash:{}, snaps:{},
   stall:0, match:0, conn:null, peer:null, rematch:[false,false], picks:[null,null], resyncAt:-1, synced:0};
 Object.assign(NET,{room:false, over:false, code:'', where:'lobby', ready:false, saved:null, note:''});
 const pickKey=p=>p==='random'?FIGHTERS[Math.floor(Math.random()*FIGHTERS.length)]:p;
@@ -3403,14 +3403,25 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=13;
+const HASH_EVERY=30, KEEP=900, NET_V=14;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late
 // one (Wi-Fi hiccups used to freeze everyone). Each press message also carries the REDUN presses before it,
 // so a lost or late message is covered by the next one. Everything else stays on the reliable connection.
 const REDUN=30;   // half a second: covers a typical Wi-Fi dropout (was 8, which left long dropouts waiting for a resend)
-function fastTo(c,m){ try{ if(!c) return; const f=c.peer&&NET.fastBy[c.peer]; if(f&&f.open) f.send(m); else if(c.fast) c.fast(m); else c.send(m); }catch(e){} }
+function fastTo(c,m){ try{ if(!c) return; if(NET.slow.has(c)) return c.send(m);
+  const f=c.peer&&NET.fastBy[c.peer]; if(f&&f.open) f.send(m); else if(c.fast) c.fast(m); else c.send(m); }catch(e){} }
+// Recovery when presses go missing for good (Nov 2026: a fast lane can die at one end while the other end
+// still thinks it's open, so presses vanished and the room froze until the 12 s kick). A phone stuck for half a
+// second asks over the reliable connection ({t:'need',f}); the other side answers with every press it has from
+// that frame on ({t:'fill'}) and stops using its fast lane to that phone, since its presses clearly weren't arriving.
+function fillFor(c,f){
+  const slots=NET.role==='host'?NET.humans:[NET.local];
+  for(const s of slots){ const I=NET.inputs[s], bs=[]; for(let k=f;I&&I[k]!==undefined;k++) bs.push(I[k]); if(bs.length) sendTo(c,{t:'fill',m:NET.match,s,f,bs}); }
+  NET.slow.add(c);
+}
+function takeFill(m,s){ const I=NET.inputs[s]; if(!I||!Array.isArray(m.bs)) return; m.bs.forEach((b,i)=>{ if(I[m.f+i]===undefined) I[m.f+i]=b; }); }
 function netSendFast(m){ if(NET.role==='host') NET.conns.forEach(x=>fastTo(x.c,m)); else fastTo(NET.conn,m); }
 function inputMsg(s,f){ const I=NET.inputs[s], p=[]; for(let k=1;k<=REDUN&&f-k>=0;k++) p.push(I[f-k]===undefined?null:I[f-k]); return {t:'i',m:NET.match,f,b:I[f],s,p}; }
 function takeInputs(m,s){   // store a press message (and the earlier presses it carries) for slot s
@@ -3486,6 +3497,7 @@ function netTick(){
     // While stuck, re-send our latest presses (with the REDUN backlog) every 3 frames: a phone whose Wi-Fi just
     // dropped out has nothing new to send while everyone waits, so without this the gap waits for a slow resend.
     if(NET.stall%3===0 && NET.nextLocal>0) netSendFast(inputMsg(NET.local,NET.nextLocal-1));
+    if(NET.stall>=30 && NET.stall%30===0) netSend({t:'need',m:NET.match,f:NET.frame});
     G.t++;
     if(NET.role==='host' && NET.stall>60*12) netEndMatch(NET.humans.length>2?'A player stopped responding.':'Your opponent stopped responding.');
     else if(NET.role!=='host' && NET.stall>60*20) netLost('The connection to the host was lost.');
@@ -3506,6 +3518,8 @@ function guestMsg(m){
     return;
   }
   if(m.t==='i'){ takeInputs(m,m.s); return; }
+  if(m.t==='need'){ fillFor(NET.conn,m.f); return; }
+  if(m.t==='fill'){ takeFill(m,m.s); return; }
   if(m.t==='snap'){ applySnap(m.f,m.s); return; }
 }
 // ---- messages the host receives from guest x
@@ -3531,6 +3545,8 @@ function hostMsg(m,x){
   if(m.t==='away'){ setAway(x.slot,!!m.on); return; }
   if(m.m!==NET.match) return;
   if(m.t==='i'){ if(takeInputs(m,x.slot)){ const r={t:'i',m:m.m,f:m.f,b:m.b,s:x.slot,p:m.p}; NET.conns.forEach(y=>{ if(y!==x) fastTo(y.c,r); }); } return; }
+  if(m.t==='need'){ fillFor(x.c,m.f); return; }
+  if(m.t==='fill'){ if(m.s===x.slot){ takeFill(m,x.slot); NET.conns.forEach(y=>{ if(y!==x && y.slot>0) sendTo(y.c,m); }); } return; }
   if(m.t==='h'){ (NET.theirHash[x.slot]=NET.theirHash[x.slot]||{})[m.f]=m.h; checkHash(m.f,x.slot); return; }
 }
 const roomMax=()=>NET.mode==='1v1'?1:3;
@@ -3636,7 +3652,7 @@ function guestApplyLobby(L){   // a guest's screen mirrors the host's fight type
   G.opts={...OPT_DEFAULT,...L.rules}; refreshOptsLabel(); setRoomControls();
 }
 function enterLobby(){
-  NET.away={};
+  NET.away={}; NET.slow=new Set();
   NET.room=true; NET.where='lobby'; NET.ready=false; NET.over=false; appMode='online';
   onlineOv.hidden=true; mainMenu.hidden=true; resultOv.hidden=true; pauseOv.hidden=true;
   menuEl.classList.add('online'); show('room',true); show('roomCode',true); lastLobby=null; renderHero(); renderBadges(); showPickPage();
