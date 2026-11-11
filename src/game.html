@@ -3897,16 +3897,16 @@ const CAMP_LEVELS=[{
   ],
   bossAt:2280,
   tips:[
-    {x:0,   title:'WALK',   text:'Slide the stick on the left to walk. Head right!', done:C=>C.b.x>110},
-    {x:150, title:'JUMP',   text:'Tap J to jump. Hold the stick while jumping to go farther. Hop up the crates!', done:C=>C.b.onGround&&C.b.y<GROUND-30},
-    {x:430, title:'GAPS',   text:'Jump over the gap. If you fall in, you start again from the last flag.', done:C=>C.b.x>580},
-    {x:600, title:'PUNCH',  text:'Tap P to punch. Tap it fast for a combo!', done:C=>C.enemyDown(0)},
-    {x:830, title:'KICK',   text:'Tap K to kick. Kicks hit harder and reach farther. Try P, P, K!', done:C=>C.kicked},
-    {x:1170,title:'BLOCK',  text:'Hold B to block. Blocking stops hits from the front. Block a ball, then get him!', done:C=>C.blocked},
-    {x:1430,title:'JUMP ATTACK', text:'While in the air, tap P or K for a flying kick. Try it on the next goon!', done:C=>C.airHit},
-    {x:1800,title:'SPECIAL',text:'Your green meter fills as you fight. At half full, tap SPECIAL to throw your coffee mug!', done:C=>C.mugHit, meter:45},
-    {x:2280,title:'SUPER',  text:'Meter full! Tap SUPER for Becky\'s BOOK STACK THROW. It hits everything in its path!', done:C=>C.supered, meter:100},
-    {x:2281,title:'BOSS: BIG GOON', text:'When he glows red he is about to charge. Jump over his shockwaves!', done:C=>C.tipT>420}
+    {x:0,   title:'WALK', key:'walk',   text:'Slide the stick on the left to walk. Head right!', done:C=>C.b.x>110},
+    {x:150, title:'JUMP', key:'up',   text:'Tap J to jump. Hold the stick while jumping to go farther. Hop up the crates!', done:C=>C.b.onGround&&C.b.y<GROUND-30},
+    {x:430, title:'GAPS', key:'up',   text:'Jump over the gap. If you fall in, you start again from the last flag.', done:C=>C.b.x>580},
+    {x:600, title:'PUNCH', key:'punch',  text:'Tap P to punch. Tap it fast for a combo!', done:C=>C.enemyDown(0)},
+    {x:830, title:'KICK', key:'kick',   text:'Tap K to kick. Kicks hit harder and reach farther. Try P, P, K!', done:C=>C.kicked},
+    {x:1170,title:'BLOCK', key:'block',  text:'Hold B to block. Blocking stops hits from the front. Block a ball, then get him!', done:C=>C.blocked},
+    {x:1430,title:'JUMP ATTACK', key:'up', text:'While in the air, tap P or K for a flying kick. Try it on the next goon!', done:C=>C.airHit},
+    {x:1800,title:'SPECIAL', key:'special',text:'Your green meter fills as you fight. At half full, tap SPECIAL to throw your coffee mug!', done:C=>C.mugHit, meter:45},
+    {x:2280,title:'SUPER', key:'super',  text:'Meter full! Tap SUPER for Becky\'s BOOK STACK THROW. It hits everything in its path!', done:C=>C.supered, meter:100},
+    {x:2281,title:'BOSS: BIG GOON', key:'any', text:'When he glows red he is about to charge. Jump over his shockwaves!', done:C=>C.tipT>420}
   ]
 }];
 let C=null;   // the running level
@@ -4160,10 +4160,27 @@ function campProjStep(){
   }
 }
 
+/* ---- tutorial pause ----
+   A new tip freezes everything (Becky, goons, throws) so it can be read. After a short moment, pressing the
+   button the tip names lets go of the freeze, and that same press does the move. Returns true on the frame it lets go. */
+const CAMP_TIP_READ=24;   // frames before a press counts, so mashing doesn't skip the card
+function campWaitStep(){
+  const w=C.wait, I=C.b.in; w.t++;
+  const keys=w.key==='walk'?['left','right']:w.key==='any'?['left','right','up','punch','kick','block','special','super']:[w.key];
+  const held=w.key==='walk'||w.key==='block'||w.key==='any';   // these can already be held down when the card shows
+  let go=false;
+  if(w.t>CAMP_TIP_READ) for(const k of keys){ if(I[k] && (held||!w.held[k])) go=true; }
+  for(const k in w.held) if(!I[k]) w.held[k]=false;           // a button let go of may now be pressed fresh
+  if(!go){ if(w.t===1) C.b.prev={...I}; clearTaps(); return false; }
+  C.wait=null; C.b.prev[keys.find(k=>I[k])]=false;              // the press that let go also starts the move
+  return true;
+}
+
 /* ---- step ---- */
 function campStep(){
   const b=C.b; C.t++; C.pt++;
   b.in=playerInput();
+  if(C.wait) { if(!campWaitStep()) return; }
   if(C.freeze>0){ C.freeze--; campBecky(); b.prev={...b.in}; clearTaps(); updParts(); return; }
   campBecky(); b.prev={...b.in}; clearTaps();
   for(const e of C.en) if(e.t!=='boss'||C.bossOn) campEnemyStep(e);
@@ -4187,8 +4204,9 @@ function campStep(){
   const tips=C.L.tips, tip=tips[C.tipI];
   if(tip){
     const prevDone=C.tipI===0||C.tipDone===C.tipI-1;
-    if(b.x>=tip.x && prevDone && C.tipT===0){ C.tipT=1; if(tip.meter&&b.meter<tip.meter){ b.meter=tip.meter; } sfx('select'); }
-    if(C.tipT>0){ C.tipT++; if(C.tipT>(tip.after||30) && tip.done(C)){ C.tipDone=C.tipI; C.tipI++; C.tipT=0;
+    if(b.x>=tip.x && prevDone && C.tipT===0 && C.phase==='play'){ C.tipT=1; if(tip.meter&&b.meter<tip.meter){ b.meter=tip.meter; } sfx('select');
+      if(tip.key){ C.wait={t:0,key:tip.key,held:{...b.in}}; } }
+    if(C.tipT>0 && !C.wait){ C.tipT++; if(C.tipT>(tip.after||30) && tip.done(C)){ C.tipDone=C.tipI; C.tipI++; C.tipT=0;
       G.parts.push({type:'word',s:'NICE!',x:b.x,y:b.y-60,vy:-0.4,life:40,max:40,col:'#7dff6a'}); } }
     else if(tip.done(C) && prevDone && b.x>=tip.x){ C.tipDone=C.tipI; C.tipI++; }
     // never get stuck on a tip: move on if she walks well past the next one, or after 15 seconds
@@ -4214,7 +4232,8 @@ function campBg(){
 }
 function campDrawEnemy(e){
   const s=e.cfg, x=Math.round(e.x), y=Math.round(e.y), d=e.dir, h=e.h, w=e.w;
-  if(e.dead){ ctx.globalAlpha=Math.max(0,1-e.dead/50); if(e.dead>50) return; }
+  if(e.dead>50) return;
+  if(e.dead) ctx.globalAlpha=Math.max(0,1-e.dead/50);
   const red=e.state==='charge'&&e.st<40&&(e.st>>2)%2;
   const col=e.flash>0?'#ffffff':red?'#ff3030':s.col, dark=e.flash>0?'#dddddd':s.dark;
   ctx.save(); ctx.translate(x,y); if(e.dead){ ctx.rotate(-d*Math.min(1.4,e.dead*0.06)); }
@@ -4284,14 +4303,18 @@ function campHud(){
   txt('LEVEL 0',W-8,6,8,'#ffd23f','right');
   if(C.bossOn && C.boss && C.boss.hp>0){ const bw=Math.min(150,W-120), x=W-8-bw;
     txt('BIG GOON',W-8,16,8,'#ff8080','right'); P(x,26,bw,6,'#120e14'); P(x+1,27,Math.round((bw-2)*C.boss.hp/C.boss.max),4,'#ff4a3d'); }
-  // tutorial tip
+  // tutorial tip (the level is dimmed while it waits for the player)
+  if(C.wait){ ctx.fillStyle='rgba(10,8,16,.38)'; ctx.fillRect(0,0,W,H); }
   const tip=C.L.tips[C.tipI];
   if(tip && C.tipT>0 && C.phase==='play'){
     const pw=Math.min(W-130,250), lines=campWrap(tip.text,pw-12), ph=18+lines.length*11, px=Math.round(W/2-pw/2), py=34;
-    const a=Math.min(1,C.tipT/10); ctx.globalAlpha=a;
+    const a=C.wait?Math.min(1,C.wait.t/8):1; ctx.globalAlpha=a;
     ctx.fillStyle='rgba(18,14,20,.82)'; ctx.fillRect(px,py,pw,ph); P(px,py,pw,1,'#ffd23f'); P(px,py+ph-1,pw,1,'#ffd23f');
     txt(tip.title,W/2,py+5,8,'#ffd23f'); lines.forEach((l,i)=>txt(l,W/2,py+17+i*11,8,'#ffffff'));
     ctx.globalAlpha=1;
+    if(C.wait && C.wait.t>CAMP_TIP_READ && (C.t>>4)%2===0){
+      const say={walk:'SLIDE THE STICK',up:'TAP J',punch:'TAP P',kick:'TAP K',block:'HOLD B',special:'TAP SPECIAL',super:'TAP SUPER',any:'TAP ANY BUTTON'}[C.wait.key];
+      txt(say+' TO GO!',W/2,py+ph+5,8,'#7dff6a'); }
   }
   if(C.phase==='intro'){ const a=Math.min(1,C.pt/15,(90-C.pt)/15);
     ctx.globalAlpha=Math.max(0,a); txt('LEVEL 0',W/2,62,16,'#ffd23f'); txt('TRAINING DAY',W/2,86,8,'#ffffff'); ctx.globalAlpha=1; }
