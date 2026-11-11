@@ -11,7 +11,7 @@
   --ui:"Chakra Petch", system-ui, sans-serif;
   --brush:"Bangers", "Impact", "Arial Black", sans-serif;
   --titlebg:url("@@asset:title-bg.webp.b64@@");
-  --b:clamp(50px,14.5vh,72px);
+  --b:clamp(43px,12.3vh,61px);
   color-scheme:dark;
 }
 [hidden]{display:none!important}
@@ -29,7 +29,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 #controls{position:absolute;left:max(14px,env(safe-area-inset-left,0px));right:max(14px,env(safe-area-inset-right,0px));
   bottom:max(8px,env(safe-area-inset-bottom,0px));display:flex;align-items:flex-end;justify-content:space-between;gap:8px;pointer-events:none}
 .stick,.rightside,.mid{pointer-events:auto}
-.pad{display:grid;grid-template-columns:repeat(3,var(--b));grid-template-rows:repeat(3,var(--b));gap:3px;touch-action:none}
+.pad{display:grid;grid-template-columns:repeat(3,var(--b));grid-template-rows:repeat(3,var(--b));gap:2px;touch-action:none}
 .pad > *{width:100%;height:100%;border:0;padding:0;background:none}
 .hub{border-radius:50%;background:radial-gradient(circle,#2a2238 35%,transparent 36%);opacity:.45}
 .act{border-radius:50%;border:2px solid #120e14;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -37,7 +37,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810;transition:background .15s}
 .act i{font-style:normal;font-family:var(--ui);font-weight:700;font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;opacity:.75}
 .pu{background:var(--gold)} .ki{background:var(--ember)} .bl{background:#9a90b3} .ju{background:#6fd36a}
-.rightside{display:flex;flex-direction:column;align-items:flex-end;gap:6px;touch-action:none}
+.rightside{display:flex;flex-direction:column;align-items:flex-end;gap:4px;touch-action:none;margin-left:auto}
 .sp{background:#3d4a69;color:#9fb0d6;border-radius:14px;width:calc(var(--b)*1.8);height:calc(var(--b)*0.78);font-size:11px;letter-spacing:.04em;margin-right:calc(var(--b)*-0.15)}
 .sp.ready{background:var(--steel);color:#fff;animation:ready 1s ease-in-out infinite}
 @keyframes ready{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810,0 0 18px 2px rgba(59,124,255,.7)}}
@@ -45,20 +45,21 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .act.behind{opacity:.28} .su.behind{opacity:.24} .sp.ready.behind,.su.ready.behind{opacity:.48}
 .act.on{opacity:.85;transform:translateY(3px) scale(.95);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25),0 0 0 #0a0810}
 .sp.ready{opacity:.8}
-.stick{width:calc(var(--b)*3);height:calc(var(--b)*2.4);display:grid;place-items:center;touch-action:none}
-.track{position:relative;width:100%;height:calc(var(--b)*1.3);border-radius:999px;background:var(--panel-hi);border:2px solid #120e14;
+.stick{--sz:calc(var(--b)*2.3);position:fixed;width:var(--sz);height:var(--sz);left:calc(max(14px,env(safe-area-inset-left,0px)) + var(--sz)/2);top:calc(100% - max(8px,env(safe-area-inset-bottom,0px)) - var(--sz)/2);transform:translate(-50%,-50%);pointer-events:none!important;touch-action:none}
+.track{position:absolute;inset:0;border-radius:50%;background:var(--panel-hi);border:2px solid #120e14;
   box-shadow:inset 0 5px 0 #1a1424,0 3px 0 #0a0810;opacity:.52}
-.stick.held .track{opacity:.85}
-.stick.behind .track{opacity:.28} .stick.behind.held .track{opacity:.58}
+.stick .track{opacity:.22} .stick.held .track{opacity:.7}
+.stick.behind .track{opacity:.12} .stick.behind.held .track{opacity:.58}
 .act.on.behind{opacity:.58}
-.arr{position:absolute;top:50%;width:14px;height:14px;fill:#5b4f78;transform:translateY(-50%)}
+.arr{display:none}
 .arr.l{left:12px} .arr.r{right:12px}
 .stick.goL .arr.l,.stick.goR .arr.r{fill:var(--gold)}
-.knob{position:absolute;left:50%;top:50%;width:calc(var(--b)*1.1);height:calc(var(--b)*1.1);border-radius:50%;
-  transform:translate(calc(-50% + var(--kx,0px)),-50%);
+.knob{position:absolute;left:50%;top:50%;width:calc(var(--sz)*.44);height:calc(var(--sz)*.44);border-radius:50%;
+  transform:translate(calc(-50% + var(--kx,0px)),calc(-50% + var(--ky,0px)));opacity:.6;
   background:radial-gradient(circle at 38% 32%,#7a6aa0,#463a63 60%,#2e2544);border:2px solid #120e14;box-shadow:0 4px 0 #0a0810}
-.stick.held .knob{box-shadow:0 1px 0 #0a0810,0 0 0 3px rgba(255,210,63,.35)}
-.mid{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 17.5vh);transform:translateX(-50%);display:flex;gap:8px}
+.stick.held .knob{opacity:1;box-shadow:0 1px 0 #0a0810,0 0 0 3px rgba(255,210,63,.35)}
+.stick.goL .knob,.stick.goR .knob,.stick.goD .knob{box-shadow:0 1px 0 #0a0810,0 0 0 4px rgba(255,210,63,.75)}
+.mid{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 3vh);transform:translateX(-50%);display:flex;gap:8px}
 .mini{width:34px;height:34px;border-radius:10px;background:rgba(28,23,38,.8);border:2px solid var(--line);display:grid;place-items:center;color:var(--dim)}
 .mini svg{width:17px;height:17px;fill:currentColor}
 .mini[aria-pressed="true"]{color:var(--ember)}
@@ -556,6 +557,10 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 'use strict';
 // Arena height is fixed; its width stretches to match the screen's shape (320 = 16:9 up to 400 = 20:9).
 let W = 320; const H = 180, GROUND = 158, WMIN = 320, WMAX = 400;
+// Screen layout (Nov 2026, Alex): the fight picture (W x H) is drawn ~10% smaller and higher on the screen, with a
+// STRIP of floor below the fighters' feet and dark frame columns at the sides (MX each), so the touch controls sit
+// over floor and frame instead of over the fighters. VW x HV is the whole canvas. Gameplay sizes (W, H, AW) are unchanged.
+const STRIP=20, HV=H+STRIP; let VW=356, MX=18;
 // AW is the arena the fighters move in. In 1v1 it equals the screen width W; team and free-for-all fights use a wider
 // arena (MULTI_AW) and a camera that follows the fighters.
 let AW = W; const MULTI_AW = 640;
@@ -1556,29 +1561,36 @@ function keysAt(x,y){
   }
   return best&&bd<=M?[best.dataset.k]:[];
 }
-// Joystick: left/right only. Position is measured from the track's center.
+// Joystick (Nov 2026, Alex): a round stick that appears wherever the left thumb lands (anywhere in the lower-left
+// area) and follows a thumb that slides far. Left/right walk; down is 'down' (drops through platforms in Campaign;
+// nothing in fights yet); up does nothing yet (jump stays on J).
 const stick=document.getElementById('stick'), track=document.getElementById('track'), knob=document.getElementById('knob');
-const stickHeld={left:false,right:false};
+const stickHeld={left:false,right:false,down:false};
 let stickId=null;     // mouse pointer driving the stick
 let stickTouch=null;  // finger driving the stick
-function setStick(x){
-  let dir=0, kx=0;
-  if(x!==null){
-    const r=track.getBoundingClientRect(), kw=knob.offsetWidth, R=Math.max(10,r.width/2-kw/2-4);
-    const dx=x-(r.left+r.width/2); kx=Math.max(-R,Math.min(R,dx));
-    if(dx<-12) dir=-1; else if(dx>12) dir=1;
+let stickC=null;      // stick center (screen px) while held
+const stickZone=(x,y)=>x<innerWidth*0.45 && y>innerHeight*0.25;
+function placeStick(x,y){ stickC={x,y}; stick.style.left=x+'px'; stick.style.top=y+'px'; }
+function setStick(x,y){
+  let kx=0, ky=0, L=false, Rt=false, D=false;
+  if(x!==null && stickC){
+    const R=stick.offsetWidth*0.3;
+    let dx=x-stickC.x, dy=y-stickC.y; const d=Math.hypot(dx,dy);
+    if(d>R*1.7){ const k=(d-R*1.7)/d; placeStick(stickC.x+dx*k, stickC.y+dy*k); dx=x-stickC.x; dy=y-stickC.y; }
+    const dd=Math.hypot(dx,dy), cl=Math.min(1,R/(dd||1)); kx=dx*cl; ky=dy*cl;
+    if(dd>R*0.35){ const a=Math.atan2(dy,dx); L=Math.cos(a)<-0.38; Rt=Math.cos(a)>0.38; D=Math.sin(a)>0.55; }
   }
-  const L=dir<0, Rt=dir>0;
-  if(L&&!stickHeld.left) taps.left=true; if(Rt&&!stickHeld.right) taps.right=true;
-  stickHeld.left=L; stickHeld.right=Rt;
-  knob.style.setProperty('--kx',kx+'px');
-  stick.classList.toggle('held',x!==null); stick.classList.toggle('goL',L); stick.classList.toggle('goR',Rt);
+  if(L&&!stickHeld.left) taps.left=true; if(Rt&&!stickHeld.right) taps.right=true; if(D&&!stickHeld.down) taps.down=true;
+  stickHeld.left=L; stickHeld.right=Rt; stickHeld.down=D;
+  knob.style.setProperty('--kx',kx+'px'); knob.style.setProperty('--ky',ky+'px');
+  if(x===null){ stickC=null; stick.style.left=''; stick.style.top=''; }
+  stick.classList.toggle('held',x!==null); stick.classList.toggle('goL',L); stick.classList.toggle('goR',Rt); stick.classList.toggle('goD',D);
 }
 const touchActions=new Set();
 function refreshTouch(){
   const now=new Set(touchActions); ptrs.forEach(ks=>ks.forEach(k=>now.add(k)));
   ['up','block','punch','kick','special','super'].forEach(k=>{ const v=now.has(k); if(v&&!touchHeld[k]) taps[k]=true; touchHeld[k]=v; });
-  touchHeld.left=stickHeld.left; touchHeld.right=stickHeld.right;
+  touchHeld.left=stickHeld.left; touchHeld.right=stickHeld.right; touchHeld.down=stickHeld.down;
   btnEls.forEach(b=>b.classList.toggle('on', now.has(b.dataset.k)));
 }
 function resetTouch(){ ptrs.clear(); touchActions.clear(); stickId=null; stickTouch=null; setStick(null); refreshTouch(); }
@@ -1590,12 +1602,12 @@ function syncTouches(e){
   if(e.type==='touchstart' && stickTouch===null){
     for(const t of e.changedTouches){
       const el=document.elementFromPoint(t.clientX,t.clientY);
-      if(el&&el.closest('#stick')&&inGame()){ stickTouch=t.identifier; break; }
+      if(inGame() && stickZone(t.clientX,t.clientY) && !(el&&el.closest('.mid,#rightside'))){ stickTouch=t.identifier; placeStick(t.clientX,t.clientY); break; }
     }
   }
   if(stickTouch!==null){
     const t=list.find(t=>t.identifier===stickTouch);
-    if(t) setStick(t.clientX); else { stickTouch=null; setStick(null); }
+    if(t) setStick(t.clientX,t.clientY); else { stickTouch=null; setStick(null); }
   }
   touchActions.clear();
   if(inGame()) for(const t of list){ if(t.identifier!==stickTouch) keysAt(t.clientX,t.clientY).forEach(k=>touchActions.add(k)); }
@@ -1611,13 +1623,13 @@ for(const t of ['touchstart','touchmove','touchend','touchcancel']) addEventList
 // Mouse (desktop): same buttons via pointer events
 controls.addEventListener('pointerdown',e=>{
   if(e.pointerType!=='mouse') return;
-  if(e.target.closest('#stick')){ e.preventDefault(); audioInit(); stickId=e.pointerId; try{stick.setPointerCapture(e.pointerId);}catch(_){} setStick(e.clientX); refreshTouch(); return; }
+  if(e.target.closest('#stick')){ e.preventDefault(); audioInit(); stickId=e.pointerId; try{stick.setPointerCapture(e.pointerId);}catch(_){} placeStick(e.clientX,e.clientY); setStick(e.clientX,e.clientY); refreshTouch(); return; }
   if(!e.target.closest('#rightside')) return;
   e.preventDefault(); audioInit(); ptrs.set(e.pointerId,keysAt(e.clientX,e.clientY)); refreshTouch();
 });
 controls.addEventListener('pointermove',e=>{
   if(e.pointerType!=='mouse') return;
-  if(e.pointerId===stickId){ setStick(e.clientX); refreshTouch(); return; }
+  if(e.pointerId===stickId){ setStick(e.clientX,e.clientY); refreshTouch(); return; }
   if(ptrs.has(e.pointerId)){ ptrs.set(e.pointerId,keysAt(e.clientX,e.clientY)); refreshTouch(); }
 });
 const endMouse=e=>{
@@ -1640,7 +1652,7 @@ if(window.visualViewport) visualViewport.addEventListener('resize',()=>{
   }
 });
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) resetTouch(); });
-const KMAP={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',Space:'up',
+const KMAP={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'up',KeyW:'up',Space:'up',ArrowDown:'down',KeyS:'down',
   KeyJ:'punch',KeyK:'kick',KeyL:'special',KeyU:'super',KeyI:'block',ShiftLeft:'block',ShiftRight:'block'};
 addEventListener('keydown',e=>{
   if((e.code==='KeyP'||e.code==='Escape') && (G.mode==='play'||G.mode==='camp')){ togglePause(); return; }
@@ -1652,7 +1664,9 @@ addEventListener('keydown',e=>{
 });
 addEventListener('keyup',e=>{ const k=KMAP[e.code]; if(k) keyHeld[k]=false; });
 addEventListener('blur',()=>{ KEYS.forEach(k=>keyHeld[k]=false); resetTouch(); });
-function playerInput(){ const o={}; KEYS.forEach(k=>o[k]=!!(touchHeld[k]||keyHeld[k]||taps[k])); return o; }
+function playerInput(){ const o={}; KEYS.forEach(k=>o[k]=!!(touchHeld[k]||keyHeld[k]||taps[k]));
+  if(G.mode!=='camp') o.down=false;   // the stick's down does nothing in fights yet (crouching isn't switched on for players)
+  return o; }
 function clearTaps(){ KEYS.forEach(k=>taps[k]=false); }
 
 /* ---------------- Game state ---------------- */
@@ -3027,9 +3041,20 @@ function banners(){
     }
   }
 }
+// Floor strip under the picture (a dimmed mirror of the picture's bottom rows) and the side frame
+function drawFrame(){
+  ctx.setTransform(1,0,0,1,0,0); ctx.imageSmoothingEnabled=false;
+  const x0=MX*2, aw=W*2, y=H*2, sh=STRIP*2;
+  ctx.save(); ctx.translate(0,y*2); ctx.scale(1,-1); ctx.drawImage(cv,x0,y-sh,aw,sh,x0,y,aw,sh); ctx.restore();
+  const g=ctx.createLinearGradient(0,y,0,y+sh); g.addColorStop(0,'rgba(10,8,16,.45)'); g.addColorStop(1,'rgba(10,8,16,.9)');
+  ctx.fillStyle=g; ctx.fillRect(x0,y,aw,sh);
+  ctx.fillStyle='rgba(0,0,0,.35)'; ctx.fillRect(x0,y,aw,2);
+  ctx.fillStyle='#0d0a14'; ctx.fillRect(0,0,x0,cv.height); ctx.fillRect(x0+aw,0,cv.width-x0-aw,cv.height);
+  ctx.fillStyle='rgba(255,255,255,.07)'; ctx.fillRect(x0-2,0,2,cv.height); ctx.fillRect(x0+aw,0,2,cv.height);
+}
 function render(){
-  if(G.mode==='camp' && C){ campRender(); return; }
-  ctx.setTransform(2,0,0,2,0,0); ctx.imageSmoothingEnabled=false;
+  if(G.mode==='camp' && C){ campRender(); fadeControls(null); return; }
+  ctx.setTransform(2,0,0,2,2*MX,0); ctx.imageSmoothingEnabled=false;
   if(!gymReady){ ctx.drawImage(SKY,0,0); clouds.forEach(c=>ctx.drawImage(CLOUD,Math.round(c.x),c.y)); }
   else { ctx.fillStyle='#14121c'; ctx.fillRect(0,0,W,H); }
   let sx=0,sy=0;
@@ -3076,14 +3101,19 @@ function render(){
 const CTL_EL=[...document.querySelectorAll('#controls .act'), document.getElementById('stick')];
 let ctlTick=0, ctlOn=false;
 function fadeControls(cam){
-  const live=G.f && G.mode==='play' && G.phase!=='vs' && !G.cine;
+  const camp=G.mode==='camp'&&C;
+  const live=camp || (G.f && G.mode==='play' && G.phase!=='vs' && !G.cine);
   if(!live){ if(ctlOn){ CTL_EL.forEach(e=>e.classList.remove('behind')); ctlOn=false; } return; }
   if((ctlTick++)%4) return;
-  const r=cv.getBoundingClientRect(), k=r.width/W;
+  const r=cv.getBoundingClientRect(), k=r.width/VW;
   const z=cam?cam.z:1, cx=cam?cam.cx:W/2, cy=cam?cam.cy:H/2;
-  const boxes=G.f.filter(f=>!(f.out||f.dead)).map(f=>{
+  const box=(x,top,bot,hw)=>({l:r.left+(MX+x-hw)*k, r:r.left+(MX+x+hw)*k, t:r.top+top*k, b:r.top+bot*k});
+  const boxes=camp
+    ? [{x:C.b.x,y:C.b.y,h:C.b.cfg.h,w:C.b.cfg.w},...C.en.filter(e=>e.hp>0&&!e.dead&&(e.t!=='boss'||C.bossOn)).map(e=>({x:e.x,y:e.y,h:e.h,w:e.w}))]
+        .map(o=>box(o.x-C.camX,o.y-o.h*1.08,o.y,Math.max(14,o.w*0.9)))
+    : G.f.filter(f=>!(f.out||f.dead)).map(f=>{
     const ht=(f.cfg.artH||f.cfg.h)*1.08, x=W/2+(f.x-cx)*z, top=H/2+(f.y-ht-cy)*z, bot=H/2+(f.y-cy)*z, hw=Math.max(14,(f.cfg.w||16)*0.9)*z;
-    return {l:r.left+(x-hw)*k, r:r.left+(x+hw)*k, t:r.top+top*k, b:r.top+bot*k};
+    return box(x,top,bot,hw);
   });
   const over=e=>{ const b=e.getBoundingClientRect(); return boxes.some(q=>q.r>b.left&&q.l<b.right&&q.b>b.top&&q.t<b.bottom); };
   const acts=CTL_EL.filter(e=>e.id!=='stick'), stick=document.getElementById('stick');
@@ -3897,12 +3927,13 @@ const CAMP_LEVELS=[{
   ],
   bossAt:2280,
   tips:[
-    {x:0,   title:'WALK', key:'walk',   text:'Slide the stick on the left to walk. Head right!', done:C=>C.b.x>110},
+    {x:0,   title:'WALK', key:'walk',   text:'Put your thumb anywhere on the left side and slide it to walk. Head right!', done:C=>C.b.x>110},
     {x:150, title:'JUMP', key:'up',   text:'Tap J to jump. Hold the stick while jumping to go farther. Hop up the crates!', done:C=>C.b.onGround&&C.b.y<GROUND-30},
     {x:430, title:'GAPS', key:'up',   text:'Jump over the gap. If you fall in, you start again from the last flag.', done:C=>C.b.x>580},
     {x:600, title:'PUNCH', key:'punch',  text:'Tap P to punch. Tap it fast for a combo!', done:C=>C.enemyDown(0)},
     {x:830, title:'KICK', key:'kick',   text:'Tap K to kick. Kicks hit harder and reach farther. Try P, P, K!', done:C=>C.kicked},
     {x:1170,title:'BLOCK', key:'block',  text:'Hold B to block. Blocking stops hits from the front. Block a ball, then get him!', done:C=>C.blocked},
+    {x:1440,title:'DROP DOWN', key:'down', when:C=>campOnPlat(C.b), skipX:1680, text:'You\'re on a platform! Swipe the stick down to drop through it.', done:C=>C.dropped},
     {x:1430,title:'JUMP ATTACK', key:'up', text:'While in the air, tap P or K for a flying kick. Try it on the next goon!', done:C=>C.airHit},
     {x:1800,title:'SPECIAL', key:'special',text:'Your green meter fills as you fight. At half full, tap SPECIAL to throw your coffee mug!', done:C=>C.mugHit, meter:45},
     {x:2280,title:'SUPER', key:'super',  text:'Meter full! Tap SUPER for Becky\'s BOOK STACK THROW. It hits everything in its path!', done:C=>C.supered, meter:100},
@@ -3945,6 +3976,7 @@ function campBody(o,w,grav){
       if(o.vx>0||o.x<s.x+s.w/2) o.x=s.x-half; else o.x=s.x+s.w+half; o.vx=0; o.wall=true; } }
   const py=o.y; o.y+=o.vy; const was=o.onGround; o.onGround=false;
   if(o.vy>=0) for(const s of C.solids){
+    if(s.oneWay && o.drop>0) continue;   // dropping down through a platform
     if(o.x+half-2<=s.x||o.x-half+2>=s.x+s.w) continue;
     if(py<=s.y+0.5 && o.y>=s.y){ o.y=s.y; o.vy=0; o.onGround=true; }
   } else for(const s of C.solids){ if(s.oneWay) continue;
@@ -3953,6 +3985,7 @@ function campBody(o,w,grav){
   if(o.onGround && !was && o.landT!==undefined) o.landT=0;
   return was;
 }
+const campOnPlat=o=>o.onGround && C.solids.some(s=>s.oneWay && o.x>=s.x-4 && o.x<=s.x+s.w+4 && Math.abs(o.y-s.y)<0.6);
 function campSurfaceBelow(x,y){   // nearest surface top at or below y (for jump-frame timing and shadows)
   let best=999;
   for(const s of C.solids) if(x>=s.x&&x<=s.x+s.w&&s.y>=y-0.5&&s.y<best) best=s.y;
@@ -3973,7 +4006,7 @@ function campBecky(){
   if(fresh) b.ib={k:fresh,t:BUFFER_FRAMES}; else if(b.ib && --b.ib.t<=0) b.ib=null;
   const B=k=>E(k)||(!!b.ib&&b.ib.k===k), use=()=>{ b.ib=null; };
   b.anim++; if(b.flash>0) b.flash--; if(b.inv>0) b.inv--;
-  const phys=()=>{ const was=campBody(b,b.cfg.w,c.grav); b.landT++;
+  const phys=()=>{ if(b.drop>0) b.drop--; const was=campBody(b,b.cfg.w,c.grav); b.landT++;
     if(b.onGround&&!was&&b.vy>=0){ dust(b.x,b.y,5); sfx('land'); }
     if(b.onGround && b.state!=='walk') b.vx*=0.82;
     const lo=(C.bossOn?C.camX:0)+10, hi=C.L.len-10; if(b.x<lo){ b.x=lo; b.vx=Math.max(0,b.vx); } if(b.x>hi) b.x=hi;
@@ -4011,6 +4044,7 @@ function campBecky(){
   if(b.onGround){
     if(B('super')){ use(); if(b.meter>=SUPER_COST) return campSuper(b); sfx('deny'); }
     if(I.block){ b.state='block'; b.vx=0; b.combo=0; }
+    else if(E('down') && campOnPlat(b)){ b.drop=10; b.y+=1; b.onGround=false; b.vy=0.5; b.state='jump'; C.dropped=true; }
     else if(B('special')){ use(); if(b.meter>=c.moves.special.cost) campStartMove(b,'special'); else sfx('deny'); }
     else if(B('punch')){ use(); campStartMove(b,'punch'); }
     else if(B('kick')){ use(); campStartMove(b,'kick'); }
@@ -4204,14 +4238,15 @@ function campStep(){
   const tips=C.L.tips, tip=tips[C.tipI];
   if(tip){
     const prevDone=C.tipI===0||C.tipDone===C.tipI-1;
-    if(b.x>=tip.x && prevDone && C.tipT===0 && C.phase==='play'){ C.tipT=1; if(tip.meter&&b.meter<tip.meter){ b.meter=tip.meter; } sfx('select');
+    if(b.x>=tip.x && prevDone && C.tipT===0 && C.phase==='play' && (!tip.when||tip.when(C))){ C.tipT=1; if(tip.meter&&b.meter<tip.meter){ b.meter=tip.meter; } sfx('select');
       if(tip.key){ C.wait={t:0,key:tip.key,held:{...b.in}}; } }
     if(C.tipT>0 && !C.wait){ C.tipT++; if(C.tipT>(tip.after||30) && tip.done(C)){ C.tipDone=C.tipI; C.tipI++; C.tipT=0;
       G.parts.push({type:'word',s:'NICE!',x:b.x,y:b.y-60,vy:-0.4,life:40,max:40,col:'#7dff6a'}); } }
     else if(tip.done(C) && prevDone && b.x>=tip.x){ C.tipDone=C.tipI; C.tipI++; }
     // never get stuck on a tip: move on if she walks well past the next one, or after 15 seconds
-    const nx=tips[C.tipI+1];
-    if(tips[C.tipI]===tip && C.tipT>0 && ((nx && b.x>nx.x+60) || C.tipT>900)){ C.tipDone=C.tipI; C.tipI++; C.tipT=0; }
+    const nx=tips[C.tipI+1], passX=tip.skipX||(nx&&Math.max(nx.x,tip.x)+60);
+    if(tips[C.tipI]===tip && C.tipT>0 && ((passX && b.x>passX) || C.tipT>900)){ C.tipDone=C.tipI; C.tipI++; C.tipT=0; }
+    else if(tips[C.tipI]===tip && C.tipT===0 && tip.skipX && b.x>tip.skipX){ C.tipDone=C.tipI; C.tipI++; }   // never stood where this tip shows
   }
   // camera
   const want=C.bossOn?C.L.len-W:Math.max(0,Math.min(C.L.len-W,b.x-W*0.4));
@@ -4261,7 +4296,8 @@ function campDrawProj(p){
   else if(p.type==='wave'){ for(let k=0;k<3;k++){ ctx.fillStyle=k?'rgba(255,190,90,.55)':'#ffe7a0'; ctx.fillRect(Math.round(p.x-3+k*-dir*4),Math.round(p.y-10+k*3),5-k,10-k*3); } }
 }
 function campRender(){
-  ctx.setTransform(2,0,0,2,0,0); ctx.imageSmoothingEnabled=false;
+  ctx.imageSmoothingEnabled=false;
+  ctx.setTransform(2,0,0,2,2*MX,0);
   campBg();
   let sx=0,sy=0;
   if(G.shake>0){ const A=G.shake*SHAKE_SCALE; sx=Math.round((rnd()*2-1)*A); sy=Math.round((rnd()*2-1)*A); G.shake*=0.86; if(G.shake<0.4) G.shake=0; }
@@ -4339,12 +4375,14 @@ function fit(){
   const r=wrap.getBoundingClientRect();
   if(r.width<2||r.height<2) return;
   const nw=NET.active?ONLINE_W:Math.max(WMIN,Math.min(WMAX,Math.round(H*r.width/r.height)));
-  if(nw!==W){
-    W=nw; if(!G.multi) AW=W; cv.width=W*2; cv.height=H*2; ctx.imageSmoothingEnabled=false; buildScene(); buildGym();
-    if(G.f) G.f.forEach(f=>{ f.x=Math.max(12,Math.min(AW-12,f.x)); });
+  const nvw=Math.max(nw,Math.round(HV*r.width/r.height));
+  if(nw!==W||nvw!==VW){
+    const wChanged=nw!==W;
+    W=nw; VW=nvw; MX=Math.floor((VW-W)/2); if(!G.multi) AW=W; cv.width=VW*2; cv.height=HV*2; ctx.imageSmoothingEnabled=false;
+    if(wChanged){ buildScene(); buildGym(); if(G.f) G.f.forEach(f=>{ f.x=Math.max(12,Math.min(AW-12,f.x)); }); }
   }
-  const sc=Math.min(r.width/W,r.height/H);
-  cv.style.width=(W*sc)+'px'; cv.style.height=(H*sc)+'px';
+  const sc=Math.min(r.width/VW,r.height/HV);
+  cv.style.width=(VW*sc)+'px'; cv.style.height=(HV*sc)+'px';
 }
 addEventListener('resize',fit); new ResizeObserver(fit).observe(wrap); fit();
 
@@ -4355,7 +4393,7 @@ let lastMulti=false, last=performance.now(), acc=0, lastSp=null, lastVs=false, l
 function loop(now){
   acc+=Math.min(100,now-last); last=now;
   while(acc>=1000/60){ if(NET.active) netTick(); else step(); acc-=1000/60; }
-  render();
+  render(); drawFrame();
   if(!menu.hidden) drawPreviews();
   const vsOn=!!(G.f && G.mode==='play' && G.phase==='vs');
   if(vsOn!==lastVs){ appEl.classList.toggle('vsmode',vsOn); lastVs=vsOn; }
