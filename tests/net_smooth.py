@@ -18,14 +18,15 @@ from _common import serve_out, BG_ARGS, page_url
 MODE = sys.argv[1] if len(sys.argv) > 1 else '1v1'
 GUESTS = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 1
 LAT, JIT, JP = (sys.argv[3:6] + ['40', '120', '0.04'][len(sys.argv[3:6]):]) if len(sys.argv) > 3 else ('40', '120', '0.04')
-FAST = '0' if '--nofast' in sys.argv else '1'   # --nofast: compare with presses on the in-order connection
+FAST = '0' if '--nofast' in sys.argv else '1'
+BURST = next((x.split('=',1)[1] for x in sys.argv if x.startswith('--burst=')), '')   # e.g. --burst=0.002,250,700 (chance, ms, resend ms)   # --nofast: compare with presses on the in-order connection
 SECS = 20
 
 # Watches __NET.frame every 60 Hz tick of the page: a tick where the fight didn't move is a frozen tick.
 METER = """(()=>{ const M=window.__meter={ticks:0,frozen:0,freezes:0,run:0,longest:0}; let last=-1;
   setInterval(()=>{ if(__G.mode!=='play'||__G.phase!=='fight') { last=-1; return; }
     const f=__NET.frame; M.ticks++;
-    if(f===last){ M.frozen++; M.run++; if(M.run===2){ const miss=__NET.humans.filter(s=>__NET.inputs[s][f]===undefined); M.who=M.who||{}; for(const s of miss) M.who[s]=(M.who[s]||0)+1; if(!miss.length) M.who.none=(M.who.none||0)+1; } } else { if(M.run>=2) M.freezes++; M.longest=Math.max(M.longest,M.run); M.run=0; }
+    if(f===last){ M.frozen++; M.run++; if(M.run===21) M.long=(M.long||0)+1; if(M.run===2){ const miss=__NET.humans.filter(s=>__NET.inputs[s][f]===undefined); M.who=M.who||{}; for(const s of miss) M.who[s]=(M.who[s]||0)+1; if(!miss.length) M.who.none=(M.who.none||0)+1; } } else { if(M.run>=2) M.freezes++; M.longest=Math.max(M.longest,M.run); M.run=0; }
     last=f; },1000/60); })()"""
 
 
@@ -33,6 +34,7 @@ async def main():
     page_url('net/index.html')
     with serve_out() as base:
         URL = f'{base}/net/index.html?lat={LAT}&jit={JIT}&jp={JP}&fast={FAST}'
+        if BURST: bl, blen, rto = BURST.split(','); URL += f'&bl={bl}&blen={blen}&rto={rto}'
         async with async_playwright() as p:
             b = await p.chromium.launch(args=BG_ARGS)
             ctx = await b.new_context(viewport={'width': 844, 'height': 390})
@@ -62,13 +64,14 @@ async def main():
             D = await H.evaluate('__NET.D')
             hs = [json.loads(await pg.evaluate("JSON.stringify(__NET.myHash)")) for pg in tabs]
             bad = sum(1 for k in hs[0] for h in hs[1:] if k in h and h[k] != hs[0][k])
-            print(f'{MODE}, {GUESTS} guest(s), lag {LAT} ms, hiccups {JIT} ms on {float(JP)*100:.0f}% of messages, input delay {D} frames')
-            tot = 0
+            print(f'{MODE}, {GUESTS} guest(s), lag {LAT} ms, hiccups {JIT} ms on {float(JP)*100:.0f}% of messages' + (f', Wi-Fi dropouts {BURST}' if BURST else '') + f', input delay {D} frames')
+            tot = 0; long = 0
             for i, pg in enumerate(tabs):
                 m = await pg.evaluate('__meter')
                 tot += sum(v for k, v in m.get('who', {}).items() if k != 'none')   # freezes spent waiting on someone's presses
+                long += m.get('long', 0)
                 print(f"  {'host ' if i == 0 else 'guest'+str(i)}: {m['freezes']:3} freezes, frozen {m['frozen']*1000//60:5} ms of {m['ticks']*1000//60} ms, longest {m['longest']*1000//60} ms, resyncs {await pg.evaluate('__NET.synced')}, waiting on {m.get('who', {})}")
-            print(f'mismatched {bad} | network freezes per tab per minute {tot/len(tabs)*60/SECS:.1f}   ("none" = the test machine was too busy; not the network)')
+            print(f'mismatched {bad} | "WAITING" freezes (over 1/3 s) per tab per minute {long/len(tabs)*60/SECS:.1f} | network freezes per tab per minute {tot/len(tabs)*60/SECS:.1f}   ("none" = the test machine was too busy; not the network)')
             print('errors', errs or 'none'); await b.close()
 
 asyncio.run(main())

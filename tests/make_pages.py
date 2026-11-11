@@ -48,8 +48,13 @@ window.__LAT=+(new URLSearchParams(location.search).get('lat')||0);
 // Optional Wi-Fi-style hiccups: ?jit=120&jp=0.03 delays ~3% of messages by up to 120 ms extra. Messages on one
 // connection stay in order, like a real WebRTC data channel. __lagSend(fn) schedules one send.
 { const q=new URLSearchParams(location.search); window.__JIT=+(q.get('jit')||0); window.__JP=+(q.get('jp')||0); }
-window.__lagger=(unordered)=>{ let last=0; return fn=>{ let d=__LAT; if(__JIT && Math.random()<__JP) d+=__JIT*(0.4+0.6*Math.random());
-  const at=unordered?performance.now()+d:Math.max(performance.now()+d,last); last=Math.max(last,at); setTimeout(fn,at-performance.now()); }; };
+// Optional Wi-Fi dropouts: ?bl=0.002&blen=250&rto=700 -- each message has a 0.2% chance to start a 250 ms dropout of
+// this phone's Wi-Fi; everything it sends during one is lost and resent 700 ms later (like a real connection's resend).
+{ const q=new URLSearchParams(location.search); window.__BL=+(q.get('bl')||0); window.__BLEN=+(q.get('blen')||250); window.__RTO=+(q.get('rto')||700); window.__dropUntil=0; }
+window.__lagger=(unordered)=>{ let last=0; return fn=>{ let d=__LAT; const now=performance.now();
+  if(__JIT && Math.random()<__JP) d+=__JIT*(0.4+0.6*Math.random());
+  if(__BL){ if(now>=__dropUntil && Math.random()<__BL) __dropUntil=now+__BLEN; if(now<__dropUntil) d+=__RTO; }
+  const at=unordered?now+d:Math.max(now+d,last); last=Math.max(last,at); setTimeout(fn,at-performance.now()); }; };
 // ?fast=0 turns the game's fast lane off (presses go on the in-order connection), to compare
 window.__FAST=new URLSearchParams(location.search).get('fast')!=='0';
 window.__netTransport={

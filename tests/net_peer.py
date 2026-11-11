@@ -53,7 +53,7 @@ async def main():
                 for g in tabs[1:]:
                     await g.click('#mmArcade'); await g.click('#mmOnline'); await g.fill('#codeIn', code); await g.click('#joinBtn')
                     await g.wait_for_selector('#room', state='visible', timeout=20000); await g.click('#goBtn'); await H.wait_for_timeout(500)
-                await H.wait_for_timeout(800)
+                await H.wait_for_function(f"__NET.conns.filter(x=>x.slot>0&&x.ready).length==={GUESTS}", timeout=20000)   # every guest's READY reached the host
                 for pg in tabs: await pg.evaluate(COUNT)
                 await H.click('#goBtn')
                 await H.wait_for_function("__G.phase==='fight'", timeout=20000)

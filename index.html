@@ -3067,7 +3067,10 @@ function render(){
   ctx.restore();
   if(G.flashT>0){ G.flashT--; ctx.fillStyle=G.flashCol||'rgba(255,226,60,.08)'; ctx.fillRect(0,0,W,H); if(!G.flashT) G.flashCol=null; }
   if(G.f && G.mode==='play'){ if(G.phase==='vs') (G.multi?drawVSMulti:drawVS)(); else if(G.cine) drawCineBanner(); else if(G.multi){ drawTags(cam); hudFaded(hudMulti,G.f.length,50,cam); bannersMulti(); } else { hudFaded(hud,2,46,null); banners(); } }
-  if(NET.active && G.mode==='play' && NET.stall>20) txt('WAITING FOR OPPONENT…',W/2,104,8,'#ffd23f');
+  if(NET.active && G.mode==='play' && NET.stall>20){   // name whose presses we're stuck on, so a bad connection is easy to spot
+    const late=NET.humans.filter(s=>s!==NET.local && NET.inputs[s][NET.frame]===undefined).map(s=>'P'+(s+1)+' ('+G.f[s].cfg.name+')');
+    txt(late.length?'WAITING FOR '+late.join(' + ')+'…':'WAITING FOR OPPONENT…',W/2,104,8,'#ffd23f');
+  }
   fadeControls(cam);
 }
 // Touch controls go extra see-through while a fighter is behind them (each button on its own)
@@ -3398,13 +3401,13 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=11;
+const HASH_EVERY=30, KEEP=900, NET_V=12;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late
 // one (Wi-Fi hiccups used to freeze everyone). Each press message also carries the REDUN presses before it,
 // so a lost or late message is covered by the next one. Everything else stays on the reliable connection.
-const REDUN=8;
+const REDUN=30;   // half a second: covers a typical Wi-Fi dropout (was 8, which left long dropouts waiting for a resend)
 function fastTo(c,m){ try{ if(!c) return; const f=c.peer&&NET.fastBy[c.peer]; if(f&&f.open) f.send(m); else if(c.fast) c.fast(m); else c.send(m); }catch(e){} }
 function netSendFast(m){ if(NET.role==='host') NET.conns.forEach(x=>fastTo(x.c,m)); else fastTo(NET.conn,m); }
 function inputMsg(s,f){ const I=NET.inputs[s], p=[]; for(let k=1;k<=REDUN&&f-k>=0;k++) p.push(I[f-k]===undefined?null:I[f-k]); return {t:'i',m:NET.match,f,b:I[f],s,p}; }
@@ -3478,6 +3481,9 @@ function netTick(){
   }
   if(ran){ NET.stall=0; } else {
     NET.stall++;
+    // While stuck, re-send our latest presses (with the REDUN backlog) every 3 frames: a phone whose Wi-Fi just
+    // dropped out has nothing new to send while everyone waits, so without this the gap waits for a slow resend.
+    if(NET.stall%3===0 && NET.nextLocal>0) netSendFast(inputMsg(NET.local,NET.nextLocal-1));
     G.t++;
     if(NET.role==='host' && NET.stall>60*12) netEndMatch(NET.humans.length>2?'A player stopped responding.':'Your opponent stopped responding.');
     else if(NET.role!=='host' && NET.stall>60*20) netLost('The connection to the host was lost.');
