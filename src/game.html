@@ -3911,21 +3911,35 @@ setTimeout(()=>{ try{
    Levels live in CAMP_LEVELS; tutorial tips are zones that show until the move is done. */
 const CAMP_HP=100;
 const CAMP_LEVELS=[{
-  id:0, name:'TRAINING DAY', len:2600,
-  // solid blocks [x, top, width, height]; one-way platforms [x, top, width] (jump up through, stand on top)
-  ground:[[0,520],[568,1100],[1150,2600]],
-  crates:[[200,136,24,22],[300,140,24,18],[324,122,24,36],[1260,140,22,18]],
-  plats:[[1440,126,52],[1516,104,60],[1600,120,56]],
-  checks:[40,600,1180,1460,1820,2240],
-  enemies:[
-    {t:'grunt',x:740},
-    {t:'grunt',x:920},{t:'grunt',x:990},
-    {t:'thrower',x:1360},
-    {t:'grunt',x:1690},
-    {t:'grunt',x:1960},{t:'thrower',x:2090},
-    {t:'boss',x:2560}
+  id:0, name:'TRAINING DAY', len:4300,
+  // Extended five-section route. All coordinates use the existing campaign physics.
+  // Ground is [start,end], crates are [x,top,width,height], and platforms are one-way.
+  ground:[[0,520],[568,1100],[1150,2280],[2330,2810],[2860,3350],[3400,4300]],
+  crates:[
+    [200,136,24,22],[300,140,24,18],[324,122,24,36],
+    [1260,140,22,18],[1730,138,28,20],[1760,120,26,38],
+    [2450,139,26,19],[2480,121,26,37],
+    [3040,139,30,19],[3072,120,26,38],[3520,137,28,21]
   ],
-  bossAt:2280,
+  plats:[
+    [1440,126,52],[1516,104,60],[1600,120,56],
+    [1810,118,58],[1890,96,62],[1980,114,62],
+    [2160,118,62],[2250,102,65],[2330,116,64],
+    [2540,116,58],[2620,96,62],[2700,116,62],
+    [2940,119,60],[3020,98,62],[3120,118,64],
+    [3220,104,58],[3310,120,60]
+  ],
+  checks:[40,600,1180,1820,2350,2870,3410,3820],
+  enemies:[
+    {t:'grunt',x:740},{t:'grunt',x:920},{t:'grunt',x:990},
+    {t:'thrower',x:1360},{t:'grunt',x:1690},
+    {t:'grunt',x:1960},{t:'thrower',x:2090},
+    {t:'grunt',x:2470},{t:'thrower',x:2740},
+    {t:'grunt',x:3060},{t:'grunt',x:3180},
+    {t:'thrower',x:3500},{t:'grunt',x:3690},
+    {t:'boss',x:4230}
+  ],
+  bossAt:3880,
   tips:[
     {x:0,   title:'WALK', key:'walk',   text:'Put your thumb anywhere on the left side and slide it to walk. Head right!', done:C=>C.b.x>110},
     {x:150, title:'JUMP', key:'up',   text:'Tap J to jump. Hold the stick while jumping to go farther. Hop up the crates!', done:C=>C.b.onGround&&C.b.y<GROUND-30},
@@ -3936,8 +3950,8 @@ const CAMP_LEVELS=[{
     {x:1440,title:'DROP DOWN', key:'down', when:C=>campOnPlat(C.b), skipX:1680, text:'You\'re on a platform! Swipe the stick down to drop through it.', done:C=>C.dropped},
     {x:1430,title:'JUMP ATTACK', key:'up', text:'While in the air, tap P or K for a flying kick. Try it on the next goon!', done:C=>C.airHit},
     {x:1800,title:'SPECIAL', key:'special',text:'Your green meter fills as you fight. At half full, tap SPECIAL to throw your coffee mug!', done:C=>C.mugHit, meter:45},
-    {x:2280,title:'SUPER', key:'super',  text:'Meter full! Tap SUPER for Becky\'s BOOK STACK THROW. It hits everything in its path!', done:C=>C.supered, meter:100},
-    {x:2281,title:'BOSS: BIG GOON', key:'any', text:'When he glows red he is about to charge. Jump over his shockwaves!', done:C=>C.tipT>420}
+    {x:3800,title:'SUPER', key:'super',  text:'Meter full! Tap SUPER for Becky\'s BOOK STACK THROW. It hits everything in its path!', done:C=>C.supered, meter:100},
+    {x:3881,title:'BOSS: BIG GOON', key:'any', text:'When he glows red he is about to charge. Jump over his shockwaves!', done:C=>C.tipT>420}
   ]
 }];
 let C=null;   // the running level
