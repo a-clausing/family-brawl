@@ -1023,20 +1023,23 @@ BKIMG.onload=()=>{ bkReady=true; makeAlt('becky',BKIMG,(h,s)=>h>=70&&h<=170&&s>0
 BKIMG.src=BKS.src;
 ACIMG.addEventListener('load',()=>makeAlt('ac',ACIMG,(h,s)=>h>=190&&h<=255&&s>0.3,150));
 BRIMG.addEventListener('load',()=>makeAlt('brick',BRIMG,(h,s)=>(h>=345||h<=22)&&s>0.5,205));
-function bkAttackFrame(f){
+function bkAttackFrame(f){   // Becky v3 art (Alex's game-ready package, Nov 2026)
   const m=f.cfg.moves[f.move], k=f.mf, st=m.st, ac=m.ac, rc=m.rc;
   const ph=k<=st?0:(k<=st+ac?1:2);
   const pr=ph===0?k/Math.max(1,st):(ph===2?(k-st-ac)/Math.max(1,rc):0);
-  const six=()=>ph===0?Math.min(2,Math.floor(pr*3)):(ph===1?3:4+Math.min(1,Math.floor(pr*2)));
   switch(f.move){
-    case 'punch': case 'low':
-      if(f.combo>0 && f.move==='punch') return 'hpunch'+six();
-      return 'lpunch'+(ph===0?0:(ph===1?1:2+Math.min(1,Math.floor(pr*2))));
-    case 'kick': return 'hkick'+six();
-    case 'air': return ph===0?'lkick1':'lkick2';
-    case 'special':   // v2 art: wind up, mug drawn back, throw (mug leaves at the start of the throw), follow through, back to guard
-      if(k<st) return 'special'+Math.min(1,Math.floor(k/st*2));
-      return (k-st)<4?'special2':((k-st)<rc*0.6?'special3':'special4');
+    case 'punch': case 'low':   // guard, arm going out, full reach, arm coming back, guard
+      if(ph===0) return pr<0.5?'punch0':'punch1';
+      if(ph===1) return 'punch2';
+      return pr<0.45?'punch2':(pr<0.75?'punch1':'punch3');
+    case 'kick':   // chamber, leg out (held while it hits), back down
+      if(ph===0) return pr<0.5?'kick0':'kick1';
+      if(ph===1) return 'kick2';
+      return pr<0.5?'kick1':'kick3';
+    case 'air': return ph===0?'jump2':'kick1';   // no jump-kick drawing in the package: tuck, then her kick
+    case 'special':   // wind up, mug drawn back, throw (the mug leaves as her arm goes out), follow through, back to guard
+      if(k<st) return k<st*0.3?'special0':(k<st*0.7?'special1':'special2');
+      return (k-st)<3?'special3':((k-st)<rc*0.7?'special4':'special6');
   }
   return 'idle0';
 }
@@ -1045,14 +1048,14 @@ function bkFrame(f){
   if(f.vS!==key){ f.vS=key; f.vA=f.anim; }
   const t=f.anim-f.vA;
   switch(f.state){
-    case 'idle': if(f.landT<7 && f.anim>12) return 'jump3'; return 'idle'+(Math.floor(t/8)%6);
-    case 'walk': { const i=Math.floor(t/5)%6; return (Math.sign(f.vx)===f.dir?'walk':'walkb')+i; }
+    case 'idle': if(f.landT<7 && f.anim>12) return 'jump3'; return 'idle'+(Math.floor(t/10)%4);
+    case 'walk': { const i=Math.floor(t/7)%4; return 'walk'+(Math.sign(f.vx)===f.dir?i:3-i); }   // backing up plays the walk in reverse (Alex: walk both ways; run0-3 are packed for a future dash)
     case 'jump': if(f.vy<-1.5) return 'jump1'; if(f.vy>1.5&&f.y>GROUND-12) return 'jump3'; return 'jump2';
     case 'crouch': return 'jump0';
     case 'block': return f.bstun>0?'block3':'block'+Math.min(2,Math.floor(t/3));
     case 'hit': return 'hit'+Math.min(3,Math.floor(t/4));
-    case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<5?'down2':(f.landT<10?'down3':'down4');
-    case 'win': return 'idle0';   // her old win pose held the band; Alex can send a new victory pose
+    case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<5?'down2':'down3';
+    case 'win': return 'idle0';   // the package has no victory pose
     case 'attack': return bkAttackFrame(f);
   }
   return 'idle0';
@@ -1913,7 +1916,7 @@ const CINE_Z={ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:
 const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
 const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES'};
 const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3};
-const AC_RELEASE=[33.3, 48.6], BK_REL=[22, 33];   // where the barbell / book stack leaves their hands [ahead, above feet]
+const AC_RELEASE=[33.3, 48.6], BK_REL=SUPERS.becky.meta.rel;   // where the barbell / book stack leaves their hands [ahead, above feet]
 const clampX=x=>Math.max(14,Math.min(AW-14,x));
 function startSuper(f,o){
   f.move='super'; f.state='attack'; f.mf=0; f.mhit=false; f.moveId++; f.vx=0; f.combo=0;
@@ -1999,20 +2002,19 @@ function superStep(f,o){
         s.fr=4;
       } else if(u<52) s.fr=5; else if(u<60) s.fr=6; else return endSuper(f,o);
       break; }
-    case 'becky': {   // BOOK STACK THROW: a bookshelf pops up, she grabs a stack and heaves it across the arena
-      const shX=()=>f.x+f.dir*(SUPERS.becky.meta.shelf+16)*(CH.becky.drawK||1);
-      if(t===1) bkPuff(f,shX());
-      if(t<=CINE){ s.fr=t<12?0:t<24?1:t<38?2:3; break; }
-      if(u<6) s.fr=4;
-      else if(u<16){
-        s.fr=5;
-        if(u===6){ f.dir=o.x>=f.x?1:-1; const k=CH.becky.drawK||1;
+    case 'becky': {   // BOOK STACK THROW: a bookshelf pops up, she pulls a stack off it and heaves it across the arena
+      // v3 frames: 0 guard, 1-3 at the shelf (shelf drawn in), 4-5 stack in her arms, 6 throw, 8 back to guard
+      const shX=()=>f.x+f.dir*SUPERS.becky.meta.shelf*(CH.becky.drawK||1);
+      if(t===10) bkPuff(f,shX());   // the shelf appears in a dust cloud
+      if(t<=CINE){ s.fr=t<10?0:t<24?1:t<38?2:3; break; }
+      if(u===0) bkPuff(f,shX());    // ...and vanishes in one once she has the stack
+      if(u<10) s.fr=u<5?4:5;
+      else if(u<22){
+        s.fr=6;
+        if(u===10){ f.dir=o.x>=f.x?1:-1; const k=CH.becky.drawK||1;
           G.proj.push({type:'sbook',sup:1,owner:f,x:f.x+f.dir*BK_REL[0]*k,y:f.y-BK_REL[1]*k,vx:f.dir*6.5,t:0,
             dmg:SUPER_DMG.becky,kb:4,hs:46,bs:0,unblockable:true,launch:true}); sfx('whoosh'); G.shake=Math.max(G.shake,3); }
-      } else {
-        if(u===16) bkPuff(f,shX());   // the shelf vanishes in a dust cloud
-        s.fr=6; if(u>=34) return endSuper(f,o);
-      }
+      } else { s.fr=8; if(u>=36) return endSuper(f,o); }
       break; }
     case 'bmoney': {   // RISING QUAKE: punch the floor, the quake staggers the opponent in, jumping uppercut
       const minD=(f.cfg.w+o.cfg.w)/2, FX=f.alt?BM_FX_ALT:BM_FX;
@@ -2154,7 +2156,7 @@ function bkPuff(f,x){ G.parts.push({type:'sfx',key:'becky',name:'puff',x,y:GROUN
 function superBlast(f,o,p){
   if(p.type==='sbook'){   // the stack bursts: books everywhere, loose pages, a dust cloud
     G.parts.push({type:'sfx',key:'becky',name:'puff',x:o.x,y:GROUND+2,life:30,max:30,sc:1,alt:f.alt});
-    G.parts.push({type:'sfx',key:'becky',name:'flybooks',x:o.x,y:o.y-22,life:24,max:24,sc:1,alt:f.alt});
+    G.parts.push({type:'sfx',key:'becky',name:'burst',x:o.x,y:o.y-20,life:24,max:24,sc:1,alt:f.alt});
     G.parts.push({type:'sfx',key:'becky',name:'papers',x:o.x+(p.vx>0?8:-8),y:o.y-34,life:34,max:34,sc:0.9,alt:f.alt});
     G.parts.push({type:'sfx',key:'becky',name:'star',x:o.x,y:o.y-26,life:14,max:14,sc:1,alt:f.alt});
     debris(o.x,GROUND-2,8);
@@ -2435,7 +2437,9 @@ function throwStep(f,o){
   if(t>=30){ f.move=null; f.thr=null; f.state='idle'; }
   phys(f);
 }
-function throwFrame(f){ const t=f.thr?f.thr.t:0; return t<6?'lpunch1':(t<16?'hpunch3':(t<24?'hpunch4':'hpunch5')); }
+function throwFrame(f){ const t=f.thr?f.thr.t:0;
+  if(f.key==='becky') return t<6?'punch1':(t<24?'punch2':'punch3');   // Becky v3: reach, hold, toss
+  return t<6?'lpunch1':(t<16?'hpunch3':(t<24?'hpunch4':'hpunch5')); }
 function commonFrame(f){
   if(f.kd) return kdFrame(f);
   if(f.held) return 'hit1';
@@ -2772,8 +2776,7 @@ function drawProj(p){
   if(p.sup){ drawSuperProj(p); return; }
   if(p.type==='mug'){   // coffee mug with a splash trailing behind, wobbling as it flies
     const dir=Math.sign(p.vx)||1;
-    drawSup('becky',p.owner.alt,'speed',p.x-dir*15,p.y,dir,0.9,0.8);
-    drawSup('becky',p.owner.alt,'mug_fly',p.x,p.y,dir,1.5,1,Math.sin(p.t*0.5)*0.15);
+    drawSup('becky',p.owner.alt,'mugfly',p.x-dir*13,p.y,dir,1,1);   // the package's flying mug, speed lines included (mug at the front)
     if(p.t%3===0) part(p.x-dir*7,p.y-2,-p.vx*0.15,-0.3-rnd()*0.4,10,COFFEE_FX[(p.t>>2)%2],1,0.08);
     return;
   }
