@@ -2,7 +2,7 @@
 
 A pixel-art gym fighting game for phones, played sideways, often saved to an iPhone home screen. Everything is one HTML page with no framework: canvas rendering, sprite art embedded as base64, and online play over PeerJS (WebRTC).
 
-- **Live game:** https://a-clausing.github.io/family-brawl/. GitHub Pages serves `index.html` from `main`.
+- **Live game:** https://a-clausing.github.io/family-brawl/. Since Nov 11 2026, GitHub Pages is published by GitHub Actions, not straight from the branch: `.github/workflows/publish.yml` on `main` runs on every push to main, builds `index.html` and puts the Campaign test version (built from the `campaign` branch) at `/campaign/`. The `campaign` branch has its own `publish-campaign.yml` that does the same when campaign changes (it deploys through the `campaign-preview` environment; the `github-pages` environment only accepts main). Before `publish.yml` existed (Nov 12), pushes to main didn't go live until campaign changed, and Alex saw old Becky after her update was pushed.
 - **Owner:** Alex. He isn't a programmer, so talk to him in plain language about what changed in the game, not about code.
 
 ## Rules from Alex

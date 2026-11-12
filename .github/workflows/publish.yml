@@ -1,0 +1,59 @@
+name: Publish live game
+
+# Every push to main goes straight to the live game (https://a-clausing.github.io/family-brawl/).
+# The Campaign test version is rebuilt alongside it at /campaign, so publishing main never removes it.
+# (The campaign branch has its own copy of this, publish-campaign.yml, which runs when campaign changes.)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: family-brawl-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout live main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: live
+      - name: Checkout campaign branch
+        id: campaign
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: campaign
+          path: campaign-source
+      - name: Build the live game
+        run: python3 live/tools/build.py
+      - name: Build the campaign preview
+        if: steps.campaign.outcome == 'success'
+        run: python3 campaign-source/tools/build.py
+      - name: Assemble site
+        run: |
+          mkdir -p site
+          cp live/index.html live/peerjs.min.js live/manifest.webmanifest live/*.png site/
+          if [ -f campaign-source/index.html ]; then
+            mkdir -p site/campaign
+            cp campaign-source/index.html campaign-source/peerjs.min.js campaign-source/manifest.webmanifest campaign-source/*.png site/campaign/
+          fi
+          touch site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
