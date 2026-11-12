@@ -37,9 +37,9 @@ jobs:
           python3 campaign-source/tools/build.py
       - name: Assemble site with separate campaign preview
         run: |
-          mkdir -p site/campaign
+          mkdir -p site/campaign site/campaign-new
           cp live/index.html live/peerjs.min.js live/manifest.webmanifest live/*.png site/
-          cp campaign-source/index.html campaign-source/peerjs.min.js campaign-source/manifest.webmanifest campaign-source/*.png site/campaign/
+          cp campaign-source/index.html campaign-source/peerjs.min.js campaign-source/manifest.webmanifest campaign-source/*.png site/campaign/\n          cp campaign-source/index.html campaign-source/peerjs.min.js campaign-source/manifest.webmanifest campaign-source/*.png site/campaign-new/
           touch site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
