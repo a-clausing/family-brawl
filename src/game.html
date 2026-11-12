@@ -3911,35 +3911,51 @@ setTimeout(()=>{ try{
    Levels live in CAMP_LEVELS; tutorial tips are zones that show until the move is done. */
 const CAMP_HP=100;
 const CAMP_LEVELS=[{
-  id:0, name:'TRAINING DAY', len:4300,
-  // Extended five-section route. All coordinates use the existing campaign physics.
-  // Ground is [start,end], crates are [x,top,width,height], and platforms are one-way.
-  ground:[[0,520],[568,1100],[1150,2280],[2330,2810],[2860,3350],[3400,4300]],
+  id:0, name:'THE GREAT ESCAPE', len:5600,
+  // Six distinct beats: backyard escape, rooftop chase, construction yard,
+  // factory approach, collapsing bridge, and final showdown.
+  ground:[[0,650],[710,1260],[1310,1920],[1980,2530],[2590,3090],[3150,3670],[3730,4220],[4280,4860],[4920,5600]],
   crates:[
-    [200,136,24,22],[300,140,24,18],[324,122,24,36],
-    [1260,140,22,18],[1730,138,28,20],[1760,120,26,38],
-    [2450,139,26,19],[2480,121,26,37],
-    [3040,139,30,19],[3072,120,26,38],[3520,137,28,21]
+    [190,136,24,22],[285,139,24,19],[309,119,24,39],
+    [800,137,28,21],[832,118,25,40],
+    [1450,137,26,21],[1478,118,24,40],
+    [2110,138,28,20],[2140,119,26,39],
+    [2710,136,30,22],[2742,116,25,42],
+    [3280,138,28,20],[3310,117,24,41],
+    [3850,137,27,21],[3880,117,26,41],
+    [4410,137,28,21],[4440,119,26,39]
   ],
   plats:[
-    [1440,126,52],[1516,104,60],[1600,120,56],
-    [1810,118,58],[1890,96,62],[1980,114,62],
-    [2160,118,62],[2250,102,65],[2330,116,64],
-    [2540,116,58],[2620,96,62],[2700,116,62],
-    [2940,119,60],[3020,98,62],[3120,118,64],
-    [3220,104,58],[3310,120,60]
+    [390,120,65],[475,99,64],[555,117,62],
+    [920,118,62],[1005,96,65],[1090,116,62],
+    [1510,115,65],[1600,90,70],[1690,110,70],[1790,91,65],
+    [2200,119,70],[2290,96,65],[2380,115,70],
+    [2820,117,64],[2900,92,66],[3000,112,65],
+    [3390,119,60],[3480,91,70],[3580,112,65],
+    [3900,116,70],[4000,91,65],[4100,115,65],
+    [4480,117,65],[4570,92,70],[4660,112,65]
   ],
-  checks:[40,600,1180,1820,2350,2870,3410,3820],
+  checks:[40,735,1330,2000,2610,3170,3750,4300,4930],
+  // Spikes force deliberate jumps; glowing batteries reward exploration.
+  hazards:[[595,GROUND,35],[1180,GROUND,34],[1850,GROUND,35],[2470,GROUND,36],[3020,GROUND,34],[3590,GROUND,34],[4140,GROUND,35],[4740,GROUND,38]],
+  pickups:[[500,88],[1060,83],[1660,78],[2320,85],[2960,80],[3540,79],[4050,80],[4610,78],[5170,125]],
+  zones:[{x:0,name:'THE BACKYARD',sky:'#34244d',glow:'#f1a46c'},
+    {x:710,name:'ROOFTOP RUN',sky:'#253354',glow:'#df7793'},
+    {x:1310,name:'CONSTRUCTION CHAOS',sky:'#394252',glow:'#f4a35c'},
+    {x:1980,name:'THE FACTORY',sky:'#203c47',glow:'#62b6b7'},
+    {x:3150,name:'BROKEN HIGHWAY',sky:'#4b283e',glow:'#ee825e'},
+    {x:4280,name:'THE LAST STAND',sky:'#221d3e',glow:'#e75d65'}],
   enemies:[
-    {t:'grunt',x:740},{t:'grunt',x:920},{t:'grunt',x:990},
-    {t:'thrower',x:1360},{t:'grunt',x:1690},
-    {t:'grunt',x:1960},{t:'thrower',x:2090},
-    {t:'grunt',x:2470},{t:'thrower',x:2740},
-    {t:'grunt',x:3060},{t:'grunt',x:3180},
-    {t:'thrower',x:3500},{t:'grunt',x:3690},
-    {t:'boss',x:4230}
+    {t:'grunt',x:790},{t:'grunt',x:1080},{t:'thrower',x:1200},
+    {t:'grunt',x:1440},{t:'thrower',x:1750},{t:'grunt',x:1880},
+    {t:'grunt',x:2150},{t:'thrower',x:2390},
+    {t:'grunt',x:2700},{t:'grunt',x:2850},{t:'thrower',x:2990},
+    {t:'grunt',x:3280},{t:'thrower',x:3520},
+    {t:'grunt',x:3840},{t:'grunt',x:4010},{t:'thrower',x:4160},
+    {t:'grunt',x:4400},{t:'thrower',x:4640},
+    {t:'grunt',x:5080},{t:'boss',x:5520}
   ],
-  bossAt:3880,
+  bossAt:5190,
   tips:[
     {x:0,   title:'WALK', key:'walk',   text:'Put your thumb anywhere on the left side and slide it to walk. Head right!', done:C=>C.b.x>110},
     {x:150, title:'JUMP', key:'up',   text:'Tap J to jump. Hold the stick while jumping to go farther. Hop up the crates!', done:C=>C.b.onGround&&C.b.y<GROUND-30},
@@ -3950,8 +3966,8 @@ const CAMP_LEVELS=[{
     {x:1440,title:'DROP DOWN', key:'down', when:C=>campOnPlat(C.b), skipX:1680, text:'You\'re on a platform! Swipe the stick down to drop through it.', done:C=>C.dropped},
     {x:1430,title:'JUMP ATTACK', key:'up', text:'While in the air, tap P or K for a flying kick. Try it on the next goon!', done:C=>C.airHit},
     {x:1800,title:'SPECIAL', key:'special',text:'Your green meter fills as you fight. At half full, tap SPECIAL to throw your coffee mug!', done:C=>C.mugHit, meter:45},
-    {x:3800,title:'SUPER', key:'super',  text:'Meter full! Tap SUPER for Becky\'s BOOK STACK THROW. It hits everything in its path!', done:C=>C.supered, meter:100},
-    {x:3881,title:'BOSS: BIG GOON', key:'any', text:'When he glows red he is about to charge. Jump over his shockwaves!', done:C=>C.tipT>420}
+    {x:5100,title:'SUPER', key:'super',  text:'Meter full! Tap SUPER for Becky\'s BOOK STACK THROW. It hits everything in its path!', done:C=>C.supered, meter:100},
+    {x:5191,title:'BOSS: BIG GOON', key:'any', text:'When he glows red he is about to charge. Jump over his shockwaves!', done:C=>C.tipT>420}
   ]
 }];
 let C=null;   // the running level
@@ -3971,7 +3987,7 @@ function campStart(id){
     onGround:true,landT:10,bstun:0,stun:0,flash:0,inv:0,combo:0,kd:null,held:false,sup:null,ib:null,prev:blankIn(),in:blankIn(),hitSet:new Set(),gap:0};
   C={L,b,solids,proj:[],en:L.enemies.map((e,i)=>campEnemy(e,i)),tipI:0,tipDone:-1,tipT:0,check:L.checks[0],camX:0,t:0,
     phase:'intro',pt:0,freeze:0,boss:null,bossOn:false,kicked:false,blocked:false,airHit:false,mugHit:false,supered:false,deathT:0,banner:null,
-    enemyDown:i=>C.en[i].hp<=0};
+    enemyDown:i=>C.en[i].hp<=0, pickups:L.pickups.map(([x,y])=>({x,y,taken:false})),zoneName:'',zoneT:0};
   G.parts=[]; G.shake=0; G.hitstop=0; G.flashT=0; G.paused=false; G.f=null; G.multi=false;
   G.mode='camp';
 }
@@ -4233,6 +4249,11 @@ function campStep(){
   campBecky(); b.prev={...b.in}; clearTaps();
   for(const e of C.en) if(e.t!=='boss'||C.bossOn) campEnemyStep(e);
   campProjStep(); updParts();
+  // Collectibles refill meter and a little health; spikes are visible, avoidable hazards.
+  for(const p of C.pickups) if(!p.taken && Math.abs(b.x-p.x)<13 && Math.abs((b.y-27)-p.y)<24){ p.taken=true; b.meter=Math.min(100,b.meter+24); b.hp=Math.min(CAMP_HP,b.hp+8); C.banner={s:'ENERGY + HEALTH!',t:65}; sfx('select'); }
+  if(b.inv<=0 && C.L.hazards.some(([x,y,w])=>b.x+b.cfg.w/2>x && b.x-b.cfg.w/2<x+w && b.y>=y-7 && b.y<=y+8)) campHitBecky(12,b.x-20,2.5,true);
+  const zone=C.L.zones.filter(q=>b.x>=q.x).at(-1); if(zone && zone.name!==C.zoneName){ C.zoneName=zone.name; C.zoneT=100; if(b.x>100) C.banner={s:zone.name,t:100}; }
+  if(C.zoneT>0) C.zoneT--;
   // bodies bump: Becky can't walk through a standing goon (she can still jump over); the boss's charge passes through
   if(b.state!=='ko') for(const e of C.en){ if(e.hp<=0||e.dead||(e.t==='boss'&&!C.bossOn)||e.state==='charge') continue;
     const minD=(e.w+b.cfg.w)/2-2, dx=b.x-e.x;
@@ -4271,13 +4292,22 @@ function campStep(){
 const CAMP_BLD=(()=>{ let s=7; const r=()=>(s=(s*16807)%2147483647)/2147483647, out=[]; let x=0;
   while(x<1400){ const w=30+r()*40, h=40+r()*70; out.push({x,w,h,lit:Math.floor(r()*99)}); x+=w+4+r()*14; } return out; })();
 function campBg(){
-  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#2b1d4a'); g.addColorStop(0.6,'#c2577a'); g.addColorStop(1,'#f0a35c');
+  const zone=C.L.zones.filter(q=>C.b.x>=q.x).at(-1)||C.L.zones[0];
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,zone.sky); g.addColorStop(0.72,zone.glow); g.addColorStop(1,'#f2bd83');
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  ctx.fillStyle='#ffe2a8'; ctx.beginPath(); ctx.arc(W*0.72-C.camX*0.05,70,16,0,7); ctx.fill();
-  const off=C.camX*0.35;
-  for(const d of CAMP_BLD){ const x=Math.round(d.x-off%1400); for(const xx of [x,x+1400]){ if(xx>W||xx+d.w<0) continue;
-    ctx.fillStyle='#3a2a52'; ctx.fillRect(xx,GROUND-d.h,d.w,d.h);
-    ctx.fillStyle='#ffd77a'; for(let wy=GROUND-d.h+6;wy<GROUND-8;wy+=10) for(let wx=xx+5;wx<xx+d.w-5;wx+=9) if(((wx*7+wy*3+d.lit)%5)===0) ctx.fillRect(wx,wy,3,4); } }
+  ctx.fillStyle='#ffe7b0'; ctx.beginPath(); ctx.arc(W*.78-C.camX*.018,54,17,0,7); ctx.fill();
+  const off=C.camX*.26;
+  for(const d of CAMP_BLD){ const x=Math.round(d.x-off%1400); for(const xx of [x,x+1400]){
+    if(xx>W||xx+d.w<0) continue;
+    ctx.fillStyle='#24283d'; ctx.fillRect(xx,GROUND-d.h,d.w,d.h);
+    ctx.fillStyle='#f5c87b'; for(let wy=GROUND-d.h+6;wy<GROUND-8;wy+=11)
+      for(let wx=xx+5;wx<xx+d.w-5;wx+=10) if(((wx*7+wy*3+d.lit)%6)===0) ctx.fillRect(wx,wy,3,4);
+  }}
+  // Parallax silhouettes give each section a distinctive skyline.
+  ctx.fillStyle='rgba(18,19,38,.32)';
+  for(let i=0;i<14;i++){const x=((i*89-C.camX*.12)%(W+120)+(W+120))%(W+120)-40;
+    const h=17+(i*31)%39; ctx.fillRect(x,GROUND-h,23+(i*7)%30,h);}
 }
 function campDrawEnemy(e){
   const s=e.cfg, x=Math.round(e.x), y=Math.round(e.y), d=e.dir, h=e.h, w=e.w;
@@ -4325,6 +4355,16 @@ function campRender(){
       ctx.beginPath(); ctx.moveTo(s.x+2,s.y+2); ctx.lineTo(s.x+s.w-2,s.y+s.h-2); ctx.moveTo(s.x+s.w-2,s.y+2); ctx.lineTo(s.x+2,s.y+s.h-2); ctx.stroke(); P(s.x,s.y,s.w,2,'#7a5128'); }
     else { P(s.x,s.y,s.w,4,'#8a6a4a'); P(s.x,s.y,s.w,1,'#c8a27a'); P(s.x+3,s.y+4,2,3,'#5b4630'); P(s.x+s.w-5,s.y+4,2,3,'#5b4630'); }
   }
+  // Dangerous spike strips, marked in bright red so the player can read them while moving.
+  for(const [x,y,w] of C.L.hazards){ if(x>cx+W||x+w<cx) continue;
+    P(x,y-3,w,3,'#b52635'); ctx.fillStyle='#ffcf5b';
+    for(let k=x+2;k<x+w-2;k+=8){ ctx.beginPath();ctx.moveTo(k,y-3);ctx.lineTo(k+4,y-12);ctx.lineTo(k+8,y-3);ctx.fill(); }
+  }
+  for(const p of C.pickups){if(p.taken||p.x<cx-20||p.x>cx+W+20) continue;
+    const bob=Math.sin(C.t*.1+p.x)*2;ctx.fillStyle='#16232b';ctx.fillRect(p.x-6,p.y-10+bob,12,17);
+    P(p.x-4,p.y-8+bob,8,13,'#67e5e6');P(p.x-2,p.y-12+bob,4,3,'#fef5a1');
+    txt('+',p.x,p.y-6+bob,9,'#172b36');
+  }
   // checkpoint flags
   for(const x of C.L.checks.slice(1)){ if(x<cx-20||x>cx+W+20) continue; const y=campSurfaceBelow(x,GROUND-200), on=C.check>=x;
     P(x,y-26,2,26,'#ddd'); P(x+2,y-26,12,8,on?'#5fd63a':'#888'); }
@@ -4350,7 +4390,7 @@ function campHud(){
   P(8,16,82,7,'#120e14'); P(9,17,80,5,'#5a1a22'); P(9,17,Math.round(80*b.hp/CAMP_HP),5,b.hp>30?'#ffd23f':'#ff4a3d');
   P(8,25,62,5,'#120e14'); P(9,26,60,3,'#2a2238'); P(9,26,Math.round(60*b.meter/100),3,b.meter>=100?(C.t>>3)%2?'#ffe066':'#ff8a1f':'#5fd63a');
   P(9+Math.round(60*0.4),25,1,5,'#ffffff');
-  txt('LEVEL 0',W-8,6,8,'#ffd23f','right');
+  txt('LEVEL 0  '+Math.floor(100*b.x/C.L.len)+'%',W-8,6,8,'#ffd23f','right');
   if(C.bossOn && C.boss && C.boss.hp>0){ const bw=Math.min(150,W-120), x=W-8-bw;
     txt('BIG GOON',W-8,16,8,'#ff8080','right'); P(x,26,bw,6,'#120e14'); P(x+1,27,Math.round((bw-2)*C.boss.hp/C.boss.max),4,'#ff4a3d'); }
   // tutorial tip (the level is dimmed while it waits for the player)
@@ -4367,7 +4407,7 @@ function campHud(){
       txt(say+' TO GO!',W/2,py+ph+5,8,'#7dff6a'); }
   }
   if(C.phase==='intro'){ const a=Math.min(1,C.pt/15,(90-C.pt)/15);
-    ctx.globalAlpha=Math.max(0,a); txt('LEVEL 0',W/2,62,16,'#ffd23f'); txt('TRAINING DAY',W/2,86,8,'#ffffff'); ctx.globalAlpha=1; }
+    ctx.globalAlpha=Math.max(0,a); txt('LEVEL 0',W/2,62,16,'#ffd23f'); txt('THE GREAT ESCAPE',W/2,86,8,'#ffffff'); ctx.globalAlpha=1; }
   if(C.banner) txt(C.banner.s,W/2,C.phase==='clear'?70:96,C.banner.s.length>12?8:16,C.phase==='clear'?'#7dff6a':'#ffd23f');
 }
 function campQuit(){ C=null; G.mode='menu'; G.paused=false; G.parts=[]; pauseOv.hidden=true; document.getElementById('campEnd').hidden=true; resetTouch(); showCampMenu(); }
