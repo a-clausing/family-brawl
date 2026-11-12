@@ -1,0 +1,50 @@
+name: Publish live game and campaign preview
+
+on:
+  push:
+    branches: [campaign]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: family-brawl-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout live main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: live
+      - name: Checkout campaign branch
+        uses: actions/checkout@v4
+        with:
+          ref: campaign
+          path: campaign-source
+      - name: Build both games
+        run: |
+          python3 live/tools/build.py
+          python3 campaign-source/tools/build.py
+      - name: Assemble site with separate campaign preview
+        run: |
+          mkdir -p site/campaign
+          cp live/index.html live/peerjs.min.js live/manifest.webmanifest live/*.png site/
+          cp campaign-source/index.html campaign-source/peerjs.min.js campaign-source/manifest.webmanifest campaign-source/*.png site/campaign/
+          touch site/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
