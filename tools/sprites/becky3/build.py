@@ -8,7 +8,17 @@ from scipy import ndimage as nd
 SRC='../../../art/originals/becky-v3/'
 STAND=146      # her idle height in the package
 TARGET=100     # her idle height in the game atlas (2x detail), same as every Becky before
-G=TARGET/STAND # every row in the package is drawn at the same size (checked by shoe size), so one scale fits all
+G=TARGET/STAND
+# Alex (Nov 12 2026): "her height changes a lot based on the move". The package draws her head the same size in every
+# move (checked by matching her face across frames), but idle/walk have longer legs (146 px tall) than the fighting
+# stances (121-135 px). So each move gets its own scale that makes her standing height match idle; her head then
+# differs by under a pixel in the game, while her height stays put. REF = a standing frame of that move.
+REF={'idle':'idle0','walk':'walk0','run':'walk0','block':'block1','punch':'punch3','kick':'kick0','hit':'hit0',
+     'getup':'getup3','special':'special0','jump':'punch3','down':'punch3','super':'super0'}
+def standing_h(n):
+    a=np.asarray(Image.open(SRC+n+'.png').convert('RGBA'))[...,3]>128; ys=np.where(a.any(1))[0]; return ys.max()-ys.min()+1
+RS={row:STAND/standing_h(n) for row,n in REF.items()}
+def rowof(n): return n.rstrip('0123456789')
 
 def load(name, clean=True):
     a=np.asarray(Image.open(SRC+name+'.png').convert('RGBA')).copy()
@@ -51,7 +61,8 @@ MAP=[  # game name, package frame, anchor
 ]
 i0=down(load('idle0')); OFF=torso(i0)-i0.shape[1]/2   # idle0 is anchored on its centre; the rest share its body line
 for g,p,how in MAP:
-    a=down(load(p)); add(g,a,(torso(a)-OFF) if how==UP else com(a))
+    a=down(load(p),G*RS[rowof(p)]); add(g,a,(torso(a)-OFF) if how==UP else com(a))
+print('per-move scale vs idle:',{k:round(v,3) for k,v in RS.items()})
 # where the coffee mug leaves her fist: front of the fist in special3 (arm out), [ahead, above feet] in game px before drawK
 s=F['special3']; im=s['img']; c=im[...,:3].astype(int); al=im[...,3]>0
 skin=al&(c[...,0]>150)&(c[...,1]>80)&(c[...,2]<150)&(c[...,0]>c[...,1]+25); skin[int(im.shape[0]*0.55):]=False
@@ -62,7 +73,7 @@ SU={}
 def wood(a):
     c=a[...,:3].astype(int); return (a[...,3]>0)&(c[...,0]>90)&(c[...,0]<200)&(c[...,1]>40)&(c[...,1]<130)&(c[...,2]<80)&(c[...,0]>c[...,1]+25)
 for n in (0,1,2,3,4,5,6,8):
-    a=down(load(f'super{n}',clean=False)); w=wood(a)
+    a=down(load(f'super{n}',clean=False),G*RS['super']); w=wood(a)
     shelf=np.zeros(a.shape[1],bool)
     if n in (1,2,3):   # the shelf is the solid block of wood on the right (her brown hair also looks like wood, so only look there)
         colw=w.sum(0); hit=colw>0.25*a.shape[0]; hit[:int(a.shape[1]*0.55)]=False; shelf=hit
@@ -74,7 +85,7 @@ s1=SU['1']; xs=s1['shelf']; SHELF_DX=round(((xs.min()+xs.max())/2-s1['ax'])/2,1)
 # book stack in her hands (super5): where the thrown stack starts, [ahead, above feet]
 a=SU['5']['img']; c=a[...,:3].astype(int); bl=(a[...,3]>0)&(c[...,2]>130)&(c[...,2]>c[...,0]+40)
 ys,xs=np.where(bl); REL=[round((xs.mean()-SU['5']['ax'])/2,1),round((SU['5']['ay']-ys.mean())/2,1)]
-PROPS={'burst':down(load('super7',clean=False)),'mugfly':down(load('special5',clean=False))}
+PROPS={'burst':down(load('super7',clean=False),G*RS['super']),'mugfly':down(load('special5',clean=False),G*RS['special'])}
 print('hand',HAND,'shelf',SHELF_DX,'stack release',REL,'mug prop',PROPS['mugfly'].shape,'burst',PROPS['burst'].shape)
 pickle.dump(dict(F=F,SU=SU,PROPS=PROPS,hand=HAND,shelf=SHELF_DX,rel=REL),open('frames.pkl','wb'))
 # ---- contact sheet: red line = anchor, so a row of frames should stand on one spot without sliding
