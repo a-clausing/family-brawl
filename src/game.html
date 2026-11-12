@@ -3914,7 +3914,7 @@ const CAMP_LEVELS=[{
   id:0, name:'THE GREAT ESCAPE', len:5600,
   // Six distinct beats: backyard escape, rooftop chase, construction yard,
   // factory approach, collapsing bridge, and final showdown.
-  ground:[[0,650],[710,1260],[1310,1920],[1980,2530],[2590,3090],[3150,3670],[3730,4220],[4280,4860],[4920,5600]],
+  ground:[[0,650],[695,1260],[1300,1920],[1965,2530],[2575,3090],[3135,3670],[3715,4220],[4265,4860],[4905,5600]],
   crates:[
     [190,136,24,22],[285,139,24,19],[309,119,24,39],
     [800,137,28,21],[832,118,25,40],
@@ -3936,8 +3936,8 @@ const CAMP_LEVELS=[{
     [4480,117,65],[4570,92,70],[4660,112,65]
   ],
   checks:[40,735,1330,2000,2610,3170,3750,4300,4930],
-  // Spikes force deliberate jumps; glowing batteries reward exploration.
-  hazards:[[595,GROUND,35],[1180,GROUND,34],[1850,GROUND,35],[2470,GROUND,36],[3020,GROUND,34],[3590,GROUND,34],[4140,GROUND,35],[4740,GROUND,38]],
+  // Spike strips sit well before pit edges so Becky can land and reset before each gap.
+  hazards:[[520,GROUND,35],[1110,GROUND,34],[1760,GROUND,35],[2380,GROUND,36],[2940,GROUND,34],[3500,GROUND,34],[4060,GROUND,35],[4660,GROUND,38]],
   pickups:[[500,88],[1060,83],[1660,78],[2320,85],[2960,80],[3540,79],[4050,80],[4610,78],[5170,125]],
   zones:[{x:0,name:'THE BACKYARD',sky:'#34244d',glow:'#f1a46c'},
     {x:710,name:'ROOFTOP RUN',sky:'#253354',glow:'#df7793'},
