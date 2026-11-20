@@ -2476,9 +2476,8 @@ function cineCam(base){
   const w=G.f[c.who], t=c.t, k=easeOut(t/10)*(1-easeOut((t-(CINE-12))/12));
   const hold=Math.min(1,Math.max(0,(t-10)/(CINE-22)));               // 0 -> 1 across the hold
   const z=b.z+(CINE_Z[w.key]-b.z)*k+0.22*hold*hold*k;                   // keeps creeping in as power builds
-  const shake=hold>0.55&&k>0.9?(hold-0.55)*1.6:0;
   const fy=w.y-CINE_FY[w.key];
-  let cx=b.cx+(w.x-b.cx)*k+Math.sin(t*2.7)*shake, cy=b.cy+(fy-b.cy)*k+Math.cos(t*3.1)*shake; const hw=W/(2*z), hh=H/(2*z);
+  let cx=b.cx+(w.x-b.cx)*k, cy=b.cy+(fy-b.cy)*k; const hw=W/(2*z), hh=H/(2*z);   // steady zoom, no wobble (Alex, Nov 2026) const hw=W/(2*z), hh=H/(2*z);
   cx=Math.max(hw,Math.min(AW-hw,cx)); if(z>=1) cy=Math.max(hh,Math.min(H-hh,cy));
   return {z,cx,cy,k,w,t,hold};
 }
@@ -3245,9 +3244,7 @@ function render(){
   if(!gymReady){ ctx.drawImage(SKY,0,0); clouds.forEach(c=>ctx.drawImage(CLOUD,Math.round(c.x),c.y)); }
   else { ctx.fillStyle='#14121c'; ctx.fillRect(0,0,W,H); }
   let sx=0,sy=0;
-  // no screen shake while a super is going, from the button press until its hit is done (Alex, Nov 2026); the zoom stays
-  if(G.cine || (G.f && (G.f.some(f=>f.sup) || G.proj.some(p=>p.sup)))) G.shake=0;
-  if(G.shake>0){ const A=G.shake*SHAKE_SCALE; sx=Math.round((rnd()*2-1)*A); sy=Math.round((rnd()*2-1)*A); G.shake*=0.86; if(G.shake<0.4) G.shake=0; }
+  G.shake=0;   // no screen shake anywhere (Alex, Nov 2026: "I don't want any sort of shaking"); hits still flash, spark and freeze briefly
   ctx.save(); ctx.translate(sx,sy);
   const base=G.mode==='play'?baseCam():null;
   const cam=G.mode==='play'?(cineCam(base)||base):null; LASTCAM=cam;
