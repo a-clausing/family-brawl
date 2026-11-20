@@ -1,0 +1,124 @@
+Family Brawl — Goblin Character Specification
+
+Character Overview
+
+Name: Goblin
+Fighting Style: Sneaky, fast, ranged trickster
+Role: Hit-and-run fighter
+Difficulty: Medium
+Personality: Mischievous, aggressive, unpredictable
+
+Goblin is a small, agile fighter who relies on quick attacks, evasive movement, and ranged weapons. He should feel faster than most characters but less durable.
+
+Special Attack: Dagger Toss
+
+Description: Goblin pulls out a rusty dagger and throws it horizontally toward his opponent.
+
+Animation Sequence:
+
+1. Goblin reaches behind his back and draws a dagger.
+2. Pulls his throwing arm backward.
+3. Quickly snaps his arm forward, releasing the dagger.
+4. Dagger spins or travels point-first toward the opponent.
+5. Goblin returns to his fighting stance.
+
+Gameplay Mechanics:
+
+* Fast-moving horizontal projectile.
+* Moderate-low damage.
+* Short startup and recovery.
+* Can be blocked or jumped over.
+* Dagger disappears upon impact or leaving the arena.
+* Small impact spark when it hits an opponent.
+* Intended for interrupting opponents and controlling distance.
+
+Visual Effects: Silver dagger with brown handle, blue-white motion streaks, and a small yellow impact flash.
+
+Super Attack: Poison Bomb
+
+Description: Goblin pulls out a glowing green poison bomb and hurls it toward his opponent. Upon impact, the bomb explodes into a massive cloud of toxic green smoke.
+
+Animation Sequence:
+
+1. Goblin pulls out a bubbling green poison bomb.
+2. Raises it overhead with a mischievous grin.
+3. Winds up for a powerful throw.
+4. Launches the bomb in an arc toward the opponent.
+5. Bomb strikes the ground or opponent and explodes.
+6. A bright green explosion expands into a large toxic cloud.
+7. The cloud lingers briefly before dissipating.
+8. Goblin returns to his fighting stance.
+
+Gameplay Mechanics:
+
+* High-damage area-of-effect attack.
+* Slower startup than Dagger Toss.
+* Bomb follows a curved trajectory.
+* Explosion damages opponents within its radius.
+* Applies a temporary poison damage-over-time effect on a successful hit.
+* Poison cloud persists briefly as an area hazard.
+* Opponents can avoid the initial explosion by moving away or timing a jump.
+* No permanent poison effect.
+
+Visual Effects: Round glass bomb containing glowing green liquid and a skull symbol, neon-green explosion, expanding toxic smoke, and floating green particles.
+
+Basic Combat and Movement
+
+* Idle: Subtle breathing, shifting weight, and twitching ears.
+* Walk: Quick, hunched steps.
+* Jump: Crouch, leap, airborne pose, landing.
+* Duck: Low crouch with head tucked.
+* Roll: Forward evasive tumble.
+* Punch: Quick clawed jab or short-range punch.
+* Kick: Fast forward kick with a short leg extension.
+* Block: Raises both forearms to guard.
+* Get Hit: Recoils backward with a brief impact reaction.
+* Knocked Down: Falls backward and lands flat.
+* Get Up: Rolls or pushes himself back to standing.
+* Victory: Raises his arms triumphantly, laughing or brandishing his dagger.
+
+Quick SWOT Analysis
+
+Strengths
+
+* Fast movement and evasive roll.
+* Quick dagger projectile for ranged pressure.
+* Poison Bomb controls space and punishes grouped or stationary opponents.
+* Small character silhouette.
+
+Weaknesses
+
+* Lower health than heavyweight fighters.
+* Short reach on punches and kicks.
+* Poison Bomb has a noticeable startup.
+* Relies on positioning and timing rather than raw damage.
+
+Opportunities
+
+* Strong hit-and-run combos using Dagger Toss.
+* Can force opponents to move with poison-cloud area denial.
+* Roll can help escape pressure and reposition.
+* Rewards skilled players who manage spacing.
+
+Threats
+
+* Long-range fighters can keep Goblin at a distance.
+* Heavy fighters can punish him severely if caught.
+* Opponents who jump frequently can evade his dagger.
+* Poorly timed Poison Bomb leaves him vulnerable.
+
+Implementation Notes for Claude Code
+
+Use the supplied Goblin sprite sheet as the visual reference.
+
+* Maintain Goblin’s proportions, armor, and green skin.
+* All sprites face right; mirror horizontally when facing left.
+* Keep animation frames consistently scaled and grounded.
+* Extract dagger, poison bomb, explosion, and smoke effects as separate assets.
+* Use the same input mappings, animation system, hitbox conventions, and super-meter mechanics as existing Family Brawl characters.
+* Do not introduce new controls.
+* Match existing character balance conventions before assigning exact damage, cooldowns, or poison duration.
+* Ensure the poison damage-over-time effect cannot stack indefinitely.
+* Avoid making Goblin’s small sprite automatically immune to attacks intended to hit crouching opponents.
+
+Design Goal: Goblin should feel like a quick, mischievous fighter who wins through mobility, projectiles, and clever positioning rather than overwhelming strength.

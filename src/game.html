@@ -423,6 +423,13 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
         <span class="spc">Special: Fireball</span>
         <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span></span>
       </button>
+      <button class="pick" data-c="goblin" aria-pressed="false" style="--fc:#9bd12a">
+        <img class="tport" alt="" data-port="goblin">
+        <span class="badges"></span>
+        <span class="nm">GOBLIN</span>
+        <span class="spc">Special: Dagger Toss</span>
+        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
+      </button>
       </div>
       </div></div>
     </section>
@@ -459,6 +466,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
             <button data-o="winston" aria-pressed="false">Winston</button>
             <button data-o="slime" aria-pressed="false">Slime</button>
             <button data-o="imp" aria-pressed="false">Imp</button>
+            <button data-o="goblin" aria-pressed="false">Goblin</button>
             <button data-o="random" aria-pressed="true">Random</button>
           </div>
         </div>
@@ -539,6 +547,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 @@asset:harper-sheet.js@@
 @@asset:slime-sheet.js@@
 @@asset:imp-sheet.js@@
+@@asset:goblin-sheet.js@@
 @@asset:ac-sheet.js@@
 </script>
 <script>
@@ -661,9 +670,21 @@ const CH = {
       // Fireball: thrown straight at chest height (block it, jump it or duck it)
       special:{st:12, ac:0, rc:16, cost:40}
     }
+  },
+  goblin: {   // monster (Nov 20 2026, Alex's spec art/specs/goblin.txt): sneaky, fast hit-and-run trickster; quick but short reach, not durable
+    key:'goblin', name:'GOBLIN', speed:2.15, jump:-6.6, grav:0.3, weight:1.0, armor:0, jumpVx:2.3, w:18, h:40,
+    meterCol:'#9bd12a',
+    moves:{
+      punch:{st:3, ac:3, rc:7,  dmg:5, kb:1.5, hs:14, bs:9,  box:[8,23,-30,-18]},     // quick clawed jab
+      low:  {st:3, ac:3, rc:8,  dmg:5, kb:1.2, hs:13, bs:8,  box:[8,23,-14,-1]},
+      kick: {st:5, ac:4, rc:10, dmg:9, kb:2.4, hs:17, bs:10, box:[8,27,-26,-8]},      // fast forward kick, short leg
+      air:  {st:3, ac:12,rc:4,  dmg:7, kb:2.1, hs:15, bs:9,  box:[2,21,-14,4]},
+      // Dagger Toss: short startup and recovery; fast, flies at chest height (block, jump or duck it)
+      special:{st:9, ac:0, rc:12, cost:40}
+    }
   }
 };
-CH.ac.altMeterCol='#ff4a3d'; CH.becky.altMeterCol='#ff3b6b'; CH.bmoney.altMeterCol='#2fe0a8'; CH.winston.altMeterCol='#ff8a1f'; CH.haddie.altMeterCol='#3b9dff'; CH.harper.altMeterCol='#2fe07a'; CH.slime.altMeterCol='#b05cff'; CH.imp.altMeterCol='#3b8cff';
+CH.ac.altMeterCol='#ff4a3d'; CH.becky.altMeterCol='#ff3b6b'; CH.bmoney.altMeterCol='#2fe0a8'; CH.winston.altMeterCol='#ff8a1f'; CH.haddie.altMeterCol='#3b9dff'; CH.harper.altMeterCol='#2fe07a'; CH.slime.altMeterCol='#b05cff'; CH.goblin.altMeterCol='#4a7dff'; CH.imp.altMeterCol='#3b8cff';
 // Fighters are drawn 10% larger than the original design; scale their bodies and attack reach to match.
 const FIGHTER_SCALE=1.1;
 for(const c of Object.values(CH)){
@@ -681,6 +702,8 @@ CH.harper.h=46; CH.harper.w=22; CH.harper.artH=30;
 CH.slime.h=46; CH.slime.w=26; CH.slime.artH=16;
 // Imp is drawn Winston's height (36px), with Winston's 46px hit area.
 CH.imp.h=46; CH.imp.w=18; CH.imp.artH=36;
+// Goblin (Alex: "a bit bigger than Imp") is drawn 40px with the same 46px hit area, so punches and crouching attacks still land.
+CH.goblin.h=46; CH.goblin.w=18; CH.goblin.artH=40;
 // Dog size tweaks (Nov 2026, Alex): Winston 10% bigger; Haddie down to just above Harper (her art reads big).
 // Art (drawK), body width and attack reach change together; the 46px hit height stays so punches land.
 for(const [k,r] of [['winston',1.1],['haddie',60/63]]){
@@ -699,7 +722,8 @@ const BAL={
   ac:   {punch:{rc:6, dmg:6}, low:{dmg:5}, kick:{dmg:10}, plateDmg:13},
   becky:{punch:{dmg:5}, low:{dmg:5}, kick:{dmg:9}, armorCD:75, speed:1.75},
   bmoney:{punch:{dmg:6}, low:{dmg:6}, kick:{dmg:10}, air:{dmg:8}, speed:2.1},
-  winston:{punch:{dmg:6, st:2, rc:5, hs:15, bs:10}, low:{dmg:5, st:2, hs:14}, kick:{dmg:10, st:4, rc:9, hs:19, bs:11}, air:{dmg:8}, speed:2.1}
+  winston:{punch:{dmg:6, st:2, rc:5, hs:15, bs:10}, low:{dmg:5, st:2, hs:14}, kick:{dmg:10, st:4, rc:9, hs:19, bs:11}, air:{dmg:8}, speed:2.1},
+  goblin:{punch:{dmg:6}, kick:{dmg:10}, air:{dmg:8}}
 };
 // Winston's rapid, light hits build the opponent's super meter more slowly than a heavy hitter's would
 CH.winston.feed=0.7; CH.haddie.feed=0.85; CH.harper.feed=0.75; CH.slime.feed=0.7;
@@ -1045,7 +1069,7 @@ function bkFrame(f){
 }
 // ---- Super move sheets (one per fighter) + alternate-color versions for mirror matches
 const SUPERS=window.SUPERS, SUPIMG={}, ALT_S={}, supReady={};
-const ALT_RULES={ac:[(h,s)=>h>=190&&h<=255&&s>0.3,150,1],brick:[(h,s)=>(h>=345||h<=22)&&s>0.5,205,1],
+const ALT_RULES={goblin:[(h,s)=>h>=45&&h<=82&&s>0.35,170,1],ac:[(h,s)=>h>=190&&h<=255&&s>0.3,150,1],brick:[(h,s)=>(h>=345||h<=22)&&s>0.5,205,1],
   becky:[(h,s)=>h>=70&&h<=170&&s>0.22,232,1.45],volt:[(h,s)=>h>=38&&h<=70&&s>0.4,150,1],bmoney:[(h,s)=>h>=255&&h<=315&&s>0.3,240,1],winston:[(h,s)=>h>=185&&h<=240&&s>0.3,178,1],haddie:[(h,s)=>(h>=340||h<=15)&&s>0.45,205,1],harper:[(h,s)=>h>=295&&h<=345&&s>0.4,170,1],imp:[(h,s)=>(h<=16||h>=340)&&s>0.45,210,1],slime:[(h,s)=>h>=55&&h<=140&&s>0.3,180,1]};
 for(const k of Object.keys(SUPERS)){ const im=new Image(); SUPIMG[k]=im;
   im.onload=()=>{ supReady[k]=true; const r=ALT_RULES[k]; makeAlt(k,im,r[0],r[1],r[2],ALT_S); }; im.src=SUPERS[k].src; }
@@ -1107,6 +1131,41 @@ HPIMG.src=HPS.src;
 const SLS=window.SL_SHEET, SLIMG=new Image(); let slReady=false;   // Slime uses the small dogs' frame names (dogFrame)
 SLIMG.onload=()=>{ slReady=true; makeAlt('slime',SLIMG,(h,s)=>h>=55&&h<=140&&s>0.3,180); };
 SLIMG.src=SLS.src;
+const GBS=window.GB_SHEET, GBIMG=new Image(); let gbReady=false;
+GBIMG.onload=()=>{ gbReady=true; makeAlt('goblin',GBIMG,(h,s)=>h>=45&&h<=82&&s>0.35,170); };
+GBIMG.src=GBS.src;
+function gobFrame(f){   // Goblin: idle 0-5, walk 0-6, jump 0-7, duck 0-4, roll 0-6, block 0-5, punch 0-5, kick 0-6, hit 0-6, down 0-5, getup 0-3, win 0-4, special 0-8
+  const key=f.state+(f.move||'');
+  if(f.vS!==key){ f.vS=key; f.vA=f.anim; }
+  const t=f.anim-f.vA;
+  switch(f.state){
+    case 'idle': if(f.landT<7 && f.anim>12) return 'jump6'; return 'idle'+(Math.floor(t/8)%6);
+    case 'walk': { const i=Math.floor(t/4)%7; return 'walk'+(Math.sign(f.vx)===f.dir?i:6-i); }
+    case 'jump': if(f.vy<-3.5) return 'jump2'; if(f.vy<-1) return 'jump3'; if(f.vy<1) return 'jump4'; return 'jump5';
+    case 'crouch': if(f.roll){ const r=f.roll.t; return r<=ROLL_MOVE?'roll'+Math.min(4,1+Math.floor(r/ROLL_MOVE*4)):(r<ROLL_T-4?'roll5':'roll6'); } return t<3?'duck1':'duck2';
+    case 'block': return f.bstun>0?'block5':t<3?'block2':'block4';
+    case 'hit': return 'hit'+(1+Math.min(3,Math.floor(t/4)));
+    case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<5?'down2':(f.landT<10?'down3':(f.landT<16?'down4':'down5'));
+    case 'win': return 'win'+Math.min(4,Math.floor(t/10)%6);
+    case 'attack': {
+      const m=f.cfg.moves[f.move], k=f.mf, st=m.st, ac=m.ac;
+      const ph=k<=st?0:(k<=st+ac?1:2);
+      switch(f.move){
+        case 'punch': case 'low': return ['punch1','punch2','punch4'][ph];
+        case 'kick': return ['kick1','kick3','kick5'][ph];
+        case 'air': return k<=st?'jump3':'kick3';
+        case 'special':
+          if(k<st*0.35) return 'special1';
+          if(k<st*0.7) return 'special2';
+          if(k<st) return 'special3';
+          if(k<st+3) return 'special4';
+          if(k<st+6) return 'special5';
+          return k<st+9?'special6':'special7';
+      }
+    }
+  }
+  return 'idle0';
+}
 const IMS=window.IM_SHEET, IMIMG=new Image(); let imReady=false;
 IMIMG.onload=()=>{ imReady=true; makeAlt('imp',IMIMG,(h,s)=>(h<=16||h>=340)&&s>0.45,210); };
 IMIMG.src=IMS.src;
@@ -1215,10 +1274,11 @@ const SHEETS={ac:{S:()=>ACS,img:()=>ACIMG,frame:acFrame,ready:()=>acReady},
   haddie:{S:()=>HDS,img:()=>HDIMG,frame:dogFrame,ready:()=>hdReady},
   harper:{S:()=>HPS,img:()=>HPIMG,frame:dogFrame,ready:()=>hpReady},
   slime:{S:()=>SLS,img:()=>SLIMG,frame:dogFrame,ready:()=>slReady},
-  imp:{S:()=>IMS,img:()=>IMIMG,frame:impFrame,ready:()=>imReady}};
+  imp:{S:()=>IMS,img:()=>IMIMG,frame:impFrame,ready:()=>imReady},
+  goblin:{S:()=>GBS,img:()=>GBIMG,frame:gobFrame,ready:()=>gbReady}};
 // Free-for-all can have up to four of the same fighter: color sets 2 and 3 rotate the accent hue further
-const PAL_SHIFT={ac:[263,183],brick:[116,276],becky:[165,290],volt:[301,226],bmoney:[75,120],winston:[273,73],haddie:[120,280],harper:[60,240],slime:[120,240],imp:[120,270]};
-const PAL_COL={ac:['#3ddc5a','#ffc23d'],brick:['#3ddc5a','#b05cff'],becky:['#b05cff','#ffc23d'],volt:['#ff4a3d','#b05cff'],bmoney:['#ff4a3d','#ffc23d'],winston:['#3ddc5a','#c05cff'],haddie:['#3ddc5a','#ffc23d'],harper:['#ffc23d','#b05cff'],slime:['#3b9dff','#ff3b8a'],imp:['#3ddc5a','#b05cff']};
+const PAL_SHIFT={ac:[263,183],brick:[116,276],becky:[165,290],volt:[301,226],bmoney:[75,120],winston:[273,73],haddie:[120,280],harper:[60,240],slime:[120,240],imp:[120,270],goblin:[200,290]};
+const PAL_COL={ac:['#3ddc5a','#ffc23d'],brick:['#3ddc5a','#b05cff'],becky:['#b05cff','#ffc23d'],volt:['#ff4a3d','#b05cff'],bmoney:['#ff4a3d','#ffc23d'],winston:['#3ddc5a','#c05cff'],haddie:['#3ddc5a','#ffc23d'],harper:['#ffc23d','#b05cff'],slime:['#3b9dff','#ff3b8a'],imp:['#3ddc5a','#b05cff'],goblin:['#b05cff','#ff3b6b']};
 const PALS={2:{},3:{}}, PALS_S={2:{},3:{}}, PALS_P={2:{},3:{}}, PALS_C={2:{},3:{}};
 function ensurePal(key,p){
   if(p<2) return; const r=ALT_RULES[key], sh=PAL_SHIFT[key][p-2];
@@ -1251,7 +1311,7 @@ function drawAC(g,f,x,y,tint,frameKey){
   g.save(); g.translate(Math.round(x*2)/2,Math.round(y*2)/2); if(f.dir<0) g.scale(-1,1);
   if(f.inv>0 && !f.kd && (f.inv>>1)%2) g.globalAlpha*=0.55;
   const k=(CH[f.key]&&CH[f.key].drawK)||1;   // per-fighter height tweak (see FIGHTER_H)
-  if(f.roll && !frameKey && f.roll.t<=ROLL_MOVE){   // dodge roll: no roll drawings yet, so the crouch pose tumbles once
+  if(f.roll && !frameKey && f.roll.t<=ROLL_MOVE && !SHD.S().spr.roll1){   // dodge roll: fighters without roll drawings tumble their crouch pose once
     const py=-ay/dv*k/2, an=f.roll.d*f.dir*Math.PI*2*Math.min(1,f.roll.t/ROLL_MOVE);
     g.translate(0,py); g.rotate(an); g.translate(0,-py);
     if(dodgy(f)) g.globalAlpha*=0.75;
@@ -1648,7 +1708,7 @@ const G={fmode:(()=>{ try{ return localStorage.getItem('nrb.fmode')||'1v1'; }cat
   rules:{mode:'bestof',bestOf:5,minutes:2,stocks:3}, mclock:0, sudden:false, mode:'menu', paused:false, diff:'normal', pick:'ac', cpuPick:'random', f:null, proj:[], parts:[], shake:0, hitstop:0, slow:0,
   round:1, timer:60, ft:0, phase:'intro', pt:0, winner:null, combo:null, t:0};
 
-const FIGHTERS=['ac','becky','bmoney','winston','haddie','harper','slime','imp'];   // Brick and Volt removed Nov 20 2026 (Alex is making new monsters)
+const FIGHTERS=['ac','becky','bmoney','winston','haddie','harper','slime','imp','goblin'];   // Brick and Volt removed Nov 20 2026 (Alex is making new monsters)
 const MAXHP=200;
 // Fight Options: 'bestof' (1/3/5/7 rounds, 60s per round) or 'mostwins' (most KOs in 1-4 minutes, then sudden death)
 const OPT_DEFAULT={mode:'bestof',bestOf:5,minutes:2,stocks:3};
@@ -1691,7 +1751,7 @@ function newMatch(){
 }
 function startRound(){
   G.f.forEach((f,i)=>{ Object.assign(f,{x:i?AW/2+60:AW/2-60,y:GROUND,vx:0,vy:0,dir:i?-1:1,hp:MAXHP,shp:MAXHP,lagT:0,meter:40,stood:false,state:'idle',
-    move:null,mf:0,mhit:false,stun:0,bstun:0,onGround:true,landT:10,flash:0,combo:0,bandOut:false,sprint:null,impactT:0,ib:null,armorCD:0,sup:null,superArmor:false,kd:null,inv:0,held:false,thr:null,lastBlk:undefined,roll:null,skillCD:0}); f.ai.cool=20; f.ai.holdT=0; f.ai.holds={}; });
+    move:null,mf:0,mhit:false,stun:0,bstun:0,onGround:true,landT:10,flash:0,combo:0,bandOut:false,sprint:null,impactT:0,ib:null,armorCD:0,sup:null,superArmor:false,kd:null,inv:0,held:false,thr:null,lastBlk:undefined,roll:null,skillCD:0,poison:null}); f.ai.cool=20; f.ai.holdT=0; f.ai.holds={}; });
   G.cine=null; G.proj=[]; G.parts=[]; G.timer=60; G.ft=0; G.phase='intro'; G.pt=0; G.winner=null; G.combo=null; G.slow=0; G.hitstop=0; G.kofeed=null;
   if(G.multi) G.f.forEach((f,i)=>{ f.x=spawnX(i); f.dir=f.x<AW/2?1:-1; Object.assign(f,{stocks:G.rules.stocks||3,dead:false,elim:false,out:false,respawnT:0,outT:0,lastAtt:-1}); });
 }
@@ -1699,10 +1759,10 @@ function startRound(){
 /* ---------------- Combat ---------------- */
 // Specials (Nov 2026, Alex): no longer cost meter. Free, with a recharge per fighter (frames), one out at a time,
 // and softer than when they cost meter. (Code calls this "skill"; on screen it's SPECIAL, and supers are SUPER.)
-const SKILL_CD_BY={ac:150, becky:120, bmoney:120, winston:150, haddie:120, harper:150, slime:150, imp:180};
+const SKILL_CD_BY={ac:150, becky:120, bmoney:120, winston:150, haddie:120, harper:150, slime:150, imp:180, goblin:105};
 const skillCDOf=f=>SKILL_CD_BY[f.key]||120;
 const SKILL_DMG=0.75;   // every special hits 25% softer than the old meter version
-const SKILL_PROJ={plate:1,mug:1,bone:1,puke:1,yap:1,slimeshot:1,fireball:1,ripple:1,wave:1};
+const SKILL_PROJ={plate:1,mug:1,bone:1,puke:1,yap:1,slimeshot:1,fireball:1,ripple:1,wave:1,dagger:1};
 const softSp=m=>({...m,dmg:Math.max(1,Math.round(m.dmg*SKILL_DMG))});
 const skillOut=f=>G.proj.some(p=>p.owner===f&&SKILL_PROJ[p.type]);
 const skillOk=f=>!(f.skillCD>0)&&!skillOut(f);
@@ -1815,6 +1875,10 @@ function spawnSpecial(f){
     const x=f.x+f.dir*IMP_HAND[0], y=f.y-IMP_HAND[1];
     G.proj.push({type:'fireball',owner:f,x,y,vx:f.dir*4.6,t:0,dmg:11,kb:2.2,hs:20,bs:10});
     sparks(x,y,f.alt?IMP_FX_ALT:IMP_FX,6); sfx('whoosh');
+  } else if(f.key==='goblin'){   // DAGGER TOSS: a rusty dagger thrown fast and straight at chest height (block, jump or duck it)
+    const x=f.x+f.dir*GOB_HAND[0], y=f.y-GOB_HAND[1];
+    G.proj.push({type:'dagger',owner:f,x,y,vx:f.dir*6.2,t:0,dmg:10,kb:2,hs:18,bs:9});
+    sparks(x,y,['#dfe9ff','#9fc4ff','#ffffff'],4); sfx('whoosh');
   } else if(f.key==='slime'){   // SLIME SHOT: a glob of slime flies low and straight (blockable, jumpable)
     const x=f.x+f.dir*SL_MOUTH[0], y=f.y-SL_MOUTH[1];
     G.proj.push({type:'slimeshot',owner:f,x,y,vx:f.dir*4.4,t:0,dmg:11,kb:2.2,hs:22,bs:10});
@@ -1865,7 +1929,8 @@ const PUKE_FX=['#c6f23a','#8fd11e','#eaffb0'];
 const COFFEE_FX=['#6b3a1c','#a0612e','#f4ead8'];   // coffee splash + bits of white mug
 const HP_MOUTH=[19,20];   // Harper's mouth on her yap frames: forward, up (game px)
 const YAP_FX=['#ff2fa0','#ff8fd0','#ffe0f2'], YAP_FX_ALT=['#2fe07a','#8ff0b8','#e0ffee'];
-const IMP_HAND=[18,22];   // where Imp's fireball leaves his hand: forward, up (game px)
+const IMP_HAND=[18,22];
+const GOB_HAND=[16,24];   // where the Goblin's dagger leaves his hand: forward, up (game px)   // where Imp's fireball leaves his hand: forward, up (game px)
 const IMP_FX=['#ff5a1f','#ffb020','#fff2a0'], IMP_FX_ALT=['#3b8cff','#ffb020','#fff2a0'];
 const SL_MOUTH=[14,8];   // where Slime Shot leaves his mouth: forward, up (game px)
 const SLIME_FX=['#7ee01f','#c8ff3a','#f2ffc0'], SLIME_FX_ALT=['#b05cff','#d9a0ff','#f2e0ff'];
@@ -1932,10 +1997,10 @@ function endSprint(f,o){
    everything else freezes, then it pulls back out and the attack plays. Supers can't be blocked or jumped,
    and each one does the damage of three of that fighter's specials. */
 const SUPER_COST=100, CINE=86;   // close-up length in frames (~1.4s): zoom in, hold on the power pose, snap back out
-const CINE_Z={ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6}, CINE_FY={ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
-const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
-const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL'};
-const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:0,imp:4};
+const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6}, CINE_FY={goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
+const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:46};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
+const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB'};
+const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:0,imp:4,goblin:2};
 const AC_RELEASE=[33.3, 48.6], BK_REL=SUPERS.becky.meta.rel;   // where the barbell / book stack leaves their hands [ahead, above feet]
 const clampX=x=>Math.max(14,Math.min(AW-14,x));
 function startSuper(f,o){
@@ -1952,7 +2017,7 @@ function superFrame(f){
 }
 // super armor lasts until the super's damage lands, or until the super is fully over with nothing left in flight
 function superLanded(f){ f.superArmor=false; }
-function superArmorCheck(f){ if(f.superArmor && !f.sup && !G.proj.some(p=>p.sup&&p.owner===f)) f.superArmor=false; }
+function superArmorCheck(f){ if(f.superArmor && !f.sup && !G.proj.some(p=>p.sup&&p.owner===f&&p.type!=='scloud')) f.superArmor=false; }
 function superHit(f,o,dmg,opt={}){
   superLanded(f);
   if(o.state==='ko') return;
@@ -2020,6 +2085,16 @@ function superStep(f,o){
           sparks(f.x+f.dir*20,f.y-24,FX,14); }
         break; }
       s.fr=u<24?6:7; if(u>=40) return endSuper(f,o);
+      break; }
+    case 'goblin': {   // POISON BOMB: pulls out a bubbling bomb, holds it up grinning, then lobs it where the opponent stands
+      // super frames: 0 bomb out, 1 holding it, 2 raised overhead (close-up), 3 wind-up, 4 throw
+      if(t<=CINE){ s.fr=t<12?0:t<24?1:2; if(t>=20 && t%4===0) part(f.x+f.dir*4+(rnd()-0.5)*10,f.y-44-rnd()*6,(rnd()-0.5)*0.3,-0.5,16,POISON_FX[t%3],1,-0.01); break; }
+      if(u<8){ s.fr=3; break; }
+      if(u===8){ f.dir=o.x>=f.x?1:-1;
+        const x0=f.x+f.dir*10, y0=f.y-42, tx=clampX(o.x), T=Math.round(Math.max(32,Math.min(50,Math.abs(tx-x0)/3.6)));
+        G.proj.push({type:'sbomb',sup:1,owner:f,x:x0,y:y0,x0,y0,tx,T,vx:f.dir,t:0,dmg:SUPER_DMG.goblin,kb:3,hs:46,bs:0,unblockable:true,launch:true});
+        sfx('whoosh'); G.shake=Math.max(G.shake,2); }
+      s.fr=4; if(u>=30) return endSuper(f,o);
       break; }
     case 'slime': {   // SPLIT & SLAM: he splits in two, the halves leap to both sides of the opponent and smash together
       // super frames: 0 angry, 1 split, 5 merged slam, 6 splash, 7 back together; -1 = body hidden while the halves fly (drawSuperExtras)
@@ -2195,7 +2270,50 @@ function superBlast(f,o,p){
   } else { G.parts.push({type:'sfx',key:'ac',name:'blast',x:o.x,y:GROUND+2,life:26,max:26,sc:1,alt:f.alt}); debris(o.x,GROUND-2,8); }
   G.shake=Math.max(G.shake,10); sfx('superhit');
 }
+// Goblin's Poison Bomb (Alex, Nov 2026): it arcs to where the opponent stood when it was thrown. The blast can't be jumped
+// (any height), but running out of the circle in time escapes it. Anyone it hits is poisoned, and the cloud it leaves
+// poisons anyone who walks into it. Poison never stacks: it just tops up to its full length.
+const POISON_FX=['#7dff3a','#b6ff4a','#3fd12a'], BOMB_R=28, CLOUD_R=30, CLOUD_T=150, POISON_T=120, POISON_EVERY=15, POISON_DMG=2;
+function poisonOn(o,f){ if(o.dead||o.state==='ko') return; if(!o.poison) o.poison={t:0,o:fidx(f)}; o.poison.t=Math.max(o.poison.t,POISON_T); o.poison.o=fidx(f); }
+function poisonTick(f){   // called every frame from updF
+  const p=f.poison; if(!p) return;
+  if(f.state==='ko'||f.dead||G.phase!=='fight'){ f.poison=null; return; }
+  p.t--;
+  if(p.t%POISON_EVERY===0 && f.hp>0){
+    f.hp=Math.max(0,f.hp-POISON_DMG); f.flash=Math.max(f.flash,2); if(G.multi) f.lastAtt=p.o;
+    if(f.hp<=0 && f.cfg.lastStand && !f.stood) lastStand(f);
+  }
+  if(f.anim%5===0) part(f.x+(rnd()-0.5)*14,f.y-20-rnd()*16,(rnd()-0.5)*0.3,-0.45,18,POISON_FX[f.anim%3],1,-0.01);
+  if(p.t<=0) f.poison=null;
+}
+function gobProj(p){
+  const f=p.owner; p.t++;
+  const vs=(G.multi?foes(f):[p.owner===G.f[0]?G.f[1]:G.f[0]]).filter(e=>!e.dead&&e.state!=='ko'), fight=G.phase==='fight';
+  if(p.type==='sbomb'){
+    const k=Math.min(1,p.t/p.T);
+    p.x=p.x0+(p.tx-p.x0)*k; p.y=p.y0+(GROUND-6-p.y0)*k-4*46*k*(1-k);
+    if(p.t%2===0) part(p.x-Math.sign(p.vx)*6,p.y,0,-0.2,14,POISON_FX[p.t%3],1,0);
+    if(k<1) return false;
+    let hit=false;
+    for(const o of vs){
+      if(!fight || Math.abs(o.x-p.x)>BOMB_R+o.cfg.w/2) continue;   // any height: it can't be jumped, only outrun
+      if(!hit){ hit=true; superLanded(f); }
+      const keep=f.meter, away=(o.x>=p.x?1:-1);
+      applyHit(f,o,{...p,noScale:true},o.x-away*10,o.x,o.y-24); f.meter=keep;
+      if(o.hp>0){ knockDown(o,away,2.2,-4.2); poisonOn(o,f); }
+    }
+    G.proj.push({type:'scloud',sup:1,owner:f,x:p.x,y:GROUND,vx:p.vx,t:0});
+    sparks(p.x,GROUND-14,POISON_FX,22); debris(p.x,GROUND-2,6);
+    G.shake=Math.max(G.shake,9); G.flashT=4; G.flashCol=f.alt?'rgba(80,120,255,.16)':'rgba(120,255,60,.16)'; sfx('superhit');
+    return true;
+  }
+  // scloud: lingers, poisoning anyone standing in it (jump over it to stay clean)
+  if(fight) for(const o of vs) if(Math.abs(o.x-p.x)<CLOUD_R+o.cfg.w/2 && o.y>GROUND-36 && !untouchable(o)) poisonOn(o,f);
+  if(p.t%6===0) part(p.x+(rnd()-0.5)*50,GROUND-8-rnd()*30,(rnd()-0.5)*0.3,-0.3,22,POISON_FX[p.t%3],2,-0.005);
+  return p.t>=CLOUD_T;
+}
 function superProj(p){
+  if(p.type==='sbomb'||p.type==='scloud') return gobProj(p);
   if(G.multi) return superProjMulti(p);
   const o=p.owner===G.f[0]?G.f[1]:G.f[0], f=p.owner; p.t++; p.x+=p.vx;
   const live=G.phase==='fight' && o.state!=='ko';
@@ -2238,6 +2356,7 @@ function superProj(p){
   return true;
 }
 function superProjMulti(p){
+  if(p.type==='sbomb'||p.type==='scloud') return gobProj(p);
   const f=p.owner; p.t++; p.x+=p.vx;
   const dir=Math.sign(p.vx), vs=foes(f).filter(e=>!e.dead && e.state!=='ko'), tg=f.sup?G.f[f.sup.ti]:null, fight=G.phase==='fight';
   const crossed=e=>(p.x-p.vx-e.x)*(p.x-e.x)<=0;
@@ -2283,6 +2402,18 @@ function drawSuperProj(p){
   else if(p.type==='squake') drawSup('brick',f.alt,'erupt_small',p.x,GROUND+2,dir,0.62+0.1*Math.sin(p.t*0.9));
   else if(p.type==='sshake') drawSup('harper',f.alt,'swoosh2',p.x,GROUND+2,dir,0.95+0.08*Math.sin(p.t*0.8));
   else if(p.type==='strash'){ drawSup('haddie',f.alt,'trashfly',p.x,p.y+Math.sin(p.t*0.5)*1.5,dir,1); if(p.t%2===0) debris(p.x-dir*20,p.y+4,1,true); }
+  else if(p.type==='sbomb'){   // a green ring on the floor shows where it will land: get out of it
+    const k=Math.min(1,p.t/p.T), pulse=0.5+0.5*Math.sin(p.t*0.5);
+    ctx.save(); ctx.globalAlpha=0.35+0.35*k*pulse; ctx.strokeStyle=f.alt?'#6f9bff':'#7dff3a'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.ellipse(p.tx,GROUND+1,BOMB_R,5,0,0,Math.PI*2); ctx.stroke(); ctx.restore();
+    drawSup('goblin',f.alt,'bomb0',p.x,p.y,dir,0.55,1,p.t*0.3*dir);
+  }
+  else if(p.type==='scloud'){   // blast, the cloud billows up, lingers, then breaks apart
+    const t=p.t, L=CLOUD_T;
+    const nm=t<6?'boom0':t<12?'boom1':t<20?'cloud0':t<30?'cloud1':t<44?'cloud2':t<L-24?'cloud3':t<L-12?'fade0':'fade1';
+    const a=t<L-24?0.92:Math.max(0.2,(L-t)/24);
+    drawSup('goblin',f.alt,nm,p.x,GROUND+3,dir,nm.startsWith('cloud')?0.75+0.02*Math.sin(t*0.2):0.8,a);
+  }
   else if(p.type==='sdemon'){   // forms as a round skull, then streaks with its flame trail
     const nm=p.t<4?'skull0':p.t<8?'skull1':(p.t>>2)%2?'skull3':'skull2', sc=p.t<8?0.6+p.t*0.07:1.2;
     drawSup('imp',f.alt,nm,p.x,p.y+Math.sin(p.t*0.6),dir,sc);
@@ -2376,7 +2507,7 @@ function drawCineBanner(){
 // Each hit after the 2nd in a combo does less: 100%, 100%, 85%, 70%, 55%, then 50% floor. Supers aren't scaled.
 const comboScale=n=>Math.max(0.5,1-0.15*Math.max(0,n-1));
 const KD_LIE=46, KD_UP=28, WAKE_INV=14;   // frames lying down, getting up, and invincible after standing
-const THROW_POWER={ac:3,brick:5,becky:3,volt:3,bmoney:3,winston:2,haddie:2,harper:2,slime:2,imp:3};   // matches the Power stat on the fighter cards
+const THROW_POWER={ac:3,brick:5,becky:3,volt:3,bmoney:3,winston:2,haddie:2,harper:2,slime:2,imp:3,goblin:2};   // matches the Power stat on the fighter cards
 const untouchable=d=>d.kd||d.inv>0||d.held||d.thr;
 /* ---------------- Team fights & free-for-all (2-4 fighters) ----------------
    G.multi is on for 2v2 and free-for-all. Every fighter has a team (in free-for-all each is its own team);
@@ -2403,7 +2534,7 @@ function respawn(f){   // drop back in, as far from the opponents as possible, b
   const fs=foes(f).filter(o=>!o.dead); let bx=AW/2, bs=-1;
   for(const x of [AW*0.12,AW*0.3,AW*0.5,AW*0.7,AW*0.88]){ const d=fs.length?Math.min(...fs.map(o=>Math.abs(o.x-x))):0; if(d>bs){ bs=d; bx=x; } }
   Object.assign(f,{x:bx,y:GROUND-80,vx:0,vy:0,onGround:false,state:'jump',hp:MAXHP,shp:MAXHP,lagT:0,dead:false,move:null,mf:0,mhit:false,stun:0,bstun:0,
-    combo:0,kd:null,stood:false,inv:RESPAWN_INV,held:false,thr:null,roll:null,skillCD:0,sup:null,sprint:null,superArmor:false,bandOut:false,ib:null,landT:10,flash:0});
+    combo:0,kd:null,stood:false,inv:RESPAWN_INV,held:false,thr:null,roll:null,skillCD:0,poison:null,sup:null,sprint:null,superArmor:false,bandOut:false,ib:null,landT:10,flash:0});
   const o=tgt(f); if(o) f.dir=o.x>=f.x?1:-1;
   sparks(f.x,GROUND-40,['#ffffff',fcol(f)],12); sfx('jump');
 }
@@ -2498,7 +2629,7 @@ function updF(f,o){
   let fresh=null; for(const k of ['super','special','kick','punch','up']) if(E(k)){ fresh=k; break; }
   if(fresh) f.ib={k:fresh,t:BUFFER_FRAMES,down:I.down}; else if(f.ib && --f.ib.t<=0) f.ib=null;
   const B=k=>E(k)||(!!f.ib&&f.ib.k===k), useBuf=()=>{ f.ib=null; };
-  f.anim++; if(f.flash>0) f.flash--; if(f.armorCD>0) f.armorCD--; if(f.inv>0) f.inv--; if(f.skillCD>0) f.skillCD--; superArmorCheck(f);
+  f.anim++; if(f.flash>0) f.flash--; if(f.armorCD>0) f.armorCD--; if(f.inv>0) f.inv--; if(f.skillCD>0) f.skillCD--; superArmorCheck(f); poisonTick(f);
   if(f.roll && (f.kd||f.held||f.stun>0||f.bstun>0||f.move||f.state==='ko')) f.roll=null;   // hit out of a roll
   if(f.state==='ko'){ f.kd=null; f.held=false; phys(f); return; }
   if(G.multi){   // a throw that got cut short (another fighter's super grabbed the thrower) lets go of its victim
@@ -2598,7 +2729,7 @@ function aiInput(f,o){
       const dk='d'+G.f.indexOf(f); if(p[dk]===undefined) p[dk]=arnd()<D.dodge;
       if(p[dk]){
         threat=true;
-        if(p.type==='plate'||p.type==='mug'||p.type==='bone'||p.type==='puke'||p.type==='yap'||p.type==='slimeshot'||p.type==='fireball'){ if(pd<70) Object.assign(inp,{block:true,left:false,right:false,up:false}); }
+        if(p.type==='plate'||p.type==='mug'||p.type==='bone'||p.type==='puke'||p.type==='yap'||p.type==='slimeshot'||p.type==='fireball'||p.type==='dagger'){ if(pd<70) Object.assign(inp,{block:true,left:false,right:false,up:false}); }
         else if(pd<36 && pd>12 && f.onGround){ inp.up=true; inp.block=false; }
       }
     }
@@ -2667,7 +2798,7 @@ function updProj(){
       sparks(p.x,GROUND-4,p.owner.alt?BM_FX_ALT:BM_FX,6); dust(p.x,GROUND,4); G.proj.splice(i,1); continue;
     }
     if(p.type==='ripple' && p.t%3===0) sparks(p.x-Math.sign(p.vx)*10,GROUND-2,p.owner.alt?BM_FX_ALT:BM_FX,1);
-    const box=p.type==='plate'?{x0:p.x-4,x1:p.x+4,y0:p.y-4,y1:p.y+4}:p.type==='mug'?{x0:p.x-6,x1:p.x+6,y0:p.y-4,y1:p.y+4}:p.type==='bone'?{x0:p.x-6,x1:p.x+6,y0:p.y-3,y1:p.y+3}:p.type==='puke'?{x0:p.x-8,x1:p.x+8,y0:p.y-5,y1:p.y+5}:p.type==='yap'?{x0:p.x-6,x1:p.x+6,y0:p.y-9,y1:p.y+9}:p.type==='slimeshot'?{x0:p.x-7,x1:p.x+7,y0:p.y-4,y1:p.y+4}:p.type==='fireball'?{x0:p.x-7,x1:p.x+7,y0:p.y-5,y1:p.y+5}:{x0:p.x-6,x1:p.x+6,y0:GROUND-13,y1:GROUND};
+    const box=p.type==='plate'?{x0:p.x-4,x1:p.x+4,y0:p.y-4,y1:p.y+4}:p.type==='mug'?{x0:p.x-6,x1:p.x+6,y0:p.y-4,y1:p.y+4}:p.type==='bone'?{x0:p.x-6,x1:p.x+6,y0:p.y-3,y1:p.y+3}:p.type==='puke'?{x0:p.x-8,x1:p.x+8,y0:p.y-5,y1:p.y+5}:p.type==='yap'?{x0:p.x-6,x1:p.x+6,y0:p.y-9,y1:p.y+9}:p.type==='slimeshot'?{x0:p.x-7,x1:p.x+7,y0:p.y-4,y1:p.y+4}:p.type==='fireball'?{x0:p.x-7,x1:p.x+7,y0:p.y-5,y1:p.y+5}:p.type==='dagger'?{x0:p.x-8,x1:p.x+8,y0:p.y-3,y1:p.y+3}:{x0:p.x-6,x1:p.x+6,y0:GROUND-13,y1:GROUND};
     if(p.type==='wave' && p.t%3===0) debris(p.x,GROUND-2,2,true);
     let gone=false;
     for(const d of (G.multi?foes(p.owner):[p.owner===G.f[0]?G.f[1]:G.f[0]])){
@@ -2680,6 +2811,7 @@ function updProj(){
       if(p.type==='bone'){ sparks(hx,p.y,p.owner.alt?WN_FX_ALT:WN_FX,8); G.parts.push({type:'sfx',key:'winston',name:'burst',x:hx,y:p.y,life:10,max:10,sc:0.4,alt:p.owner.alt,main:true}); }
       if(p.type==='puke'){ sparks(hx,p.y,PUKE_FX,10); G.parts.push({type:'sfx',key:'haddie',name:'splash',x:hx,y:p.y+4,life:16,max:16,sc:0.9,dir:Math.sign(p.vx),alt:p.owner.alt,main:true}); }
       if(p.type==='yap'){ sparks(hx,p.y,p.owner.alt?YAP_FX_ALT:YAP_FX,10); }
+      if(p.type==='dagger'){ sparks(hx,p.y,['#fff6a8','#ffd23f','#ffffff'],10); G.parts.push({type:'sfx',key:'goblin',name:'spark1',x:hx,y:p.y+8,life:10,max:10,sc:0.45,alt:p.owner.alt}); }
       if(p.type==='fireball'){ sparks(hx,p.y,p.owner.alt?IMP_FX_ALT:IMP_FX,12); G.parts.push({type:'sfx',key:'imp',name:'fire3',x:hx,y:p.y,life:12,max:12,sc:0.35,alt:p.owner.alt}); }
       if(p.type==='slimeshot'){ sparks(hx,p.y,p.owner.alt?SLIME_FX_ALT:SLIME_FX,10); G.parts.push({type:'sfx',key:'slime',name:'splat',x:hx,y:p.y+6,life:16,max:16,sc:0.3,alt:p.owner.alt}); }
       if(p.type==='mug'){ sparks(hx,p.y,COFFEE_FX,12); G.parts.push({type:'sfx',key:'becky',name:'star',x:hx,y:p.y,life:10,max:10,sc:0.7}); }
@@ -2836,6 +2968,11 @@ function drawProj(p){
       ctx.beginPath(); ctx.arc(x-dir*r*0.6,p.y,r,dir>0?-0.9:Math.PI-0.9,dir>0?0.9:Math.PI+0.9); ctx.stroke();
     }
     ctx.restore(); return;
+  }
+  if(p.type==='dagger' && gbReady){   // the dagger flies point-first with its streak
+    const [sx,sy,w,h,ax,ay]=GBS.spr['dagger'+((p.t>>2)%3)], dir=Math.sign(p.vx)||1;
+    ctx.save(); ctx.translate(Math.round(p.x*2)/2,Math.round(p.y*2)/2); if(dir<0) ctx.scale(-1,1);
+    ctx.drawImage(sheetImg('goblin',p.owner.alt),sx,sy,w,h,-ax/2,-ay/2,w/2,h/2); ctx.restore();
   }
   if(p.type==='fireball' && imReady){   // a flickering fireball with embers
     const nm=p.t<4?'fire1':(p.t>>2)%2?'fire3':'fire2', [sx,sy,w,h,ax,ay]=IMS.spr[nm], dir=Math.sign(p.vx)||1;
@@ -3184,7 +3321,7 @@ function drawVSMulti(){   // 2v2 / free-for-all intro: every fighter's card in a
 const VS_LEN=156, VS_SLAM=26;
 const PORT={}; for(const [k,src] of Object.entries(window.PORTRAITS)){ const im=new Image(); im.src=src; PORT[k]=im; }
 const CARD={}; for(const [k,src] of Object.entries(window.CARDS)){ const im=new Image(); im.src=src; CARD[k]=im; }
-const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'COFFEE MUG TOSS',volt:'HYPER SPRINT',bmoney:'GROUND RIPPLE',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP',slime:'SLIME SHOT',imp:'FIREBALL'};
+const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'COFFEE MUG TOSS',volt:'HYPER SPRINT',bmoney:'GROUND RIPPLE',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP',slime:'SLIME SHOT',imp:'FIREBALL',goblin:'DAGGER TOSS'};
 function vsSkip(){ if(G.mode==='play' && G.phase==='vs' && !NET.active && G.pt<VS_LEN-14) G.pt=VS_LEN-14; }
 function drawVS(){
   const t=G.pt, [a,b]=G.f, C=W/2, PS=112, top=16;
@@ -3221,7 +3358,7 @@ function drawVS(){
 }
 
 /* ---------------- Fighter select: portraits, hero panel, pick badges ---------------- */
-const FC={ac:'#3b7cff',brick:'#e0402a',becky:'#4cc93a',volt:'#ffd400',bmoney:'#a24dff',winston:'#3fa9ff',haddie:'#ff3b3b',harper:'#ff2fa0',slime:'#7ee01f',imp:'#ff5a1f'};
+const FC={ac:'#3b7cff',brick:'#e0402a',becky:'#4cc93a',volt:'#ffd400',bmoney:'#a24dff',winston:'#3fa9ff',haddie:'#ff3b3b',harper:'#ff2fa0',slime:'#7ee01f',imp:'#ff5a1f',goblin:'#9bd12a'};
 document.querySelectorAll('.pick .tport').forEach(im=>{ im.src=window.CARDS[im.dataset.port]; });
 // Fighter pages (Family, Monsters): arrows or a sideways swipe flip between them
 const PAGES=[...document.querySelectorAll('#pagerTrack .picks')]; let fsPage=0;
@@ -3312,7 +3449,7 @@ document.getElementById('fsBack').addEventListener('click',()=>{ sfx('select'); 
 function leaveLobbyScreen(){ lastLobby=null; howOv.hidden=true; menuEl.hidden=true; menuEl.classList.remove('online'); show('room',false); show('roomCode',false); setRoomControls(); mainMenu.hidden=false; mmTop.hidden=true; mmArc.hidden=false; }
 // ---- 1v1 / 2v2 / free-for-all
 const fmodeSel=document.getElementById('fmodeSel'), cpuMulti=document.getElementById('cpuMulti');
-const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',winston:'Winston',haddie:'Haddie',harper:'Harper',slime:'Slime',imp:'Imp'};
+const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',winston:'Winston',haddie:'Haddie',harper:'Harper',slime:'Slime',imp:'Imp',goblin:'Goblin'};
 function renderCpuSlots(){
   const fm=G.fmode, multi=fm!=='1v1', online=appMode==='online';
   document.getElementById('cpuPick').hidden=multi; cpuMulti.hidden=!multi;
@@ -3464,7 +3601,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=18;
+const HASH_EVERY=30, KEEP=900, NET_V=19;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late
@@ -3494,7 +3631,7 @@ function stateHash(){
   let h=2166136261>>>0; const add=v=>{ h^=(Math.round(v)|0); h=Math.imul(h,16777619)>>>0; };
   const str=t=>{ for(let i=0;i<(t||'').length;i++) add(t.charCodeAt(i)); };
   for(const f of G.f){ add(f.x*100); add(f.y*100); add(f.vx*1000); add(f.vy*1000); add(f.hp*10); add(f.meter*10);
-    add(f.mf); add(f.stun); add(f.bstun); add(f.dir); add(f.wins); str(f.state); str(f.move); add(f.kd?f.kd.t+100:-1); add(f.inv||0); add(f.thr?f.thr.t:-1); add(f.roll?f.roll.t*2+(f.roll.d>0):-1); add(f.skillCD||0); add(f.stocks||0); add(f.dead?1:0); add(f.out?1:0); }
+    add(f.mf); add(f.stun); add(f.bstun); add(f.dir); add(f.wins); str(f.state); str(f.move); add(f.kd?f.kd.t+100:-1); add(f.inv||0); add(f.thr?f.thr.t:-1); add(f.roll?f.roll.t*2+(f.roll.d>0):-1); add(f.skillCD||0); add(f.poison?f.poison.t:-1); add(f.stocks||0); add(f.dead?1:0); add(f.out?1:0); }
   add(G.cine?G.cine.t:-1); for(const f of G.f) add(f.sup?f.sup.t*10+f.sup.ph:-1);
   add(G.mclock); add(G.sudden?1:0); add(G.timer); add(G.pt); add(G.round); add(G.hitstop); add(G.slow); str(G.phase); add((G.rs||0)%100000);
   for(const q of G.proj){ add(q.x*100); add(q.y*100); }
