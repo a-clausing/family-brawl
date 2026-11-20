@@ -6,8 +6,10 @@ GAP = 3
 ROWGAP = 3
 SPLITS = {6: [290, 407, 488, 855, 972, 1063]}   # row 7: super frames 2-5 in touching blue flames, the 4 soldiers
 IDLE_H = 101         # B-Money's height (Alex's pick)
-REST_K = 1.06        # the sheet draws his idle row ~6% bigger than every other row (head size compared frame by frame), so every
-                     # other frame is scaled up by this to match idle: no shrinking when he walks or attacks (Alex, Nov 20 2026)
+MATCH = ('walk', 'block', 'punch', 'kick', 'hit', 'special', 'throw', 'win', 'super')
+# Like Becky v3: the sheet draws his fighting stance with shorter legs than his idle (punch/kick came out 83-88% of idle,
+# walk 106%), so he shrank when he attacked (Alex, Nov 20 2026). Each of these rows gets its own scale so his standing height
+# (body only, not the blue sword or flames) matches idle. Jumps, ducks, low jabs, rolls, knockdowns stay as drawn.
 ARMY_H = 72          # army soldier body height in atlas px (36 game px, a bit smaller than him)
 POSE = 3             # super frame with both arms raised in blue flames: the close-up
 import sys; sys.path.insert(0, '..')

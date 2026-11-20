@@ -700,9 +700,9 @@ const CH = {
     key:'skeleton', name:'SKELETON', speed:2.2, jump:-6.4, grav:0.3, weight:1.0, armor:0, jumpVx:2.3, w:16, h:45,
     meterCol:'#3fd0ff',
     moves:{
-      punch:{st:3, ac:3, rc:6,  dmg:5, kb:1.5, hs:14, bs:9,  box:[8,26,-38,-28]},     // quick bony jab
+      punch:{st:3, ac:3, rc:6,  dmg:5, kb:1.5, hs:14, bs:9,  box:[8,31,-38,-28]},     // quick bony jab (reach 31: matches his fist since the Nov 20 height fix drew his punches bigger)
       low:  {st:3, ac:3, rc:7,  dmg:5, kb:1.2, hs:13, bs:8,  box:[8,26,-24,-6]},
-      kick: {st:5, ac:4, rc:10, dmg:9, kb:2.4, hs:17, bs:10, box:[8,28,-28,-10]},
+      kick: {st:5, ac:4, rc:10, dmg:9, kb:2.4, hs:17, bs:10, box:[8,29,-28,-10]},
       air:  {st:3, ac:12,rc:4,  dmg:7, kb:2.1, hs:15, bs:9,  box:[2,22,-18,2]},
       // SWORD SLASH: one big horizontal swing with a blue trail. Melee, not thrown: ~1.75x his punch, longer reach than his
       // punch or kick, a little slower to come out. It hits like a punch (same flinch), like every special.
@@ -3746,7 +3746,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=25;
+const HASH_EVERY=30, KEEP=900, NET_V=26;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late

@@ -55,11 +55,17 @@ army_raw = [cut(AA, AIMG, AFG, ab[0], a0, a1) for a0, a1 in ar[0]]
 ASC = float(C.ARMY_H / np.median([trim(f).shape[0] for f in army_raw[:3]]))
 army = [anchor(despill(trim(down(trim(r), ASC)), ABG), 'body') for r in army_raw]
 print('army', len(army), 'scale', round(ASC, 3))
-RK = getattr(C, 'REST_K', 1.0)   # every row but idle drawn smaller on the sheet: scale them up to idle's size
-main = {k: [frame(f, 'center' if k == 'roll' and 1 <= j <= 3 else 'body', SCALE * (1 if k == 'idle' else RK)) for j, f in enumerate(v)] for k, v in R.items() if k not in PROPS + ('super',)}
+def body_h(raw, s):   # standing height without the blue sword/flames (they reach above his head)
+    d = trim(down(trim(raw), s)); c = d[..., :3].astype(int); on = d[..., 3] > 0
+    on &= ~((c[..., 2] > 150) & (c[..., 1] > 120) & (c[..., 0] < 150))
+    ys = np.where(on.any(1))[0]; return ys.max() - ys.min() + 1
+IH = np.median([body_h(f, SCALE) for f in R['idle']])
 R['super'] = [edge_clean(trim(f)) for f in R['super']]
-sup = [frame(f, s=SCALE * RK) for f in R['super']]
-fx = {f'{k}{j}': frame(f, 'center', SCALE * RK) for k in PROPS for j, f in enumerate(R[k])}
+RS = {k: float(IH / np.median([body_h(f, SCALE) for f in R[k]])) for k in getattr(C, 'MATCH', ())}
+print('row scales', {k: round(v, 3) for k, v in RS.items()})
+main = {k: [frame(f, 'center' if k == 'roll' and 1 <= j <= 3 else 'body', SCALE * RS.get(k, 1)) for j, f in enumerate(v)] for k, v in R.items() if k not in PROPS + ('super',)}
+sup = [frame(f, s=SCALE * RS.get('super', 1)) for f in R['super']]
+fx = {f'{k}{j}': frame(f, 'center', SCALE * RS.get('super', 1)) for k in PROPS for j, f in enumerate(R[k])}
 fxraw = {f'{k}{j}': trim(f) for k in PROPS for j, f in enumerate(R[k])}   # props at full size, so pack.py can size them freely
 pickle.dump((main, sup, fx, trim(R['super'][getattr(C, 'POSE', 3)]), SCALE, fxraw, army), open('frames.pkl', 'wb'))   # super frame 3 = power pose, for the close-up
 
