@@ -1136,7 +1136,7 @@ HDIMG.src=HDS.src;
 const HPS=window.HP_SHEET, HPIMG=new Image(); let hpReady=false;
 HPIMG.onload=()=>{ hpReady=true; makeAlt('harper',HPIMG,(h,s)=>h>=295&&h<=345&&s>0.4,170); };
 HPIMG.src=HPS.src;
-const SLS=window.SL_SHEET, SLIMG=new Image(); let slReady=false;   // Slime uses the small dogs' frame names (dogFrame)
+const SLS=window.SL_SHEET, SLIMG=new Image(); let slReady=false;   // Slime v2: the standard sprite-sheet layout (stdFrame)
 SLIMG.onload=()=>{ slReady=true; makeAlt('slime',SLIMG,(h,s)=>h>=55&&h<=140&&s>0.3,180); };
 SLIMG.src=SLS.src;
 const GBS=window.GB_SHEET, GBIMG=new Image(); let gbReady=false;
@@ -1178,6 +1178,39 @@ const IMS=window.IM_SHEET, IMIMG=new Image(); let imReady=false;
 IMIMG.onload=()=>{ imReady=true; makeAlt('imp',IMIMG,(h,s)=>(h<=16||h>=340)&&s>0.45,210); };
 IMIMG.src=IMS.src;
 // Small dogs (Haddie, Harper): idle, walk/run, jump, bite, swipe, launch, hit, down, getup, special
+function stdFrame(f){   // fighters drawn with Alex's sprite-sheet prompt (art/specs/sprite-sheet-prompt.md): idle 0-5, walk 0-7, jump 0-5, duck 0-2,
+  // block 0-1, roll 0-5, punch 0-3, low 0-2, kick 0-3, jkick 0-2, throw 0-2 (via the lpunch/hpunch aliases), hit 0-2, down 0-3, getup 0-3, win 0-2, special 0-5
+  const key=f.state+(f.move||'');
+  if(f.vS!==key){ f.vS=key; f.vA=f.anim; }
+  const t=f.anim-f.vA;
+  switch(f.state){
+    case 'idle': if(f.landT<7 && f.anim>12) return 'jump5'; return 'idle'+(Math.floor(t/8)%6);
+    case 'walk': { const i=Math.floor(t/4)%8; return 'walk'+(Math.sign(f.vx)===f.dir?i:7-i); }
+    case 'jump': if(f.vy<-3) return 'jump1'; if(f.vy<-0.5) return 'jump2'; if(f.vy<1.5) return 'jump3'; return 'jump4';
+    case 'crouch': if(f.roll) return 'roll'+Math.min(5,Math.floor(f.roll.t/ROLL_T*6)); return t<3?'duck0':'duck1';
+    case 'block': return f.bstun>0?'block1':'block0';
+    case 'hit': return 'hit'+Math.min(2,Math.floor(t/5));
+    case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<6?'down2':'down3';
+    case 'win': return t<10?'win0':'win'+(1+Math.floor(t/12)%2);
+    case 'attack': {
+      const m=f.cfg.moves[f.move], k=f.mf, st=m.st, ac=m.ac, rc=m.rc||0;
+      const ph=k<=st?0:(k<=st+ac?1:2);
+      switch(f.move){
+        case 'punch': return ph<2?'punch'+(ph+1):(k<st+ac+rc/2?'punch2':'punch3');
+        case 'low': return 'low'+ph;
+        case 'kick': return ph===0?(k<st/2?'kick0':'kick1'):(ph===1?'kick2':'kick3');
+        case 'air': return 'jkick'+ph;
+        case 'special':
+          if(k<st*0.4) return 'special0';
+          if(k<st*0.8) return 'special1';
+          if(k<st) return 'special2';
+          if(k<st+4) return 'special3';
+          return k<st+10?'special4':'special5';
+      }
+    }
+  }
+  return 'idle0';
+}
 function dogFrame(f){
   const key=f.state+(f.move||'');
   if(f.vS!==key){ f.vS=key; f.vA=f.anim; }
@@ -1281,7 +1314,7 @@ const SHEETS={ac:{S:()=>ACS,img:()=>ACIMG,frame:acFrame,ready:()=>acReady},
   winston:{S:()=>WNS,img:()=>WNIMG,frame:wnFrame,ready:()=>wnReady},
   haddie:{S:()=>HDS,img:()=>HDIMG,frame:dogFrame,ready:()=>hdReady},
   harper:{S:()=>HPS,img:()=>HPIMG,frame:dogFrame,ready:()=>hpReady},
-  slime:{S:()=>SLS,img:()=>SLIMG,frame:dogFrame,ready:()=>slReady},
+  slime:{S:()=>SLS,img:()=>SLIMG,frame:stdFrame,ready:()=>slReady},
   imp:{S:()=>IMS,img:()=>IMIMG,frame:impFrame,ready:()=>imReady},
   goblin:{S:()=>GBS,img:()=>GBIMG,frame:gobFrame,ready:()=>gbReady}};
 // Free-for-all can have up to four of the same fighter: color sets 2 and 3 rotate the accent hue further
@@ -2010,7 +2043,7 @@ const SUPER_COST=100, CINE=86;   // close-up length in frames (~1.4s): zoom in, 
 const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6}, CINE_FY={goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
 const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:52};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
 const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB'};
-const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:0,imp:4,goblin:2};
+const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:3,imp:4,goblin:2};
 const AC_RELEASE=[33.3, 48.6], BK_REL=SUPERS.becky.meta.rel;   // where the barbell / book stack leaves their hands [ahead, above feet]
 const clampX=x=>Math.max(14,Math.min(AW-14,x));
 function startSuper(f,o){
@@ -2107,11 +2140,12 @@ function superStep(f,o){
       s.fr=4; if(u>=30) return endSuper(f,o);
       break; }
     case 'slime': {   // SPLIT & SLAM: he splits in two, the halves leap to both sides of the opponent and smash together
-      // super frames: 0 angry, 1 split, 5 merged slam, 6 splash, 7 back together; -1 = body hidden while the halves fly (drawSuperExtras)
+      // super frames (v2 sheet): 1 bubbling, 2 roar, 3 power pose (close-up), 4 roar, 5 flattened (splitting / slammed),
+      // 6-7 back together; -1 = body hidden while the halves fly (drawSuperExtras)
       const FX=f.alt?SLIME_FX_ALT:SLIME_FX, D=24;
-      if(t<=CINE){ s.fr=t<CINE-16?0:1; if(t%5===0) sparks(f.x+(rnd()-0.5)*26,f.y-4-rnd()*14,FX,2); break; }
+      if(t<=CINE){ s.fr=t<10?1:t<18?2:t<CINE-12?3:4; if(t%5===0) sparks(f.x+(rnd()-0.5)*26,f.y-4-rnd()*14,FX,2); break; }
       if(u===1){ f.dir=o.x>=f.x?1:-1; s.lock=true; s.ax=s.a0=f.x-f.dir*7; s.bx=s.b0=f.x+f.dir*7; s.ay=s.by=GROUND; }
-      if(u<10){ s.fr=1; break; }
+      if(u<10){ s.fr=5; break; }
       if(u<34){   // the near half hops up close, the other arcs right over the opponent
         if(u===10){ sfx('whoosh'); dust(f.x,GROUND,6); }
         const k=(u-10)/24, ta=clampX(o.x-f.dir*D), tb=clampX(o.x+f.dir*D);
@@ -2125,7 +2159,7 @@ function superStep(f,o){
       if(u<42){ s.fr=-1; s.hn='halfL'; s.hd=0; s.a0=s.ax; s.b0=s.bx; break; }   // landed on both sides, facing in
       if(u<50){   // both halves fling themselves at the opponent, wherever they are (even in the air)
         const k=(u-41)/8, hy=Math.min(GROUND-10,o.y-16);
-        s.fr=-1; s.hn='flyL'; s.hd=0; if(u===42) sfx('whoosh');
+        s.fr=-1; s.hn='flyL'+Math.min(2,Math.floor((u-42)/3)); s.hd=0; if(u===42) sfx('whoosh');
         s.ax=s.a0+(o.x-f.dir*5-s.a0)*k; s.bx=s.b0+(o.x+f.dir*5-s.b0)*k;
         s.ay=s.by=GROUND+(hy-GROUND)*k-Math.sin(Math.PI*k)*10;
         f.x=s.ax;
@@ -2135,10 +2169,10 @@ function superStep(f,o){
         s.ix=o.x; f.x=clampX(o.x-f.dir*4); s.lock=false;
         superHit(f,o,SUPER_DMG.slime,{launch:true,kb:2.4,hs:46,vy:-4.8,big:true});
         if(G.multi) for(const e of foes(f)) if(e!==o && !e.dead && e.state!=='ko' && Math.abs(e.x-s.ix)<30) superHit(f,e,SUPER_DMG.slime,{launch:true,kb:2.4,hs:46,vy:-4.8,big:true});
-        G.parts.push({type:'sfx',key:'slime',name:'burst',x:s.ix,y:GROUND+2,life:26,max:26,sc:0.55,alt:f.alt});
+        G.parts.push({type:'sfx',key:'slime',name:'burst',x:s.ix,y:GROUND+2,life:26,max:26,sc:0.85,alt:f.alt});
         sparks(s.ix,o.y-18,FX,18); G.hitstop=Math.max(G.hitstop,6); G.flashT=3;
       }
-      if(u<60) s.fr=5; else if(u<72) s.fr=6; else if(u<90) s.fr=7; else return endSuper(f,o);
+      if(u<64) s.fr=5; else if(u<76) s.fr=6; else if(u<90) s.fr=7; else return endSuper(f,o);
       break; }
     case 'haddie': {   // TRASH PILE ATTACK: tip the can, dig in, then fling a barrage of trash across the floor
       if(t<=CINE){ s.fr=t<12?0:t<26?1:t<40?2:3; break; }
@@ -2825,7 +2859,7 @@ function updProj(){
       if(p.type==='yap'){ sparks(hx,p.y,p.owner.alt?YAP_FX_ALT:YAP_FX,10); }
       if(p.type==='dagger'){ sparks(hx,p.y,['#fff6a8','#ffd23f','#ffffff'],10); G.parts.push({type:'sfx',key:'goblin',name:'spark1',x:hx,y:p.y+8,life:10,max:10,sc:0.45,alt:p.owner.alt}); }
       if(p.type==='fireball'){ sparks(hx,p.y,p.owner.alt?IMP_FX_ALT:IMP_FX,12); G.parts.push({type:'sfx',key:'imp',name:'fire3',x:hx,y:p.y,life:12,max:12,sc:0.35,alt:p.owner.alt}); }
-      if(p.type==='slimeshot'){ sparks(hx,p.y,p.owner.alt?SLIME_FX_ALT:SLIME_FX,10); G.parts.push({type:'sfx',key:'slime',name:'splat',x:hx,y:p.y+6,life:16,max:16,sc:0.3,alt:p.owner.alt}); }
+      if(p.type==='slimeshot'){ sparks(hx,p.y,p.owner.alt?SLIME_FX_ALT:SLIME_FX,10); G.parts.push({type:'sfx',key:'slime',name:'splat',x:hx,y:p.y+6,life:16,max:16,sc:0.45,alt:p.owner.alt}); }
       if(p.type==='mug'){ sparks(hx,p.y,COFFEE_FX,12); G.parts.push({type:'sfx',key:'becky',name:'star',x:hx,y:p.y,life:10,max:10,sc:0.7}); }
       gone=true; break;
     }
@@ -2993,7 +3027,7 @@ function drawProj(p){
     return;
   }
   if(p.type==='slimeshot' && slReady){   // a wobbling glob with a dripping trail
-    const [sx,sy,w,h,ax,ay]=SLS.spr.shot, dir=Math.sign(p.vx)||1, sq=1+0.07*Math.sin(p.t*0.9);
+    const [sx,sy,w,h,ax,ay]=SLS.spr['shot'+Math.min(2,p.t>>2)]||SLS.spr.shot, dir=Math.sign(p.vx)||1, sq=1+0.07*Math.sin(p.t*0.9);
     ctx.save(); ctx.translate(Math.round(p.x*2)/2,Math.round(p.y*2)/2); ctx.scale(dir*sq*0.7,0.7/sq);
     ctx.drawImage(sheetImg('slime',p.owner.alt),sx,sy,w,h,-ax/2,-ay/2,w/2,h/2); ctx.restore();
     if(p.t%3===0) part(p.x-dir*10,p.y+2,-p.vx*0.15,0.2,14,(p.owner.alt?SLIME_FX_ALT:SLIME_FX)[p.t%2],1,0.12);
