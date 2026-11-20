@@ -23,7 +23,7 @@ JS = """
     let back=-1; for(let i=1;i<400;i++){ step(); if(back<0 && !(G.f[0].skillCD>0) && !G.proj.some(p=>p.owner===G.f[0])) back=i; }
     // close range: does the special make the target fall?
     G.f=[mkF(k,0,false),mkF('becky',1,false)]; G.round=1; startRound(); G.phase='fight';
-    G.f[0].x=120; G.f[1].x=190; G.f[0].dir=1; G.f[1].dir=-1; G.f.forEach(f=>f.netIn=inp());
+    G.f[0].x=120; G.f[1].x=k==='skeleton'?156:190;   // the Sword Slash is a melee swing: stand in sword reach G.f[0].dir=1; G.f[1].dir=-1; G.f.forEach(f=>f.netIn=inp());
     fire(); let fell=false, hit=false, maxStun=0;
     for(let i=0;i<120;i++){ step(); const d=G.f[1]; if(d.hp<200) hit=true; if(d.state==='ko'||d.kd||d.down) fell=true; maxStun=Math.max(maxStun,d.stun||0); }
     out[k]={used, meterAfter:meter, readyAfterFrames:back, hit, fell, maxStun};
