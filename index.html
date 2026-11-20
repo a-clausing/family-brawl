@@ -59,6 +59,8 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .rightside{display:flex;flex-direction:column;align-items:flex-end;gap:4px;touch-action:none;margin-left:auto}
 .sp{background:#3d4a69;color:#9fb0d6;border-radius:14px;width:calc(var(--b)*1.8);height:calc(var(--b)*0.78);font-size:11px;letter-spacing:.04em;margin-right:calc(var(--b)*-0.15)}
 .sp.ready{background:var(--steel);color:#fff;animation:ready 1s ease-in-out infinite}
+.sp.sk{background:#2bb8a6;color:#04201c;opacity:.8}
+.sp.sk.cool{background:linear-gradient(90deg,#2bb8a6 calc((1 - var(--cd,0))*100%),#2a3350 0);color:#c9d3ee;opacity:.6}
 @keyframes ready{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810,0 0 18px 2px rgba(59,124,255,.7)}}
 .act,.track{transition:opacity .15s}
 .act.behind{opacity:.28} .su.behind{opacity:.24} .sp.ready.behind,.su.ready.behind{opacity:.48}
@@ -506,16 +508,17 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
   <div class="panel howpanel">
     <div class="howtop"><p class="big" style="color:var(--gold);font-size:22px">HOW TO PLAY</p><button class="ghostbtn" id="howX" aria-label="Close">✕</button></div>
     <div class="howgrid">
-          <b>STICK</b><span>Slide left or right to walk. You face the way you last pushed, so turn toward an opponent before you attack or block.</span>
+          <b>STICK</b><span>Slide left or right to walk, down to duck. You face the way you last pushed, so turn toward an opponent before you attack or block.</span>
           <b>J</b><span>Jump. Steer with the stick while you're in the air, and press P or K for a jump kick.</span>
-          <b>B</b><span>Tap or hold to block. Blocked hits only chip a little health. Double-tap B right next to an opponent who isn’t attacking or blocking to throw them (no damage, but they’re knocked down).</span>
-          <b>SAME</b><span>Picking the same fighter as the CPU is fine: the CPU's copy wears different colors.</span>
-          <b>2V2 · FFA</b><span>Pick the fight type at the top of this screen. Up to four fighters share a wider arena and the camera follows the action. Everyone has a few lives (set them in Fight Options): lose your health bar and you drop back in; out of lives, you're out. Last fighter (or team) standing wins. Specials and supers hit everyone in their path, but never your teammate.</span>
-          <b>SUPER</b><span>Land and take hits to fill your meter. When it’s full, SUPER lights up. Supers can’t be blocked or jumped.</span>
-          <b>P, K</b><span>Punch and kick. Land a hit, then tap P or K again right away to chain a combo.</span>
+          <b>P, K</b><span>Punch and kick. Land a hit, then tap P or K again right away to chain a combo. Punches only land where the body really is: they sail over small fighters (Haddie, Harper, Slime) and over anyone ducking. Kicks, the low jab (duck + punch), Specials and Supers hit everyone.</span>
+          <b>B</b><span>Tap or hold to block. Blocked hits only chip a little health. Double-tap B right next to an opponent who isn’t attacking or blocking to throw them.</span>
+          <b>ROLL</b><span>Hold B and push the stick left or right to roll, even right past an opponent. You can’t be hit in the middle of a roll, but you can at the start and end, and a Super still catches you. To turn around while blocking, let go of B first.</span>
           <b>SPECIAL</b><span>Free to use: after each one, the SPECIAL button fills back up. Light ones like the Goblin's dagger and Imp's fireball come back fast; big ones like AC's dumbbell take longer. One out at a time, and it stops at the first fighter it hits. Jump or block the dumbbell, and jump, duck or block Becky's coffee mug.</span>
+          <b>SUPER</b><span>Land and take hits to fill your meter. When it’s full, SUPER lights up. Supers can’t be blocked, jumped or rolled through.</span>
+          <b>TEAMS · FFA</b><span>Pick the fight type at the top of this screen. Up to four fighters share a wider arena and the camera follows the action. Everyone has a few lives (set them in Fight Options). Last fighter (or team) standing wins. Specials and supers hit everyone in their path, but never your teammate.</span>
+          <b>SAME</b><span>Picking the same fighter as the CPU is fine: the CPU's copy wears different colors.</span>
         </div>
-        <p class="kbd" style="margin-top:10px;text-align:left">Keyboard: left/right or A/D walk, up/W/space jump, J punch, K kick, L special, U super, I block, P pause.</p>
+        <p class="kbd" style="margin-top:10px;text-align:left">Keyboard: A/D or ←/→ walk, W/↑/space jump, S/↓ duck, J punch, K kick, L special, U super, I or Shift block (hold it and tap a direction to roll), P pause.</p>
     <button class="go" id="howClose">GOT IT</button>
   </div>
 </div>
@@ -724,6 +727,8 @@ CH.slime.h=46; CH.slime.w=26; CH.slime.artH=16;
 CH.imp.h=46; CH.imp.w=18; CH.imp.artH=36;
 // Goblin (Alex: "a bit bigger than Imp") is drawn 40px with the same 46px hit area, so punches and crouching attacks still land.
 CH.goblin.h=46; CH.goblin.w=18; CH.goblin.artH=40;
+// Becky's and B-Money's duck + punch used their standing-punch height; aim it low like AC's so it reaches small fighters
+CH.becky.moves.low.box=[9,31,-26,-7]; CH.bmoney.moves.low.box=[9,30,-26,-7];
 // Dog size tweaks (Nov 2026, Alex): Winston 10% bigger; Haddie down to just above Harper (her art reads big).
 // Art (drawK), body width and attack reach change together; the 46px hit height stays so punches land.
 for(const [k,r] of [['winston',1.1],['haddie',60/63]]){
@@ -739,11 +744,13 @@ for(const [k,th] of Object.entries(FIGHTER_H)){
 }
 // ---- Balance pass (tuned with CPU-vs-CPU simulations: thousands of matches per pairing) ----
 const BAL={
-  ac:   {punch:{rc:6, dmg:6}, low:{dmg:5}, kick:{dmg:10}, plateDmg:10},
-  becky:{punch:{dmg:5}, low:{dmg:5}, kick:{dmg:9}, armorCD:75, speed:1.75},
-  bmoney:{punch:{dmg:6}, low:{dmg:6}, kick:{dmg:10}, air:{dmg:8}, speed:2.1},
+  ac:   {punch:{rc:6, dmg:6}, low:{dmg:6}, kick:{dmg:11, st:5}, plateDmg:10, speed:1.7, armor:0.08},
+  becky:{punch:{dmg:5}, low:{dmg:5}, kick:{dmg:9, st:5}, armorCD:75, speed:1.75},
+  bmoney:{punch:{dmg:6}, low:{dmg:6}, kick:{dmg:10, st:4}, air:{dmg:8}, speed:2.1},
   winston:{punch:{dmg:6, st:2, rc:5, hs:15, bs:10}, low:{dmg:5, st:2, hs:14}, kick:{dmg:10, st:4, rc:9, hs:19, bs:11}, air:{dmg:8}, speed:2.1},
-  goblin:{punch:{dmg:6}, kick:{dmg:10}, air:{dmg:8}}
+  goblin:{punch:{dmg:6}, kick:{dmg:10}, air:{dmg:8}},
+  // Since punches go over small fighters (Nov 20 2026), the smallest take a little more damage from what does land
+  slime:{armor:-0.3}, harper:{armor:-0.1}, haddie:{armor:-0.08}
 };
 // Winston's rapid, light hits build the opponent's super meter more slowly than a heavy hitter's would
 CH.winston.feed=0.7; CH.haddie.feed=0.85; CH.harper.feed=0.75; CH.slime.feed=0.7;
@@ -1162,7 +1169,7 @@ function gobFrame(f){   // Goblin: idle 0-5, walk 0-6, jump 0-7, duck 0-4, roll 
     case 'idle': if(f.landT<7 && f.anim>12) return 'jump6'; return 'idle'+(Math.floor(t/8)%6);
     case 'walk': { const i=Math.floor(t/4)%7; return 'walk'+(Math.sign(f.vx)===f.dir?i:6-i); }
     case 'jump': if(f.vy<-3.5) return 'jump2'; if(f.vy<-1) return 'jump3'; if(f.vy<1) return 'jump4'; return 'jump5';
-    case 'crouch': return t<3?'duck1':'duck2';
+    case 'crouch': if(f.roll){ const r=f.roll.t; return r<=ROLL_MOVE?'roll'+Math.min(4,1+Math.floor(r/ROLL_MOVE*4)):(r<ROLL_T-4?'roll5':'roll6'); } return t<3?'duck1':'duck2';
     case 'block': return f.bstun>0?'block5':t<3?'block2':'block4';
     case 'hit': return 'hit'+(1+Math.min(3,Math.floor(t/4)));
     case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<5?'down2':(f.landT<10?'down3':(f.landT<16?'down4':'down5'));
@@ -1331,6 +1338,11 @@ function drawAC(g,f,x,y,tint,frameKey){
   g.save(); g.translate(Math.round(x*2)/2,Math.round(y*2)/2); if(f.dir<0) g.scale(-1,1);
   if(f.inv>0 && !f.kd && (f.inv>>1)%2) g.globalAlpha*=0.55;
   const k=(CH[f.key]&&CH[f.key].drawK)||1;   // per-fighter height tweak (see FIGHTER_H)
+  if(f.roll && !frameKey && f.roll.t<=ROLL_MOVE && !SHD.S().spr.roll1){   // dodge roll: fighters without roll drawings tumble their crouch pose once
+    const py=-ay/dv*k/2, an=f.roll.d*f.dir*Math.PI*2*Math.min(1,f.roll.t/ROLL_MOVE);
+    g.translate(0,py); g.rotate(an); g.translate(0,-py);
+    if(dodgy(f)) g.globalAlpha*=0.75;
+  }
   g.drawImage(src,ox,oy,w,h,-ax/dv*k,-ay/dv*k,w/dv*k,h/dv*k);
   g.restore();
 }
@@ -1614,8 +1626,7 @@ function keysAt(x,y){
   return best&&bd<=M?[best.dataset.k]:[];
 }
 // Joystick (Nov 2026, Alex): a round stick that appears wherever the left thumb lands (anywhere in the lower-left
-// area) and follows a thumb that slides far. Left/right walk; down is 'down' (drops through platforms in Campaign;
-// nothing in fights yet); up does nothing yet (jump stays on J).
+// area) and follows a thumb that slides far. Left/right walk, down ducks. Jump stays on the J button (Alex tried jump on the stick and didn't like it, Nov 2026).
 const stick=document.getElementById('stick'), track=document.getElementById('track'), knob=document.getElementById('knob');
 const stickHeld={left:false,right:false,down:false};
 let stickId=null;     // mouse pointer driving the stick
@@ -1630,7 +1641,7 @@ function setStick(x,y){
     let dx=x-stickC.x, dy=y-stickC.y; const d=Math.hypot(dx,dy);
     if(d>R*1.7){ const k=(d-R*1.7)/d; placeStick(stickC.x+dx*k, stickC.y+dy*k); dx=x-stickC.x; dy=y-stickC.y; }
     const dd=Math.hypot(dx,dy), cl=Math.min(1,R/(dd||1)); kx=dx*cl; ky=dy*cl;
-    if(dd>R*0.35){ const a=Math.atan2(dy,dx); L=Math.cos(a)<-0.38; Rt=Math.cos(a)>0.38; D=Math.sin(a)>0.55; }
+    if(dd>R*0.35){ const a=Math.atan2(dy,dx); L=Math.cos(a)<-0.38; Rt=Math.cos(a)>0.38; D=Math.sin(a)>0.6; }
   }
   if(L&&!stickHeld.left) taps.left=true; if(Rt&&!stickHeld.right) taps.right=true; if(D&&!stickHeld.down) taps.down=true;
   stickHeld.left=L; stickHeld.right=Rt; stickHeld.down=D;
@@ -1716,9 +1727,7 @@ addEventListener('keydown',e=>{
 });
 addEventListener('keyup',e=>{ const k=KMAP[e.code]; if(k) keyHeld[k]=false; });
 addEventListener('blur',()=>{ KEYS.forEach(k=>keyHeld[k]=false); resetTouch(); });
-function playerInput(){ const o={}; KEYS.forEach(k=>o[k]=!!(touchHeld[k]||keyHeld[k]||taps[k]));
-  if(G.mode!=='camp') o.down=false;   // the stick's down does nothing in fights yet (crouching isn't switched on for players)
-  return o; }
+function playerInput(){ const o={}; KEYS.forEach(k=>o[k]=!!(touchHeld[k]||keyHeld[k]||taps[k])); return o; }
 function clearTaps(){ KEYS.forEach(k=>taps[k]=false); }
 
 /* ---------------- Game state ---------------- */
@@ -1769,7 +1778,7 @@ function newMatch(){
 }
 function startRound(){
   G.f.forEach((f,i)=>{ Object.assign(f,{x:i?AW/2+60:AW/2-60,y:GROUND,vx:0,vy:0,dir:i?-1:1,hp:MAXHP,shp:MAXHP,lagT:0,meter:40,stood:false,state:'idle',
-    move:null,mf:0,mhit:false,stun:0,bstun:0,onGround:true,landT:10,flash:0,combo:0,bandOut:false,sprint:null,impactT:0,ib:null,armorCD:0,sup:null,superArmor:false,kd:null,inv:0,held:false,thr:null,lastBlk:undefined,poison:null,skillCD:0}); f.ai.cool=20; f.ai.holdT=0; f.ai.holds={}; });
+    move:null,mf:0,mhit:false,stun:0,bstun:0,onGround:true,landT:10,flash:0,combo:0,bandOut:false,sprint:null,impactT:0,ib:null,armorCD:0,sup:null,superArmor:false,kd:null,inv:0,held:false,thr:null,lastBlk:undefined,roll:null,skillCD:0,poison:null}); f.ai.cool=20; f.ai.holdT=0; f.ai.holds={}; });
   G.cine=null; G.proj=[]; G.parts=[]; G.timer=60; G.ft=0; G.phase='intro'; G.pt=0; G.winner=null; G.combo=null; G.slow=0; G.hitstop=0; G.kofeed=null;
   if(G.multi) G.f.forEach((f,i)=>{ f.x=spawnX(i); f.dir=f.x<AW/2?1:-1; Object.assign(f,{stocks:G.rules.stocks||3,dead:false,elim:false,out:false,respawnT:0,outT:0,lastAtt:-1}); });
 }
@@ -1784,21 +1793,37 @@ const SKILL_PROJ={plate:1,mug:1,bone:1,puke:1,yap:1,slimeshot:1,fireball:1,rippl
 const skillOut=f=>G.proj.some(p=>p.owner===f&&SKILL_PROJ[p.type]);
 const skillOk=f=>!(f.skillCD>0)&&!skillOut(f);
 const skillWait=f=>Math.max(0,Math.min(1,(f.skillCD||0)/skillCDOf(f)));
+// Dodge roll (Nov 2026, Alex): hold Block and push the stick left or right. Passes through fighters,
+// can't be hit in the middle (regular attacks and specials), but supers still hit,
+// and the end leaves you open. You come out facing back the way you came.
+const ROLL_T=28, ROLL_MOVE=18, ROLL_V=3.2, ROLL_I0=3, ROLL_I1=17;
+const dodgy=d=>!!d.roll&&d.roll.t>=ROLL_I0&&d.roll.t<ROLL_I1;
+function startRoll(f,d){ f.roll={t:0,d}; f.state='crouch'; f.vx=d*ROLL_V; f.lastBlk=undefined; dust(f.x,GROUND,4); sfx('whoosh'); }
+function rollStep(f){
+  const r=f.roll; r.t++;
+  f.state='crouch'; f.vx=r.t<=ROLL_MOVE?r.d*ROLL_V:0;
+  if(r.t===ROLL_MOVE) dust(f.x,GROUND,3);
+  if(r.t>=ROLL_T){ f.roll=null; f.state='idle'; f.dir=-r.d; }
+  phys(f);
+}
 function startMove(f,k){
   f.move=k; f.mf=0; f.mhit=false; f.state='attack'; f.moveId++;
   if(f.onGround) f.vx=(k==='punch'||k==='kick')?f.dir*0.4:0;
   if(f.key==='winston' && f.onGround && f.combo>0 && (k==='punch'||k==='kick')) f.vx=f.dir*(k==='punch'?2.6:1.6);   // lunging bite / jumping paw strike close the gap
   if(k==='special') f.skillCD=skillCDOf(f); else sfx('whoosh');
 }
-function hurt(f){
-  const low=f.state==='crouch'||f.move==='low'||(f.move==='special'&&f.key==='brick'&&f.mf>=f.cfg.moves.special.st);
-  const h=f.cfg.h*(low?0.55:1);
+// Punches use a fighter's real drawn size (Alex, Nov 20 2026): small fighters keep a 46px hit area so kicks, low
+// jabs, specials and supers land, but a standing punch only lands if it actually reaches their body. Ducking
+// shrinks the body too, so tall punches go over anyone ducking.
+function hurt(f,punch){
+  const low=f.state==='crouch'||f.move==='low';
+  const h=(punch?(f.cfg.artH||f.cfg.h):f.cfg.h)*(low?0.55:1);
   return {x0:f.x-f.cfg.w/2, x1:f.x+f.cfg.w/2, y0:f.y-h, y1:f.y};
 }
 function tryHit(f,o,m){
-  if(o.state==='ko') return;
+  if(o.state==='ko'||dodgy(o)) return;
   const b=m.box, x0=f.dir>0?f.x+b[0]:f.x-b[1], x1=f.dir>0?f.x+b[1]:f.x-b[0], y0=f.y+b[2], y1=f.y+b[3];
-  const hb=hurt(o);
+  const hb=hurt(o,f.move==='punch');
   if(x1<hb.x0||x0>hb.x1||y1<hb.y0||y0>hb.y1) return;
   f.mhit=true;
   applyHit(f,o,m,f.x,(Math.max(x0,hb.x0)+Math.min(x1,hb.x1))/2,(Math.max(y0,hb.y0)+Math.min(y1,hb.y1))/2);
@@ -1962,7 +1987,7 @@ function sprintStep(f,o){
         const grounded=e.y>GROUND-14;
         if(grounded && e===o) sp.through=true;
         sp.hitl=sp.hitl||[];
-        if(!sp.hitl.includes(fidx(e)) && grounded && G.phase==='fight' && !untouchable(e)){
+        if(!sp.hitl.includes(fidx(e)) && grounded && G.phase==='fight' && !untouchable(e) && !dodgy(e)){
           sp.hitl.push(fidx(e)); sp.hit=true; f.impactT=7;
           const hx=(f.x+e.x)/2, hy=f.y-30;
           applyHit(f,e,f.cfg.moves.special,e.x+f.dir*10,hx,hy);
@@ -1975,7 +2000,7 @@ function sprintStep(f,o){
   if(!G.multi && o.x>lo && o.x<hi && o.state!=='ko'){
     const grounded=o.y>GROUND-14;
     if(grounded) sp.through=true;
-    if(!sp.hit && grounded && G.phase==='fight' && !untouchable(o)){
+    if(!sp.hit && grounded && G.phase==='fight' && !untouchable(o) && !dodgy(o)){
       sp.hit=true; f.impactT=7;
       const hx=(f.x+o.x)/2, hy=f.y-30;
       applyHit(f,o,f.cfg.moves.special,o.x+f.dir*10,hx,hy);
@@ -2538,7 +2563,7 @@ function respawn(f){   // drop back in, as far from the opponents as possible, b
   const fs=foes(f).filter(o=>!o.dead); let bx=AW/2, bs=-1;
   for(const x of [AW*0.12,AW*0.3,AW*0.5,AW*0.7,AW*0.88]){ const d=fs.length?Math.min(...fs.map(o=>Math.abs(o.x-x))):0; if(d>bs){ bs=d; bx=x; } }
   Object.assign(f,{x:bx,y:GROUND-80,vx:0,vy:0,onGround:false,state:'jump',hp:MAXHP,shp:MAXHP,lagT:0,dead:false,move:null,mf:0,mhit:false,stun:0,bstun:0,
-    combo:0,kd:null,stood:false,inv:RESPAWN_INV,held:false,thr:null,poison:null,skillCD:0,sup:null,sprint:null,superArmor:false,bandOut:false,ib:null,landT:10,flash:0});
+    combo:0,kd:null,stood:false,inv:RESPAWN_INV,held:false,thr:null,roll:null,skillCD:0,poison:null,sup:null,sprint:null,superArmor:false,bandOut:false,ib:null,landT:10,flash:0});
   const o=tgt(f); if(o) f.dir=o.x>=f.x?1:-1;
   sparks(f.x,GROUND-40,['#ffffff',fcol(f)],12); sfx('jump');
 }
@@ -2591,7 +2616,7 @@ function kdFrame(f){
 function canThrow(f,o){
   const minD=(f.cfg.w+o.cfg.w)/2;
   return G.phase==='fight' && f.onGround && o.onGround && Math.abs(o.x-f.x)<=minD+10 && !o.move && o.state!=='block'
-    && o.state!=='hit' && o.state!=='ko' && !untouchable(o) && !o.superArmor && !o.sup && !o.sprint;
+    && o.state!=='hit' && o.state!=='ko' && !untouchable(o) && !o.superArmor && !o.sup && !o.sprint && !o.roll;
 }
 function startThrow(f,o){
   f.move='throw'; f.state='attack'; f.mf=0; f.mhit=false; f.vx=0; f.moveId++; f.dir=o.x>=f.x?1:-1;
@@ -2634,6 +2659,7 @@ function updF(f,o){
   if(fresh) f.ib={k:fresh,t:BUFFER_FRAMES,down:I.down}; else if(f.ib && --f.ib.t<=0) f.ib=null;
   const B=k=>E(k)||(!!f.ib&&f.ib.k===k), useBuf=()=>{ f.ib=null; };
   f.anim++; if(f.flash>0) f.flash--; if(f.armorCD>0) f.armorCD--; if(f.inv>0) f.inv--; if(f.skillCD>0) f.skillCD--; superArmorCheck(f); poisonTick(f);
+  if(f.roll && (f.kd||f.held||f.stun>0||f.bstun>0||f.move||f.state==='ko')) f.roll=null;   // hit out of a roll
   if(f.state==='ko'){ f.kd=null; f.held=false; phys(f); return; }
   if(G.multi){   // a throw that got cut short (another fighter's super grabbed the thrower) lets go of its victim
     if(f.thr && f.move!=='throw'){ const v=G.f[f.thr.vi]; if(v&&v.held){ v.held=false; v.state='idle'; } f.thr=null; }
@@ -2645,6 +2671,7 @@ function updF(f,o){
   if(f.stun>0){ f.stun--; f.state='hit'; phys(f); if(f.stun===0){ (G.multi&&f.lastAtt>=0?G.f[f.lastAtt]:o).combo=0; f.state=f.onGround?'idle':'jump'; } return; }
   if(f.bstun>0){ f.bstun--; f.state='block'; phys(f); if(!f.bstun) f.state='idle'; return; }
   if(f.move==='super'){ if(f.sup) superStep(f,G.multi?G.f[f.sup.ti]:o); else f.move=null; return; }
+  if(f.roll){ if(G.phase==='fight') rollStep(f); else { f.roll=null; f.state='idle'; phys(f); } return; }
   if(f.move){
     const m=c.moves[f.move]; f.mf++;
     if(f.move==='special' && f.mf===m.st) spawnSpecial(f);
@@ -2673,6 +2700,7 @@ function updF(f,o){
   }
   if(G.phase!=='fight'){ f.state=f.onGround?'idle':'jump'; f.vx=0; phys(f); return; }
   if(f.onGround){
+    if(I.block && (E('left')!==E('right')) && f.landT>3){ useBuf(); startRoll(f,E('right')?1:-1); phys(f); return; }
     steerFace(f,o);
     if(B('super') && f.meter>=SUPER_COST && G.phase==='fight' && !G.cine && !o.sup && !o.superArmor && !untouchable(o)){ useBuf(); startSuper(f,o); phys(f); return; }
     if(E('block')){   // double-tap Block next to an idle or walking opponent: throw
@@ -2697,7 +2725,7 @@ function updF(f,o){
 }
 function separate(a,b){
   if(a.state==='ko'||b.state==='ko') return;
-  const through=f=>f.sprint||(f.sup&&(f.key==='volt'||f.key==='winston'));
+  const through=f=>f.sprint||f.roll||(f.sup&&(f.key==='volt'||f.key==='winston'));
   if(through(a)||through(b)||a.kd||b.kd||a.held||b.held) return;   // Hyper Sprint and Volt's/Winston's super dashes pass straight through
   const minD=(a.cfg.w+b.cfg.w)/2, dx=b.x-a.x, ad=Math.abs(dx);
   if(ad>=minD) return;
@@ -2750,6 +2778,7 @@ function aiInput(f,o){
   // react to opponent's attack
   if(o.move && o.move!=='special' && o.moveId!==a.defId && d<50){
     a.defId=o.moveId;
+    if(f.onGround && !f.move && !f.prev[tw] && arnd()<0.15*D.dodge){ return Object.assign(blankIn(),{block:true,[tw]:true}); }   // roll through it
     if(arnd()<D.block && f.onGround && !f.move){ a.holds={block:true}; a.holdT=16; inp.block=true; return inp; }
   }
   if(f.meter>=SUPER_COST && f.onGround && !f.move && !G.cine && !o.sup && !o.superArmor && arnd()<0.035*D.aggr){ inp.super=true; return inp; }
@@ -2765,7 +2794,10 @@ function aiInput(f,o){
     return inp;
   }
   const r=arnd();
-  if(r<0.32*D.aggr){ inp.punch=true; a.combo=arnd()<D.combo?2:0; }
+  if(r<0.32*D.aggr){   // a punch that would sail over a small or ducking target: low jab or kick instead
+    const pb=f.cfg.moves.punch.box, reach=hurt(o,true), top=reach.y0-o.y;
+    if(-pb[3]>-top){ if(arnd()<0.5){ inp.down=true; inp.punch=true; } else inp.kick=true; }
+    else { inp.punch=true; a.combo=arnd()<D.combo?2:0; } }
   else if(r<0.52*D.aggr){ inp.kick=true; }
   else if(r<0.66){ if(f.key==='ac'){ inp.up=true; inp[tw]=true; } else inp.kick=true; }
   else if(r<0.8){ a.holds={block:true}; a.holdT=14; inp.block=true; }
@@ -2804,7 +2836,7 @@ function updProj(){
     for(const d of (G.multi?foes(p.owner):[p.owner===G.f[0]?G.f[1]:G.f[0]])){
     if(p.hitl && p.hitl.includes(fidx(d))) continue;
     const hb=hurt(d);
-    if(G.phase==='fight' && d.state!=='ko' && !untouchable(d) && !(box.x1<hb.x0||box.x0>hb.x1||box.y1<hb.y0||box.y0>hb.y1)){
+    if(G.phase==='fight' && d.state!=='ko' && !untouchable(d) && !dodgy(d) && !(box.x1<hb.x0||box.x0>hb.x1||box.y1<hb.y0||box.y0>hb.y1)){
       const hx=(Math.max(box.x0,hb.x0)+Math.min(box.x1,hb.x1))/2;
       applyHit(p.owner,d,p,p.x-p.vx*10,hx,(Math.max(box.y0,hb.y0)+Math.min(box.y1,hb.y1))/2);
       if(p.type==='plate'){ G.parts.push({type:'impact',x:hx,y:GROUND,life:18,max:18,alt:p.owner.alt}); debris(hx,GROUND-2,5); }
@@ -3600,7 +3632,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=19;
+const HASH_EVERY=30, KEEP=900, NET_V=20;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late
@@ -3630,7 +3662,7 @@ function stateHash(){
   let h=2166136261>>>0; const add=v=>{ h^=(Math.round(v)|0); h=Math.imul(h,16777619)>>>0; };
   const str=t=>{ for(let i=0;i<(t||'').length;i++) add(t.charCodeAt(i)); };
   for(const f of G.f){ add(f.x*100); add(f.y*100); add(f.vx*1000); add(f.vy*1000); add(f.hp*10); add(f.meter*10);
-    add(f.mf); add(f.stun); add(f.bstun); add(f.dir); add(f.wins); str(f.state); str(f.move); add(f.kd?f.kd.t+100:-1); add(f.inv||0); add(f.thr?f.thr.t:-1); add(f.poison?f.poison.t:-1); add(f.skillCD||0); add(f.stocks||0); add(f.dead?1:0); add(f.out?1:0); }
+    add(f.mf); add(f.stun); add(f.bstun); add(f.dir); add(f.wins); str(f.state); str(f.move); add(f.kd?f.kd.t+100:-1); add(f.inv||0); add(f.thr?f.thr.t:-1); add(f.roll?f.roll.t*2+(f.roll.d>0):-1); add(f.skillCD||0); add(f.poison?f.poison.t:-1); add(f.stocks||0); add(f.dead?1:0); add(f.out?1:0); }
   add(G.cine?G.cine.t:-1); for(const f of G.f) add(f.sup?f.sup.t*10+f.sup.ph:-1);
   add(G.mclock); add(G.sudden?1:0); add(G.timer); add(G.pt); add(G.round); add(G.hitstop); add(G.slow); str(G.phase); add((G.rs||0)%100000);
   for(const q of G.proj){ add(q.x*100); add(q.y*100); }
@@ -3769,7 +3801,7 @@ setInterval(keepAwake,1500); document.addEventListener('visibilitychange',keepAw
 // version.json next to index.html. Alex (Nov 20 2026): check only when the app is opened (launch, or coming back on
 // screen), tell the player, load the new version right away if they're on a menu, and otherwise tell them to close and
 // reopen the app. After an update loads, a message says so (the last build seen is kept in localStorage nrb.build).
-const BUILD_ID='16a499b43392'; let UPD=null, updTold=false;
+const BUILD_ID='35bfbc2906e7'; let UPD=null, updTold=false;
 function toast(msg,ms=4000){
   let t=document.getElementById('updToast');
   if(!t){ t=document.createElement('div'); t.id='updToast'; t.setAttribute('role','status'); document.body.appendChild(t); }
