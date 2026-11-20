@@ -55,10 +55,11 @@ army_raw = [cut(AA, AIMG, AFG, ab[0], a0, a1) for a0, a1 in ar[0]]
 ASC = float(C.ARMY_H / np.median([trim(f).shape[0] for f in army_raw[:3]]))
 army = [anchor(despill(trim(down(trim(r), ASC)), ABG), 'body') for r in army_raw]
 print('army', len(army), 'scale', round(ASC, 3))
-main = {k: [frame(f, 'center' if k == 'roll' and 1 <= j <= 3 else 'body') for j, f in enumerate(v)] for k, v in R.items() if k not in PROPS + ('super',)}
+RK = getattr(C, 'REST_K', 1.0)   # every row but idle drawn smaller on the sheet: scale them up to idle's size
+main = {k: [frame(f, 'center' if k == 'roll' and 1 <= j <= 3 else 'body', SCALE * (1 if k == 'idle' else RK)) for j, f in enumerate(v)] for k, v in R.items() if k not in PROPS + ('super',)}
 R['super'] = [edge_clean(trim(f)) for f in R['super']]
-sup = [frame(f) for f in R['super']]
-fx = {f'{k}{j}': frame(f, 'center') for k in PROPS for j, f in enumerate(R[k])}
+sup = [frame(f, s=SCALE * RK) for f in R['super']]
+fx = {f'{k}{j}': frame(f, 'center', SCALE * RK) for k in PROPS for j, f in enumerate(R[k])}
 fxraw = {f'{k}{j}': trim(f) for k in PROPS for j, f in enumerate(R[k])}   # props at full size, so pack.py can size them freely
 pickle.dump((main, sup, fx, trim(R['super'][getattr(C, 'POSE', 3)]), SCALE, fxraw, army), open('frames.pkl', 'wb'))   # super frame 3 = power pose, for the close-up
 
