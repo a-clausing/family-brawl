@@ -25,7 +25,7 @@ A pixel-art gym fighting game for phones, played sideways, often saved to an iPh
 | `tools/sprites/<fighter>/` | Sprite pipelines that turn Alex's sheets into game atlases (see "Sprite pipelines" below). |
 | `tools/history/` | One-off patch scripts that added past features (Winston, multiplayer). They're reference only: they target an old single-file path and won't run as-is. |
 | `art/originals/` | Every image and sheet Alex uploaded, renamed. `*-unused` files were alternates not used in the game. |
-| `art/specs/` | Alex's written specs for B-Money and Winston. They're good examples of how he describes a new fighter. |
+| `art/specs/` | Alex's written specs for B-Money, Winston and the Goblin (good examples of how he describes a new fighter), and `sprite-sheet-prompt.md`, the row layout his new sheets follow. |
 | `art/derived/` | Processed backdrops, the icon master, and other intermediate art. |
 | `tests/` | Browser tests (see "Testing" below). |
 
