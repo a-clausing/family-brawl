@@ -1,5 +1,5 @@
 """Skeleton Warrior (Nov 20 2026): Sword Slash is a melee swing that reaches farther than his kick and steps in;
-Skeleton Army strikes each fighter in its path several times (Teams/free-for-all: everyone it crosses), any height.
+Skeleton Army: three ghost skeletons each slash every fighter in their path once (3 hits, 56 total; Teams/free-for-all: everyone ahead), any height.
 
   python3 tests/skeleton.py
 """
@@ -48,8 +48,8 @@ async def main():
             'slash lands at 52px': r['slashFar']['dmg'] > 0,
             'slash ~1.75x punch': r['slashNear']['dmg'] >= 10,
             'slash steps in': r['slashFar']['moved'] > 10,
-            'army hits both in front': r['army'][0] < 200 and r['army'][1] < 200,
-            'army hits several times (not jumpable)': r['army'][0] <= 200 - 50 and r['army'][1] <= 200 - 50,
+            'army hits both fighters in front': r['army'][0] < 200 and r['army'][1] < 200,
+            'all 3 skeletons hit, a jumper too': r['army'][0] <= 200 - 50 and r['army'][1] <= 200 - 50,
             'army leaves the one behind alone': r['army'][2] == 200,
         }
         for k, v in ok.items(): print(f'{k:40} {"ok" if v else "FAIL"}')

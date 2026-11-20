@@ -1,11 +1,14 @@
-# Skeleton Warrior sheet (art/originals/skeleton-sheet.png), drawn with Alex's sprite-sheet prompt (magenta background).
+# Skeleton Warrior sheet v2 (art/originals/skeleton-sheet.png, Alex's redo on green; v1 is skeleton-sheet-v1-unused.png),
+# standard layout. The army soldiers come from their own sheet, art/originals/skeleton-army.png (8 frames: run 0-2, swing 3-6, run with sword out 7).
 SHEET = '../../../art/originals/skeleton-sheet.png'
+ARMY = '../../../art/originals/skeleton-army.png'
 GAP = 3
-ROWGAP = 1           # rows 4 and 5 nearly touch (the victory sword)
-SPLITS = {6: [575, 682, 1105, 1185]}   # row 7: the giant skeleton's arm reaches across super frames 4-6; the three soldiers touch
-IDLE_H = 101         # B-Money's height (Alex's pick): his idle is 101 atlas px
+ROWGAP = 3
+SPLITS = {3: [645], 6: [196, 279, 398, 867, 994]}   # row 4: the two flying jump kicks; row 7: super frames in touching flames, the 3 soldiers
+IDLE_H = 101         # B-Money's height (Alex's pick)
+ARMY_H = 72          # army soldier body height in atlas px (36 game px, a bit smaller than him)
 POSE = 3             # super frame with both arms raised in blue flames: the close-up
 import sys; sys.path.insert(0, '..')
 from stdsheet import LAYOUT as _L
 LAYOUT = [list(r) for r in _L]
-LAYOUT[6][0] = ('super', 9)   # 9 super frames
+LAYOUT[1][0] = ('jump', 7)    # 7 jump frames on this sheet

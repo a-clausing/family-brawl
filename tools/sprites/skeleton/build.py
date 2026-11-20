@@ -34,15 +34,23 @@ def frame(raw, mode='body', s=None): return anchor(despill(trim(down(trim(raw), 
 
 
 PROPS = ('sobj', 'simp', 'pobj', 'pimp')
+# the army soldiers' own sheet: 8 frames in one row
+AA = load(C.ARMY)[1].astype(int); AIMG = load(C.ARMY)[0]
+AFG = nd.binary_opening(foreground_auto(AA), iterations=1); ABG = bg_color(AA)
+ab, ar = find_frames(AA, C.GAP)
+army_raw = [cut(AA, AIMG, AFG, ab[0], a0, a1) for a0, a1 in ar[0]]
+ASC = float(C.ARMY_H / np.median([trim(f).shape[0] for f in army_raw[:3]]))
+army = [anchor(despill(trim(down(trim(r), ASC)), ABG), 'body') for r in army_raw]
+print('army', len(army), 'scale', round(ASC, 3))
 main = {k: [frame(f, 'center' if k == 'roll' and 1 <= j <= 3 else 'body') for j, f in enumerate(v)] for k, v in R.items() if k not in PROPS + ('super',)}
 sup = [frame(f) for f in R['super']]
 fx = {f'{k}{j}': frame(f, 'center') for k in PROPS for j, f in enumerate(R[k])}
 fxraw = {f'{k}{j}': trim(f) for k in PROPS for j, f in enumerate(R[k])}   # props at full size, so pack.py can size them freely
-pickle.dump((main, sup, fx, trim(R['super'][getattr(C, 'POSE', 3)]), SCALE, fxraw), open('frames.pkl', 'wb'))   # super frame 3 = power pose, for the close-up
+pickle.dump((main, sup, fx, trim(R['super'][getattr(C, 'POSE', 3)]), SCALE, fxraw, army), open('frames.pkl', 'wb'))   # super frame 3 = power pose, for the close-up
 
 # contact sheet at 3x, magenta-free on grey, with a line at the feet
 items = [(k + str(j), f['img'], f['ax'], f['ay']) for k, v in main.items() for j, f in enumerate(v)] + \
-        [('S' + str(j), f['img'], f['ax'], f['ay']) for j, f in enumerate(sup)] + [(k, f['img'], f['ax'], f['ay']) for k, f in fx.items()]
+        [('S' + str(j), f['img'], f['ax'], f['ay']) for j, f in enumerate(sup)] + [(k, f['img'], f['ax'], f['ay']) for k, f in fx.items()] + [('A' + str(j), f['img'], f['ax'], f['ay']) for j, f in enumerate(army)]
 cw, chh, per = 100, 130, 12
 L = Image.new('RGBA', (cw * per, chh * ((len(items) + per - 1) // per)), (70, 70, 80, 255))
 for i, (nm, im, ax, ay) in enumerate(items):

@@ -6,7 +6,7 @@ from dogsheet import down, trim
 from stdsheet import despill, bg_color
 import config as C
 BG = bg_color(np.asarray(Image.open(C.SHEET).convert('RGB')).astype(int))
-main, sup, fx, raw_pose, SCALE, raw = pickle.load(open('frames.pkl', 'rb'))
+main, sup, fx, raw_pose, SCALE, raw, army = pickle.load(open('frames.pkl', 'rb'))
 src_pack = open('../goblin/pack.py').read()
 exec(src_pack[src_pack.index('def atlas'):src_pack.index('def fxitem')])   # reuse the v1 atlas packer
 
@@ -29,10 +29,10 @@ P = C.POSE
 it = [(str(j), f['img'], f['ax'], f['ay'], 2) for j, f in enumerate(sup)]
 hd = despill(trim(down(raw_pose, sup[P]['img'].shape[0] * 2 / raw_pose.shape[0])), BG)   # close-up: arms raised in blue flames, double detail
 it.append(('hd', hd, sup[P]['ax'] * 2, hd.shape[0], 4))
-it += [prop(f'soldier{j}', f'pobj{j}', 56, 'floor') for j in range(3)]   # the army's skeleton soldiers (sword and shield)
+it += [(f'army{j}', f['img'], f['ax'], f['ay'], 2) for j, f in enumerate(army)]   # army skeletons (own sheet): run 0-2, swing 3-6, run with sword out 7
 it += [prop(f'blast{j}', f'pimp{j}', w, 'floor') for j, w in enumerate((70, 96, 130))]   # blue spirit flames bursting
 it += [prop(f'slash{j}', f'sobj{j}', w, 'front') for j, w in enumerate((50, 70, 90))]
 src, pos, n = atlas(it); print('super atlas', n // 1024, 'KB')
 supj = {'src': src, 'spr': {k: [v[0], v[1], v[2], v[3], int(round(v[4])), int(round(v[5])), v[6]] for k, v in pos.items()}, 'meta': {}}
 json.dump({'main': mainj, 'super': supj}, open('sk.json', 'w'))
-print({k: spr[k] for k in ('idle0', 'spark1', 'special3')}, {k: supj['spr'][k] for k in ('4', 'hd', 'soldier1', 'blast2')})
+print({k: spr[k] for k in ('idle0', 'spark1', 'special3')}, {k: supj['spr'][k] for k in ('4', 'hd', 'army5', 'blast2')})
