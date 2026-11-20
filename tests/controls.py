@@ -1,5 +1,5 @@
 """Checks the Nov 2026 controls: dodge roll (Block + push left/right), the free SKILL move's recharge,
-stick-up jump and ducking.
+jumping (J button) and ducking (stick down).
 
   python3 tests/controls.py
 """
@@ -60,7 +60,7 @@ async def main():
             'standing punch lands': r['standPunch'] < 200,
             'special hits a roller': r['superOnRoll'] < 200,
             'skill free + recharge': r['skill']['first'] == 'special' and r['skill']['second'] != 'special' and r['skill']['third'] == 'special' and r['skill']['meterSame'],
-            'stick up jumps': r['jump'],
+            'jump (J) works': r['jump'],
             'stick down ducks': r['duck'] == 'crouch',
         }
         for k, v in ok.items(): print(f'{k:24} {"ok" if v else "FAIL"}')

@@ -36,16 +36,12 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   color:#120e14;font-family:var(--pixel);font-size:12px;line-height:1;opacity:.52;
   box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810;transition:background .15s}
 .act i{font-style:normal;font-family:var(--ui);font-weight:700;font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;opacity:.75}
-.pu{background:var(--gold)} .ki{background:var(--ember)} .bl{background:#9a90b3}
-/* SKILL: free move with a recharge ring (--cd: 0 = ready, 1 = just used) */
-.sk{background:#2bb8a6;font-size:10px;letter-spacing:.02em;position:relative}
-.sk::after{content:"";position:absolute;inset:-5px;border-radius:50%;pointer-events:none;opacity:0;
-  background:conic-gradient(transparent 0 calc((1 - var(--cd,0))*360deg),rgba(10,8,16,.75) 0);
-  -webkit-mask:radial-gradient(circle,transparent 62%,#000 63%);mask:radial-gradient(circle,transparent 62%,#000 63%)}
-.sk.cool{filter:saturate(.35) brightness(.75)} .sk.cool::after{opacity:1}
+.pu{background:var(--gold)} .ki{background:var(--ember)} .bl{background:#9a90b3} .ju{background:#6fd36a}
 .rightside{display:flex;flex-direction:column;align-items:flex-end;gap:4px;touch-action:none;margin-left:auto}
 .sp{background:#3d4a69;color:#9fb0d6;border-radius:14px;width:calc(var(--b)*1.8);height:calc(var(--b)*0.78);font-size:11px;letter-spacing:.04em;margin-right:calc(var(--b)*-0.15)}
 .sp.ready{background:var(--steel);color:#fff;animation:ready 1s ease-in-out infinite}
+.sp.sk{background:#2bb8a6;color:#04201c;opacity:.8}
+.sp.sk.cool{background:linear-gradient(90deg,#2bb8a6 calc((1 - var(--cd,0))*100%),#2a3350 0);color:#c9d3ee;opacity:.6}
 @keyframes ready{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810,0 0 18px 2px rgba(59,124,255,.7)}}
 .act,.track{transition:opacity .15s}
 .act.behind{opacity:.28} .su.behind{opacity:.24} .sp.ready.behind,.su.ready.behind{opacity:.48}
@@ -112,9 +108,9 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 .big{font-family:var(--pixel);text-align:center;font-size:clamp(22px,8vh,36px);margin:0;line-height:1.2;text-shadow:3px 3px 0 #120e14}
 .sub{text-align:center;color:var(--dim);margin:0;font-size:16px}
 @media (prefers-reduced-motion:reduce){.sp.ready,.phone{animation:none}}
-.sprow{display:flex;gap:6px;align-items:center;align-self:stretch}
+.sprow{display:flex;gap:6px;align-items:center;margin-right:calc(var(--b)*-0.15)}
 .sprow .sp{margin-right:0}
-.su{border-radius:14px;width:100%;height:calc(var(--b)*0.62);font-size:11px;letter-spacing:.02em;background:#2a2238;color:#6d6390;opacity:.34}
+.su{border-radius:14px;width:calc(var(--b)*1.2);height:calc(var(--b)*0.78);font-size:9px;letter-spacing:.02em;background:#2a2238;color:#6d6390;opacity:.34}
 .su.ready{background:linear-gradient(180deg,#ffe066,#ff8a1f);color:#120e14;opacity:.85;animation:suglow .7s ease-in-out infinite}
 @keyframes suglow{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810,0 0 22px 4px rgba(255,170,40,.85)}}
 @media (prefers-reduced-motion:reduce){.su.ready{animation:none}}
@@ -280,10 +276,10 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
       <button class="mini" id="fsBtn" aria-label="Full screen" hidden><svg viewBox="0 0 10 10"><path d="M1 1h3v1.3H2.3V4H1zM6 1h3v3H7.7V2.3H6zM1 6h1.3v1.7H4V9H1zM7.7 6H9v3H6V7.7h1.7z"/></svg></button>
     </div>
     <div class="rightside" id="rightside">
-      <div class="sprow"><button class="act su" data-k="super" id="suBtn"><span>SPECIAL</span></button></div>
+      <div class="sprow"><button class="act su" data-k="super" id="suBtn"><span>SPECIAL</span></button><button class="act sp sk" data-k="special" id="spBtn"><span>SKILL</span></button></div>
       <div class="pad" id="apad" aria-label="Action buttons">
         <span></span>
-        <button class="act sk" data-k="special" id="spBtn"><span>SKILL</span></button>
+        <button class="act ju" data-k="up"><span>J</span><i>Jump</i></button>
         <span></span>
         <button class="act bl" data-k="block"><span>B</span><i>Block</i></button>
         <span class="hub"></span>
@@ -498,11 +494,12 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
   <div class="panel howpanel">
     <div class="howtop"><p class="big" style="color:var(--gold);font-size:22px">HOW TO PLAY</p><button class="ghostbtn" id="howX" aria-label="Close">✕</button></div>
     <div class="howgrid">
-          <b>STICK</b><span>Slide left or right to walk, up to jump, down to duck. You face the way you last pushed, so turn toward an opponent before you attack or block. In the air, steer with the stick and press P or K for a jump kick.</span>
+          <b>STICK</b><span>Slide left or right to walk, down to duck. You face the way you last pushed, so turn toward an opponent before you attack or block.</span>
+          <b>J</b><span>Jump. Steer with the stick while you're in the air, and press P or K for a jump kick.</span>
           <b>P, K</b><span>Punch and kick. Land a hit, then tap P or K again right away to chain a combo. Duck and punch for a low jab.</span>
           <b>B</b><span>Tap or hold to block. Blocked hits only chip a little health. Double-tap B right next to an opponent who isn’t attacking or blocking to throw them.</span>
           <b>ROLL</b><span>Hold B and push the stick left or right to roll, even right past an opponent. You can’t be hit in the middle of a roll, but you can at the start and end, and a Special still catches you. To turn around while blocking, let go of B first.</span>
-          <b>SKILL</b><span>Your fighter’s own move: the dumbbell, quake wave, coffee mug, Hyper Sprint and so on. It’s free; the ring around the button refills in about 2 seconds. Jump or block the dumbbell, jump the quake, jump, duck or block the mug, and jump Volt’s Hyper Sprint (it can’t be blocked).</span>
+          <b>SKILL</b><span>Your fighter’s own move: the dumbbell, quake wave, coffee mug, Hyper Sprint and so on. It’s free; after you use it, the SKILL button fills back up in about 2 seconds. Jump or block the dumbbell, jump the quake, jump, duck or block the mug, and jump Volt’s Hyper Sprint (it can’t be blocked).</span>
           <b>SPECIAL</b><span>Land and take hits to fill your meter. When it’s full, SPECIAL lights up. Specials can’t be blocked, jumped or rolled through.</span>
           <b>TEAMS · FFA</b><span>Pick the fight type at the top of this screen. Up to four fighters share a wider arena and the camera follows the action. Everyone has a few lives (set them in Fight Options). Last fighter (or team) standing wins. Skills and Specials hit everyone in their path, but never your teammate.</span>
           <b>SAME</b><span>Picking the same fighter as the CPU is fine: the CPU's copy wears different colors.</span>
@@ -1648,34 +1645,34 @@ function keysAt(x,y){
   return best&&bd<=M?[best.dataset.k]:[];
 }
 // Joystick (Nov 2026, Alex): a round stick that appears wherever the left thumb lands (anywhere in the lower-left
-// area) and follows a thumb that slides far. Left/right walk, up jumps, down ducks (Alex, Nov 2026: the J button went away).
+// area) and follows a thumb that slides far. Left/right walk, down ducks. Jump stays on the J button (Alex tried jump on the stick and didn't like it, Nov 2026).
 const stick=document.getElementById('stick'), track=document.getElementById('track'), knob=document.getElementById('knob');
-const stickHeld={left:false,right:false,down:false,up:false};
+const stickHeld={left:false,right:false,down:false};
 let stickId=null;     // mouse pointer driving the stick
 let stickTouch=null;  // finger driving the stick
 let stickC=null;      // stick center (screen px) while held
 const stickZone=(x,y)=>x<innerWidth*0.45 && y>innerHeight*0.25;
 function placeStick(x,y){ stickC={x,y}; stick.style.left=x+'px'; stick.style.top=y+'px'; }
 function setStick(x,y){
-  let kx=0, ky=0, L=false, Rt=false, D=false, U=false;
+  let kx=0, ky=0, L=false, Rt=false, D=false;
   if(x!==null && stickC){
     const R=stick.offsetWidth*0.3;
     let dx=x-stickC.x, dy=y-stickC.y; const d=Math.hypot(dx,dy);
     if(d>R*1.7){ const k=(d-R*1.7)/d; placeStick(stickC.x+dx*k, stickC.y+dy*k); dx=x-stickC.x; dy=y-stickC.y; }
     const dd=Math.hypot(dx,dy), cl=Math.min(1,R/(dd||1)); kx=dx*cl; ky=dy*cl;
-    if(dd>R*0.35){ const a=Math.atan2(dy,dx); L=Math.cos(a)<-0.38; Rt=Math.cos(a)>0.38; D=Math.sin(a)>0.6; U=Math.sin(a)<-0.6; }
+    if(dd>R*0.35){ const a=Math.atan2(dy,dx); L=Math.cos(a)<-0.38; Rt=Math.cos(a)>0.38; D=Math.sin(a)>0.6; }
   }
-  if(L&&!stickHeld.left) taps.left=true; if(Rt&&!stickHeld.right) taps.right=true; if(D&&!stickHeld.down) taps.down=true; if(U&&!stickHeld.up) taps.up=true;
-  stickHeld.left=L; stickHeld.right=Rt; stickHeld.down=D; stickHeld.up=U;
+  if(L&&!stickHeld.left) taps.left=true; if(Rt&&!stickHeld.right) taps.right=true; if(D&&!stickHeld.down) taps.down=true;
+  stickHeld.left=L; stickHeld.right=Rt; stickHeld.down=D;
   knob.style.setProperty('--kx',kx+'px'); knob.style.setProperty('--ky',ky+'px');
   if(x===null){ stickC=null; stick.style.left=''; stick.style.top=''; }
-  stick.classList.toggle('held',x!==null); stick.classList.toggle('goL',L); stick.classList.toggle('goR',Rt); stick.classList.toggle('goD',D); stick.classList.toggle('goU',U);
+  stick.classList.toggle('held',x!==null); stick.classList.toggle('goL',L); stick.classList.toggle('goR',Rt); stick.classList.toggle('goD',D);
 }
 const touchActions=new Set();
 function refreshTouch(){
   const now=new Set(touchActions); ptrs.forEach(ks=>ks.forEach(k=>now.add(k)));
-  ['block','punch','kick','special','super'].forEach(k=>{ const v=now.has(k); if(v&&!touchHeld[k]) taps[k]=true; touchHeld[k]=v; });
-  touchHeld.left=stickHeld.left; touchHeld.right=stickHeld.right; touchHeld.down=stickHeld.down; touchHeld.up=stickHeld.up;
+  ['up','block','punch','kick','special','super'].forEach(k=>{ const v=now.has(k); if(v&&!touchHeld[k]) taps[k]=true; touchHeld[k]=v; });
+  touchHeld.left=stickHeld.left; touchHeld.right=stickHeld.right; touchHeld.down=stickHeld.down;
   btnEls.forEach(b=>b.classList.toggle('on', now.has(b.dataset.k)));
 }
 function resetTouch(){ ptrs.clear(); touchActions.clear(); stickId=null; stickTouch=null; setStick(null); refreshTouch(); }
