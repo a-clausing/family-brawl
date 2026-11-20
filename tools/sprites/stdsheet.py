@@ -106,7 +106,18 @@ def cut(A, img, fg, band, a, b):
     """One frame: every foreground pixel in the band between a and b, holes filled; RGBA crop."""
     from scipy import ndimage as nd
     y0, y1 = band; y0 = max(0, y0 - 4); y1 = min(A.shape[0], y1 + 4)
-    keep = np.zeros(fg.shape, bool); keep[y0:y1, a:b] = fg[y0:y1, a:b]
+    # Each separate piece goes to the frame its middle falls in, so a neighbour's fist or flame that crosses a cut line
+    # (frames that touch, split with SPLITS) stays with its own frame. A piece wider than the frame is two figures
+    # joined together: that one is cut straight at the frame's edges.
+    w0, w1 = max(0, a - 80), min(A.shape[1], b + 80)
+    win = np.zeros(fg.shape, bool); win[y0:y1, w0:w1] = fg[y0:y1, w0:w1]
+    wl, wn = nd.label(win); keep = np.zeros(fg.shape, bool)
+    for i, sl in enumerate(nd.find_objects(wl)):
+        m = wl[sl] == i + 1; xs = np.where(m.any(0))[0]; cx = sl[1].start + (np.where(m)[1].mean())
+        if not (a <= cx < b): continue
+        if sl[1].stop - sl[1].start > 1.6 * (b - a):
+            part = np.zeros(fg.shape, bool); part[sl] = m; keep[y0:y1, a:b] |= part[y0:y1, a:b]
+        else: keep[sl] |= m
     lab, n = nd.label(keep); size = nd.sum(keep, lab, range(1, n + 1))
     for i, s in enumerate(size):
         if s < 6: keep[lab == i + 1] = False   # specks
