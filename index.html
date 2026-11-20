@@ -125,6 +125,9 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 .big{font-family:var(--pixel);text-align:center;font-size:clamp(22px,8vh,36px);margin:0;line-height:1.2;text-shadow:3px 3px 0 #120e14}
 .sub{text-align:center;color:var(--dim);margin:0;font-size:16px}
 @media (prefers-reduced-motion:reduce){.sp.ready,.phone{animation:none}}
+/* SPECIAL: steel-blue when ready, refills left to right while recharging (--cd: 1 = just used, 0 = ready) */
+.sp.sk{background:var(--steel);color:#fff;opacity:.8}
+.sp.sk.cool{background:linear-gradient(90deg,var(--steel) calc((1 - var(--cd,0))*100%),#2a3350 0);color:#c9d3ee;opacity:.6}
 .sprow{display:flex;gap:6px;align-items:center;margin-right:calc(var(--b)*-0.15)}
 .sprow .sp{margin-right:0}
 .su{border-radius:14px;width:calc(var(--b)*1.05);height:calc(var(--b)*0.78);font-size:9px;letter-spacing:.02em;background:#2a2238;color:#6d6390;opacity:.34}
@@ -293,7 +296,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
       <button class="mini" id="fsBtn" aria-label="Full screen" hidden><svg viewBox="0 0 10 10"><path d="M1 1h3v1.3H2.3V4H1zM6 1h3v3H7.7V2.3H6zM1 6h1.3v1.7H4V9H1zM7.7 6H9v3H6V7.7h1.7z"/></svg></button>
     </div>
     <div class="rightside" id="rightside">
-      <div class="sprow"><button class="act su" data-k="super" id="suBtn"><span>SUPER</span></button><button class="act sp" data-k="special" id="spBtn"><span>SPECIAL</span></button></div>
+      <div class="sprow"><button class="act su" data-k="super" id="suBtn"><span>SUPER</span></button><button class="act sp sk" data-k="special" id="spBtn"><span>SPECIAL</span></button></div>
       <div class="pad" id="apad" aria-label="Action buttons">
         <span></span>
         <button class="act ju" data-k="up"><span>J</span><i>Jump</i></button>
@@ -508,9 +511,9 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
           <b>B</b><span>Tap or hold to block. Blocked hits only chip a little health. Double-tap B right next to an opponent who isn’t attacking or blocking to throw them (no damage, but they’re knocked down).</span>
           <b>SAME</b><span>Picking the same fighter as the CPU is fine: the CPU's copy wears different colors.</span>
           <b>2V2 · FFA</b><span>Pick the fight type at the top of this screen. Up to four fighters share a wider arena and the camera follows the action. Everyone has a few lives (set them in Fight Options): lose your health bar and you drop back in; out of lives, you're out. Last fighter (or team) standing wins. Specials and supers hit everyone in their path, but never your teammate.</span>
-          <b>SUPER</b><span>Fill the meter all the way (2.5 specials’ worth) without spending it and SUPER lights up. Supers can’t be blocked or jumped.</span>
+          <b>SUPER</b><span>Land and take hits to fill your meter. When it’s full, SUPER lights up. Supers can’t be blocked or jumped.</span>
           <b>P, K</b><span>Punch and kick. Land a hit, then tap P or K again right away to chain a combo.</span>
-          <b>SPECIAL</b><span>Costs 40 meter; the bar glows when it's ready. Jump or block the dumbbell, and jump, duck or block Becky's coffee mug.</span>
+          <b>SPECIAL</b><span>Free to use: after each one, the SPECIAL button fills back up. Light ones like the Goblin's dagger and Imp's fireball come back fast; big ones like AC's dumbbell take longer. One out at a time, and it stops at the first fighter it hits. Jump or block the dumbbell, and jump, duck or block Becky's coffee mug.</span>
         </div>
         <p class="kbd" style="margin-top:10px;text-align:left">Keyboard: left/right or A/D walk, up/W/space jump, J punch, K kick, L special, U super, I block, P pause.</p>
     <button class="go" id="howClose">GOT IT</button>
@@ -736,7 +739,7 @@ for(const [k,th] of Object.entries(FIGHTER_H)){
 }
 // ---- Balance pass (tuned with CPU-vs-CPU simulations: thousands of matches per pairing) ----
 const BAL={
-  ac:   {punch:{rc:6, dmg:6}, low:{dmg:5}, kick:{dmg:10}, plateDmg:13},
+  ac:   {punch:{rc:6, dmg:6}, low:{dmg:5}, kick:{dmg:10}, plateDmg:10},
   becky:{punch:{dmg:5}, low:{dmg:5}, kick:{dmg:9}, armorCD:75, speed:1.75},
   bmoney:{punch:{dmg:6}, low:{dmg:6}, kick:{dmg:10}, air:{dmg:8}, speed:2.1},
   winston:{punch:{dmg:6, st:2, rc:5, hs:15, bs:10}, low:{dmg:5, st:2, hs:14}, kick:{dmg:10, st:4, rc:9, hs:19, bs:11}, air:{dmg:8}, speed:2.1},
@@ -1766,17 +1769,26 @@ function newMatch(){
 }
 function startRound(){
   G.f.forEach((f,i)=>{ Object.assign(f,{x:i?AW/2+60:AW/2-60,y:GROUND,vx:0,vy:0,dir:i?-1:1,hp:MAXHP,shp:MAXHP,lagT:0,meter:40,stood:false,state:'idle',
-    move:null,mf:0,mhit:false,stun:0,bstun:0,onGround:true,landT:10,flash:0,combo:0,bandOut:false,sprint:null,impactT:0,ib:null,armorCD:0,sup:null,superArmor:false,kd:null,inv:0,held:false,thr:null,lastBlk:undefined,poison:null}); f.ai.cool=20; f.ai.holdT=0; f.ai.holds={}; });
+    move:null,mf:0,mhit:false,stun:0,bstun:0,onGround:true,landT:10,flash:0,combo:0,bandOut:false,sprint:null,impactT:0,ib:null,armorCD:0,sup:null,superArmor:false,kd:null,inv:0,held:false,thr:null,lastBlk:undefined,poison:null,skillCD:0}); f.ai.cool=20; f.ai.holdT=0; f.ai.holds={}; });
   G.cine=null; G.proj=[]; G.parts=[]; G.timer=60; G.ft=0; G.phase='intro'; G.pt=0; G.winner=null; G.combo=null; G.slow=0; G.hitstop=0; G.kofeed=null;
   if(G.multi) G.f.forEach((f,i)=>{ f.x=spawnX(i); f.dir=f.x<AW/2?1:-1; Object.assign(f,{stocks:G.rules.stocks||3,dead:false,elim:false,out:false,respawnT:0,outT:0,lastAtt:-1}); });
 }
 
 /* ---------------- Combat ---------------- */
+// Specials (Alex, Nov 20 2026): no longer earned with meter (only supers are). They're free, one out at a time, and
+// recharge; the stronger the special, the longer the wait (frames, 60 = 1 s). The dagger and fireball hit like a punch,
+// so they come back fast. Every special ends on the first fighter it hits.
+const SKILL_CD_BY={goblin:36, imp:36, becky:90, haddie:90, slime:90, harper:120, bmoney:135, winston:135, ac:150};
+const skillCDOf=f=>SKILL_CD_BY[f.key]||120;
+const SKILL_PROJ={plate:1,mug:1,bone:1,puke:1,yap:1,slimeshot:1,fireball:1,ripple:1,wave:1,dagger:1};
+const skillOut=f=>G.proj.some(p=>p.owner===f&&SKILL_PROJ[p.type]);
+const skillOk=f=>!(f.skillCD>0)&&!skillOut(f);
+const skillWait=f=>Math.max(0,Math.min(1,(f.skillCD||0)/skillCDOf(f)));
 function startMove(f,k){
   f.move=k; f.mf=0; f.mhit=false; f.state='attack'; f.moveId++;
   if(f.onGround) f.vx=(k==='punch'||k==='kick')?f.dir*0.4:0;
   if(f.key==='winston' && f.onGround && f.combo>0 && (k==='punch'||k==='kick')) f.vx=f.dir*(k==='punch'?2.6:1.6);   // lunging bite / jumping paw strike close the gap
-  if(k==='special') f.meter-=f.cfg.moves.special.cost; else sfx('whoosh');
+  if(k==='special') f.skillCD=skillCDOf(f); else sfx('whoosh');
 }
 function hurt(f){
   const low=f.state==='crouch'||f.move==='low'||(f.move==='special'&&f.key==='brick'&&f.mf>=f.cfg.moves.special.st);
@@ -1857,36 +1869,36 @@ function spawnSpecial(f){
     startSprint(f);
   } else if(f.key==='winston'){   // BONE THROW: the bone leaves from his mouth, flies straight, blockable
     const x=f.x+f.dir*WN_MOUTH[0], y=f.y-WN_MOUTH[1];
-    G.proj.push({type:'bone',owner:f,x,y,vx:f.dir*4.6,t:0,dmg:12,kb:2.4,hs:20,bs:10,kd:true});
+    G.proj.push({type:'bone',owner:f,x,y,vx:f.dir*4.6,t:0,dmg:9,kb:2.4,hs:20,bs:10,kd:true});
     sparks(x,y,f.alt?WN_FX_ALT:WN_FX,5); sfx('whoosh');
   } else if(f.key==='haddie'){   // PROJECTILE PUKE: a green glob from her mouth, flies straight, blockable
     const x=f.x+f.dir*HD_MOUTH[0], y=f.y-HD_MOUTH[1];
-    G.proj.push({type:'puke',owner:f,x,y,vx:f.dir*4.2,t:0,dmg:11,kb:2.2,hs:22,bs:10});
+    G.proj.push({type:'puke',owner:f,x,y,vx:f.dir*4.2,t:0,dmg:8,kb:2.2,hs:22,bs:10});
     sparks(x,y,PUKE_FX,6); sfx('whoosh');
   } else if(f.key==='imp'){   // FIREBALL: thrown straight at chest height (block, jump or duck it)
     const x=f.x+f.dir*IMP_HAND[0], y=f.y-IMP_HAND[1];
-    G.proj.push({type:'fireball',owner:f,x,y,vx:f.dir*4.6,t:0,dmg:11,kb:2.2,hs:20,bs:10});
+    G.proj.push({type:'fireball',owner:f,x,y,vx:f.dir*4.6,t:0,dmg:5,kb:2.2,hs:20,bs:10});
     sparks(x,y,f.alt?IMP_FX_ALT:IMP_FX,6); sfx('whoosh');
   } else if(f.key==='goblin'){   // DAGGER TOSS: a rusty dagger thrown fast and straight at chest height (block, jump or duck it)
     const x=f.x+f.dir*GOB_HAND[0], y=f.y-GOB_HAND[1];
-    G.proj.push({type:'dagger',owner:f,x,y,vx:f.dir*6.2,t:0,dmg:10,kb:2,hs:18,bs:9});
+    G.proj.push({type:'dagger',owner:f,x,y,vx:f.dir*6.2,t:0,dmg:6,kb:2,hs:18,bs:9});
     sparks(x,y,['#dfe9ff','#9fc4ff','#ffffff'],4); sfx('whoosh');
   } else if(f.key==='slime'){   // SLIME SHOT: a glob of slime flies low and straight (blockable, jumpable)
     const x=f.x+f.dir*SL_MOUTH[0], y=f.y-SL_MOUTH[1];
-    G.proj.push({type:'slimeshot',owner:f,x,y,vx:f.dir*4.4,t:0,dmg:11,kb:2.2,hs:22,bs:10});
+    G.proj.push({type:'slimeshot',owner:f,x,y,vx:f.dir*4.4,t:0,dmg:8,kb:2.2,hs:22,bs:10});
     sparks(x,y,f.alt?SLIME_FX_ALT:SLIME_FX,6); sfx('whoosh');
   } else if(f.key==='harper'){   // YAP: a sound wave that travels the length of the arena and stuns (blockable)
     const x=f.x+f.dir*HP_MOUTH[0], y=f.y-HP_MOUTH[1];
-    G.proj.push({type:'yap',owner:f,x,y,vx:f.dir*5,t:0,dmg:9,kb:1.6,hs:26,bs:10});
+    G.proj.push({type:'yap',owner:f,x,y,vx:f.dir*5,t:0,dmg:7,kb:1.6,hs:26,bs:10});
     sparks(x,y,f.alt?YAP_FX_ALT:YAP_FX,5); sfx('snap');
   } else if(f.key==='bmoney'){   // GROUND RIPPLE: a low purple shockwave runs along the floor (blockable, jumpable)
     const x=f.x+f.dir*16;
-    G.proj.push({type:'ripple',owner:f,x,y:GROUND,vx:f.dir*3.6,t:0,range:72,dmg:12,kb:2.6,hs:22,bs:11,kd:true});
+    G.proj.push({type:'ripple',owner:f,x,y:GROUND,vx:f.dir*3.6,t:0,range:72,dmg:9,kb:2.6,hs:22,bs:11,kd:true});
     G.shake=Math.max(G.shake,4); sparks(x,GROUND-3,BM_FX,8); dust(x,GROUND,6); sfx('quake');
     G.parts.push({type:'sfx',key:'bmoney',name:'burst',x,y:GROUND+2,life:14,max:14,sc:0.8,alt:f.alt,main:true});
   } else if(f.key==='becky'){   // COFFEE MUG TOSS: a mug flies straight from her fist (block it, jump it or duck it)
     const k=CH.becky.drawK||1, x=f.x+f.dir*BK_HAND[0]*k, y=f.y-BK_HAND[1]*k;
-    G.proj.push({type:'mug',owner:f,x,y,vx:f.dir*4.8,t:0,dmg:10,kb:2.2,hs:18,bs:10});
+    G.proj.push({type:'mug',owner:f,x,y,vx:f.dir*4.8,t:0,dmg:8,kb:2.2,hs:18,bs:10});
     sfx('whoosh');
   } else {
     const x=f.x+f.dir*22;
@@ -1990,7 +2002,7 @@ function endSprint(f,o){
    and each one does the damage of three of that fighter's specials. */
 const SUPER_COST=100, CINE=86;   // close-up length in frames (~1.4s): zoom in, hold on the power pose, snap back out
 const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6}, CINE_FY={goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
-const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:46};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
+const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:52};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
 const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB'};
 const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:0,imp:4,goblin:2};
 const AC_RELEASE=[33.3, 48.6], BK_REL=SUPERS.becky.meta.rel;   // where the barbell / book stack leaves their hands [ahead, above feet]
@@ -2526,7 +2538,7 @@ function respawn(f){   // drop back in, as far from the opponents as possible, b
   const fs=foes(f).filter(o=>!o.dead); let bx=AW/2, bs=-1;
   for(const x of [AW*0.12,AW*0.3,AW*0.5,AW*0.7,AW*0.88]){ const d=fs.length?Math.min(...fs.map(o=>Math.abs(o.x-x))):0; if(d>bs){ bs=d; bx=x; } }
   Object.assign(f,{x:bx,y:GROUND-80,vx:0,vy:0,onGround:false,state:'jump',hp:MAXHP,shp:MAXHP,lagT:0,dead:false,move:null,mf:0,mhit:false,stun:0,bstun:0,
-    combo:0,kd:null,stood:false,inv:RESPAWN_INV,held:false,thr:null,poison:null,sup:null,sprint:null,superArmor:false,bandOut:false,ib:null,landT:10,flash:0});
+    combo:0,kd:null,stood:false,inv:RESPAWN_INV,held:false,thr:null,poison:null,skillCD:0,sup:null,sprint:null,superArmor:false,bandOut:false,ib:null,landT:10,flash:0});
   const o=tgt(f); if(o) f.dir=o.x>=f.x?1:-1;
   sparks(f.x,GROUND-40,['#ffffff',fcol(f)],12); sfx('jump');
 }
@@ -2621,7 +2633,7 @@ function updF(f,o){
   let fresh=null; for(const k of ['super','special','kick','punch','up']) if(E(k)){ fresh=k; break; }
   if(fresh) f.ib={k:fresh,t:BUFFER_FRAMES,down:I.down}; else if(f.ib && --f.ib.t<=0) f.ib=null;
   const B=k=>E(k)||(!!f.ib&&f.ib.k===k), useBuf=()=>{ f.ib=null; };
-  f.anim++; if(f.flash>0) f.flash--; if(f.armorCD>0) f.armorCD--; if(f.inv>0) f.inv--; superArmorCheck(f); poisonTick(f);
+  f.anim++; if(f.flash>0) f.flash--; if(f.armorCD>0) f.armorCD--; if(f.inv>0) f.inv--; if(f.skillCD>0) f.skillCD--; superArmorCheck(f); poisonTick(f);
   if(f.state==='ko'){ f.kd=null; f.held=false; phys(f); return; }
   if(G.multi){   // a throw that got cut short (another fighter's super grabbed the thrower) lets go of its victim
     if(f.thr && f.move!=='throw'){ const v=G.f[f.thr.vi]; if(v&&v.held){ v.held=false; v.state='idle'; } f.thr=null; }
@@ -2668,7 +2680,7 @@ function updF(f,o){
       f.lastBlk=f.anim;
     }
     if(I.block){ f.state='block'; f.vx=0; }
-    else if(B('special')){ useBuf(); if(f.meter>=c.moves.special.cost) startMove(f,'special'); else if(!f.cpu) sfx('deny'); }
+    else if(B('special')){ useBuf(); if(skillOk(f)) startMove(f,'special'); else if(!f.cpu) sfx('deny'); }
     else if(B('punch')){ useBuf(); startMove(f, I.down?'low':'punch'); }
     else if(B('kick')){ useBuf(); startMove(f,'kick'); }
     else if((I.up||B('up')) && f.landT>3){ useBuf(); f.vy=c.jump; f.onGround=false; f.vx=(I.right?1:I.left?-1:0)*c.jumpVx; f.state='jump'; sfx('jump'); }
@@ -2743,7 +2755,7 @@ function aiInput(f,o){
   if(f.meter>=SUPER_COST && f.onGround && !f.move && !G.cine && !o.sup && !o.superArmor && arnd()<0.035*D.aggr){ inp.super=true; return inp; }
   if(a.cool>0){ a.cool--; return inp; }
   a.cool=D.react+((arnd()*D.react)|0);
-  if(f.meter>=f.cfg.moves.special.cost && d>70 && arnd()<0.4*D.aggr){ inp.special=true; return inp; }
+  if(skillOk(f) && d>70 && arnd()<0.4*D.aggr){ inp.special=true; return inp; }
   // AC escapes a corner by jumping over the opponent
   const cornered=(f.x<44&&dx>0)||(f.x>AW-44&&dx<0);
   if(f.key==='ac' && cornered && d<46 && f.onGround && arnd()<0.55*D.aggr){ inp.up=true; inp[tw]=true; return inp; }
@@ -2803,7 +2815,6 @@ function updProj(){
       if(p.type==='fireball'){ sparks(hx,p.y,p.owner.alt?IMP_FX_ALT:IMP_FX,12); G.parts.push({type:'sfx',key:'imp',name:'fire3',x:hx,y:p.y,life:12,max:12,sc:0.35,alt:p.owner.alt}); }
       if(p.type==='slimeshot'){ sparks(hx,p.y,p.owner.alt?SLIME_FX_ALT:SLIME_FX,10); G.parts.push({type:'sfx',key:'slime',name:'splat',x:hx,y:p.y+6,life:16,max:16,sc:0.3,alt:p.owner.alt}); }
       if(p.type==='mug'){ sparks(hx,p.y,COFFEE_FX,12); G.parts.push({type:'sfx',key:'becky',name:'star',x:hx,y:p.y,life:10,max:10,sc:0.7}); }
-      if(G.multi && (p.type==='ripple'||p.type==='wave')){ (p.hitl=p.hitl||[]).push(fidx(d)); continue; }   // shockwaves roll on to the next fighter
       gone=true; break;
     }
     }
@@ -3078,12 +3089,10 @@ function healthBar(f,x,y,anchorLeft){
   if(hw>0){ const low=f.hp<=MAXHP*0.25&&(G.t>>3)%2; P(hx,y,hw,h,low?'#ff8a3c':'#ffd23f'); P(hx,y,hw,2,'#fff3a8'); P(hx,y+h-2,hw,2,low?'#d0561c':'#e0a21c'); }
 }
 function meterBar(f,x,y,anchorLeft){
-  const w=60,h=4, cost=f.cfg.moves.special.cost, ready=f.meter>=cost;
+  const w=60,h=4;
   P(x-1,y-1,w+2,h+2,OUT); P(x,y,w,h,'#231b38');
   const mw=Math.round(w*f.meter/100);
-  P(anchorLeft?x:x+w-mw,y,mw,h, ready&&(G.t>>3)%2?'#ffffff':fcol(f));
-  const tick=anchorLeft?x+Math.round(w*cost/100):x+w-Math.round(w*cost/100);
-  P(tick,y-1,1,h+2,'#f4ecd8');
+  P(anchorLeft?x:x+w-mw,y,mw,h,fcol(f));
   if(f.meter>=SUPER_COST){
     P(x,y,w,h,(G.t>>2)%2?'#ffe066':'#ff9a1f');
     txt('SUPER',anchorLeft?x+w+5:x-5,y-2,8,(G.t>>3)%2?'#ffe066':'#ffffff',anchorLeft?'left':'right');
@@ -3591,7 +3600,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=18;
+const HASH_EVERY=30, KEEP=900, NET_V=19;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late
@@ -3621,7 +3630,7 @@ function stateHash(){
   let h=2166136261>>>0; const add=v=>{ h^=(Math.round(v)|0); h=Math.imul(h,16777619)>>>0; };
   const str=t=>{ for(let i=0;i<(t||'').length;i++) add(t.charCodeAt(i)); };
   for(const f of G.f){ add(f.x*100); add(f.y*100); add(f.vx*1000); add(f.vy*1000); add(f.hp*10); add(f.meter*10);
-    add(f.mf); add(f.stun); add(f.bstun); add(f.dir); add(f.wins); str(f.state); str(f.move); add(f.kd?f.kd.t+100:-1); add(f.inv||0); add(f.thr?f.thr.t:-1); add(f.poison?f.poison.t:-1); add(f.stocks||0); add(f.dead?1:0); add(f.out?1:0); }
+    add(f.mf); add(f.stun); add(f.bstun); add(f.dir); add(f.wins); str(f.state); str(f.move); add(f.kd?f.kd.t+100:-1); add(f.inv||0); add(f.thr?f.thr.t:-1); add(f.poison?f.poison.t:-1); add(f.skillCD||0); add(f.stocks||0); add(f.dead?1:0); add(f.out?1:0); }
   add(G.cine?G.cine.t:-1); for(const f of G.f) add(f.sup?f.sup.t*10+f.sup.ph:-1);
   add(G.mclock); add(G.sudden?1:0); add(G.timer); add(G.pt); add(G.round); add(G.hitstop); add(G.slow); str(G.phase); add((G.rs||0)%100000);
   for(const q of G.proj){ add(q.x*100); add(q.y*100); }
@@ -3760,7 +3769,7 @@ setInterval(keepAwake,1500); document.addEventListener('visibilitychange',keepAw
 // version.json next to index.html. Alex (Nov 20 2026): check only when the app is opened (launch, or coming back on
 // screen), tell the player, load the new version right away if they're on a menu, and otherwise tell them to close and
 // reopen the app. After an update loads, a message says so (the last build seen is kept in localStorage nrb.build).
-const BUILD_ID='5f7beb137ec5'; let UPD=null, updTold=false;
+const BUILD_ID='16a499b43392'; let UPD=null, updTold=false;
 function toast(msg,ms=4000){
   let t=document.getElementById('updToast');
   if(!t){ t=document.createElement('div'); t.id='updToast'; t.setAttribute('role','status'); document.body.appendChild(t); }
@@ -4123,8 +4132,8 @@ function loop(now){
   const cineOn=!!(G.cine&&G.mode==='play'); if(cineOn!==lastCine){ appEl.classList.toggle('cinemode',cineOn); lastCine=cineOn; }
   const multiOn=!!(G.multi&&G.mode==='play'); if(multiOn!==lastMulti){ appEl.classList.toggle('multimode',multiOn); lastMulti=multiOn; }
   const me=G.f&&G.f[NET.active?NET.local:0];
-  const ready=!!(me && G.mode==='play' && me.meter>=me.cfg.moves.special.cost);
-  if(ready!==lastSp){ spBtn.classList.toggle('ready',ready); lastSp=ready; }
+  const cd=me&&G.mode==='play'?Math.ceil(skillWait(me)*40)/40:0;   // SPECIAL recharge
+  if(cd!==lastSp){ spBtn.classList.toggle('cool',cd>0); spBtn.style.setProperty('--cd',cd); lastSp=cd; }
   const sready=!!(me && G.mode==='play' && me.meter>=SUPER_COST);
   if(sready!==lastSu){ suBtn.classList.toggle('ready',sready); lastSu=sready; }
   requestAnimationFrame(loop);
