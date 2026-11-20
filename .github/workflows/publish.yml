@@ -44,10 +44,11 @@ jobs:
       - name: Assemble site
         run: |
           mkdir -p site
-          cp live/index.html live/peerjs.min.js live/manifest.webmanifest live/*.png site/
+          cp live/index.html live/version.json live/peerjs.min.js live/manifest.webmanifest live/*.png site/
           if [ -f campaign-source/index.html ]; then
             mkdir -p site/campaign
             cp campaign-source/index.html campaign-source/peerjs.min.js campaign-source/manifest.webmanifest campaign-source/*.png site/campaign/
+            if [ -f campaign-source/version.json ]; then cp campaign-source/version.json site/campaign/; fi
           fi
           touch site/.nojekyll
       - uses: actions/configure-pages@v5

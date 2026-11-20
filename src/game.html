@@ -3735,6 +3735,24 @@ function keepAwake(){
   else if(!want && WAKE){ const w=WAKE; WAKE=null; w.release().catch(()=>{}); }
 }
 setInterval(keepAwake,1500); document.addEventListener('visibilitychange',keepAwake);
+/* ---------------- Auto-update ---------------- */
+// A home-screen app keeps running the copy it loaded, so a new release used to need the app fully closed and reopened.
+// tools/build.py stamps each build with BUILD_ID and writes version.json next to index.html. The game checks it when the
+// app comes back on screen and every 2 minutes; when the live build is different, it reloads itself the next time you're
+// on a menu (never mid-fight, in an online room, or while typing a join code). The ?v= on the reload URL skips any cached copy.
+const BUILD_ID='@@build@@'; let UPD=null;
+async function checkUpdate(){
+  if(!/^https?:$/.test(location.protocol)) return;   // the claude.ai copy and local files have no version.json
+  try{ const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'}); if(!r.ok) return; const j=await r.json(); if(j&&j.v&&j.v!==BUILD_ID) UPD=j.v; }catch(e){}
+  applyUpdate();
+}
+function applyUpdate(){
+  if(!UPD || G.mode==='play' || NET.room || NET.active || NET.conn || !onlineOv.hidden || document.hidden) return;
+  try{ if(sessionStorage.getItem('nrb.upd')===UPD) return; sessionStorage.setItem('nrb.upd',UPD); }catch(e){}   // one try per version: never a reload loop if the site still serves the old copy
+  const u=new URL(location.href); u.searchParams.set('v',UPD); location.replace(u.toString());
+}
+setTimeout(checkUpdate,2500); setInterval(checkUpdate,120000); setInterval(applyUpdate,1500);
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkUpdate(); });
 function nextSlot(){ for(let s=1;s<=3;s++) if(!NET.conns.some(y=>y.slot===s)) return s; return -1; }
 function dropGuest(x){ NET.conns=NET.conns.filter(y=>y!==x); setTimeout(()=>{ try{ x.c.close&&x.c.close(); const f=x.c.peer&&!NET.conns.some(y=>y.c.peer===x.c.peer)&&NET.fastBy[x.c.peer]; f&&f.close(); }catch(e){} },300); lobbyUpdate(); }
 function guestLeft(x){
