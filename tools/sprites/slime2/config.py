@@ -3,4 +3,4 @@
 SHEET = '../../../art/originals/slime-sheet-v2.png'
 GAP = 3
 SPLITS = {3: [772], 6: [113, 323, 768]}   # row 4: the two flying jump kicks; row 7: super frames that touch
-OLD = '../../../src/assets/slime-sheet.js'   # keep his in-game size: same drawn area as the v1 idle
+OLD_IDLE = (63, 31)   # v1 idle size in atlas px; v2 keeps the same drawn area

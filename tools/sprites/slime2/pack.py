@@ -4,7 +4,9 @@ import numpy as np, pickle, json, sys, io, base64
 from PIL import Image
 sys.path.insert(0, '..'); sys.path.insert(0, '../goblin')
 from dogsheet import down, trim
-from stdsheet import despill
+from stdsheet import despill, bg_color
+import config as C
+BG = bg_color(np.asarray(Image.open(C.SHEET).convert('RGB')).astype(int))
 main, sup, fx, raw_pose, SCALE = pickle.load(open('frames.pkl', 'rb'))
 src_pack = open('../goblin/pack.py').read()
 exec(src_pack[src_pack.index('def atlas'):src_pack.index('def fxitem')])   # reuse the Goblin's atlas packer
@@ -26,7 +28,7 @@ for a, b in {'lpunch1': 'throw0', 'hpunch3': 'throw1', 'hpunch4': 'throw2', 'hpu
 mainj = {'src': src, 'spr': spr}
 
 it = [(str(j), f['img'], f['ax'], f['ay'], 2) for j, f in enumerate(sup)]
-hd = trim(down(raw_pose, sup[3]['img'].shape[0] * 2 / raw_pose.shape[0]))   # close-up: power pose (arms up), double detail
+hd = despill(trim(down(raw_pose, sup[3]['img'].shape[0] * 2 / raw_pose.shape[0])), BG)   # close-up: power pose (arms up), double detail
 it.append(('hd', hd, sup[3]['ax'] * 2, hd.shape[0], 4))
 half = trim(down(main['idle'][0]['img'], 0.72)); it.append(('halfL', half, half.shape[1] / 2, half.shape[0], 2))   # one of the two halves
 for j in range(3): it.append(fx_item(f'flyL{j}', fx[f'pobj{j}'], k=0.62, front=True))   # a half flying as a slime comet

@@ -14,6 +14,18 @@ def foreground_auto(A, tol=90):
     return d > tol
 
 
+def spill(c, bg):
+    """How much a pixel leans toward the background colour: the weakest of the background's strong channels minus
+    the strongest of its weak ones (magenta: min(R,B) - G). Slime green, yellow, black and white all score <= 0."""
+    hi = [i for i in range(3) if bg[i] > 150]; lo = [i for i in range(3) if bg[i] <= 150]
+    return c[..., hi].min(2) - c[..., lo].max(2)
+
+
+def unspill_mask(A, bg, cut=28):
+    """Pixels to keep: not tinted toward the background (edge blends between the outline and the screen colour)."""
+    return spill(A[..., :3].astype(int), bg) <= cut
+
+
 def despill(d, bg):
     """Pull background tint out of edge pixels (the dominant background channel(s) are capped at the others)."""
     from scipy import ndimage as nd
@@ -21,7 +33,7 @@ def despill(d, bg):
     if not lo: return d
     lim = c[..., lo].max(2)
     edge = (d[..., 3] > 0) & ~nd.binary_erosion(d[..., 3] > 0, iterations=2)
-    spill = np.all([c[..., i] > lim + 40 for i in hi], 0) & edge
+    spill = np.all([c[..., i] > lim + 8 for i in hi], 0) & (d[..., 3] > 0)
     for i in hi: c[..., i] = np.where(spill, lim, c[..., i])
     d = d.copy(); d[..., :3] = np.clip(c, 0, 255).astype(np.uint8); return d
 
@@ -89,6 +101,13 @@ def cut(A, img, fg, band, a, b):
     for i, s in enumerate(size):
         if s < 6: keep[lab == i + 1] = False   # specks
     keep = nd.binary_fill_holes(keep) & fg
+    keep &= unspill_mask(A, bg_color(A))   # drop background-tinted fringe and specks (pink halo on a magenta sheet)
+    lab, n = nd.label(keep); size = nd.sum(keep, lab, range(1, n + 1))
+    bg = bg_color(A); hi = [i for i in range(3) if bg[i] > 150]; lo = [i for i in range(3) if bg[i] <= 150]
+    c = A[..., :3].astype(int); lean = c[..., hi].max(2) - c[..., lo].max(2)   # leans toward the screen colour (magenta: pink/orange)
+    tint = nd.mean(lean, lab, range(1, n + 1)); sp = nd.mean(spill(c, bg), lab, range(1, n + 1))
+    for i, s in enumerate(size):   # specks, and small sparks left tinted by the screen colour
+        if s < 6 or (s < 60 and (tint[i] > 40 or sp[i] > -15)): keep[lab == i + 1] = False
     ys, xs = np.where(keep)
     rgba = img[ys.min():ys.max() + 1, xs.min():xs.max() + 1].copy()
     rgba[..., 3] = np.where(keep[ys.min():ys.max() + 1, xs.min():xs.max() + 1], 255, 0)

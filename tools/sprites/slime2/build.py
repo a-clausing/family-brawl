@@ -14,7 +14,7 @@ N = name_frames(rows)
 R = {k: [cut(A, img, FG, bands[r], a, b) for r, a, b in v] for k, v in N.items()}
 for k, v in R.items(): print(f'{k:8}', len(v), [f.shape[:2] for f in v])
 
-s = open(C.OLD).read(); old = json.loads(s[s.index('{'):s.rindex('}') + 1])['spr']['idle0']
+old = (0, 0) + C.OLD_IDLE
 ih = np.median([trim(f).shape[0] for f in R['idle']]); iw = np.median([trim(f).shape[1] for f in R['idle']])
 SCALE = float(np.sqrt(old[2] * old[3] / (ih * iw))); print('scale', round(SCALE, 4), 'old idle', old[2:4])
 
