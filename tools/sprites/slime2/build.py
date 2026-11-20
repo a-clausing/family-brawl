@@ -9,14 +9,15 @@ from PIL import Image
 
 img, A = load(C.SHEET); A = A.astype(int)
 BG = bg_color(A); FG = nd.binary_opening(foreground_auto(A), iterations=1)
-bands, rows = find_frames(A, C.GAP, C.SPLITS)
-N = name_frames(rows)
+bands, rows = find_frames(A, C.GAP, C.SPLITS, rowgap=getattr(C, 'ROWGAP', 10))
+N = name_frames(rows, getattr(C, 'LAYOUT', None) or __import__('stdsheet').LAYOUT)
 R = {k: [cut(A, img, FG, bands[r], a, b) for r, a, b in v] for k, v in N.items()}
 for k, v in R.items(): print(f'{k:8}', len(v), [f.shape[:2] for f in v])
 
-old = (0, 0) + C.OLD_IDLE
 ih = np.median([trim(f).shape[0] for f in R['idle']]); iw = np.median([trim(f).shape[1] for f in R['idle']])
-SCALE = float(np.sqrt(old[2] * old[3] / (ih * iw))); print('scale', round(SCALE, 4), 'old idle', old[2:4])
+if hasattr(C, 'IDLE_H'): SCALE = float(C.IDLE_H / ih)   # match a drawn height (atlas px)
+else: SCALE = float(np.sqrt(C.OLD_IDLE[0] * C.OLD_IDLE[1] / (ih * iw)))   # match a drawn area
+print('scale', round(SCALE, 4))
 
 
 def anchor(d, mode):
@@ -36,12 +37,13 @@ PROPS = ('sobj', 'simp', 'pobj', 'pimp')
 main = {k: [frame(f, 'center' if k == 'roll' and 1 <= j <= 3 else 'body') for j, f in enumerate(v)] for k, v in R.items() if k not in PROPS + ('super',)}
 sup = [frame(f) for f in R['super']]
 fx = {f'{k}{j}': frame(f, 'center') for k in PROPS for j, f in enumerate(R[k])}
-pickle.dump((main, sup, fx, trim(R['super'][3]), SCALE), open('frames.pkl', 'wb'))   # super frame 3 = power pose, for the close-up
+fxraw = {f'{k}{j}': trim(f) for k in PROPS for j, f in enumerate(R[k])}   # props at full size, so pack.py can size them freely
+pickle.dump((main, sup, fx, trim(R['super'][getattr(C, 'POSE', 3)]), SCALE, fxraw), open('frames.pkl', 'wb'))   # super frame 3 = power pose, for the close-up
 
 # contact sheet at 3x, magenta-free on grey, with a line at the feet
 items = [(k + str(j), f['img'], f['ax'], f['ay']) for k, v in main.items() for j, f in enumerate(v)] + \
         [('S' + str(j), f['img'], f['ax'], f['ay']) for j, f in enumerate(sup)] + [(k, f['img'], f['ax'], f['ay']) for k, f in fx.items()]
-cw, chh, per = 80, 70, 14
+cw, chh, per = 80, 100, 14
 L = Image.new('RGBA', (cw * per, chh * ((len(items) + per - 1) // per)), (70, 70, 80, 255))
 for i, (nm, im, ax, ay) in enumerate(items):
     x, y = (i % per) * cw, (i // per) * chh

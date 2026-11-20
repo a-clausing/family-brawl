@@ -7,7 +7,7 @@ from dogsheet import down, trim
 from stdsheet import despill, bg_color
 import config as C
 BG = bg_color(np.asarray(Image.open(C.SHEET).convert('RGB')).astype(int))
-main, sup, fx, raw_pose, SCALE = pickle.load(open('frames.pkl', 'rb'))
+main, sup, fx, raw_pose, SCALE, _ = pickle.load(open('frames.pkl', 'rb'))
 src_pack = open('../goblin/pack.py').read()
 exec(src_pack[src_pack.index('def atlas'):src_pack.index('def fxitem')])   # reuse the Goblin's atlas packer
 

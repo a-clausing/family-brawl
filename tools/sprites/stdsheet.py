@@ -21,9 +21,19 @@ def spill(c, bg):
     return c[..., hi].min(2) - c[..., lo].max(2)
 
 
-def unspill_mask(A, bg, cut=28):
-    """Pixels to keep: not tinted toward the background (edge blends between the outline and the screen colour)."""
-    return spill(A[..., :3].astype(int), bg) <= cut
+def unspill_mask(A, bg, cut=28, reach=4):
+    """Pixels to keep. Drops pixels tinted toward the background only where they join up with the background
+    itself within `reach` px (the halo between the outline and the screen colour), so purple or pink parts of
+    the character inside the outline (the Goblin's cape) stay."""
+    from scipy import ndimage as nd
+    tint = spill(A[..., :3].astype(int), bg) > cut
+    back = ~foreground_auto(A)
+    near = nd.distance_transform_edt(~back) <= reach
+    lab, n = nd.label((tint & near) | back)
+    touch = np.unique(lab[back]); halo = np.isin(lab, touch[touch > 0]) & tint & near
+    c = A[..., :3].astype(int); hi = [i for i in range(3) if bg[i] > 150]
+    pocket = (spill(c, bg) > 90) & (c[..., hi].max(2) > 170)   # bright screen colour trapped between limbs
+    return ~halo & ~pocket
 
 
 def despill(d, bg):
@@ -33,7 +43,7 @@ def despill(d, bg):
     if not lo: return d
     lim = c[..., lo].max(2)
     edge = (d[..., 3] > 0) & ~nd.binary_erosion(d[..., 3] > 0, iterations=2)
-    spill = np.all([c[..., i] > lim + 8 for i in hi], 0) & (d[..., 3] > 0)
+    spill = np.all([c[..., i] > lim + 8 for i in hi], 0) & edge
     for i in hi: c[..., i] = np.where(spill, lim, c[..., i])
     d = d.copy(); d[..., :3] = np.clip(c, 0, 255).astype(np.uint8); return d
 
@@ -50,7 +60,7 @@ LAYOUT = [
 ]
 
 
-def find_frames(A, gap=3, splits=None, minsize=25):
+def find_frames(A, gap=3, splits=None, minsize=25, rowgap=10):
     """Rows by horizontal projection, frames by grouping blobs closer than `gap` px.
     splits: {row_index: [x, ...]} cuts merged frames at those x positions (find them with survey.py).
     Returns (bands, rows) where rows[i] = [(x0, x1), ...]."""
@@ -61,7 +71,7 @@ def find_frames(A, gap=3, splits=None, minsize=25):
         if on[y]:
             y0 = y
             while y < len(on) and on[y]: y += 1
-            if bands and y0 - bands[-1][1] < 10: bands[-1][1] = y
+            if bands and y0 - bands[-1][1] < rowgap: bands[-1][1] = y
             else: bands.append([y0, y])
         y += 1
     bands = [b for b in bands if b[1] - b[0] > 20]
