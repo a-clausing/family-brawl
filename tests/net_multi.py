@@ -11,7 +11,7 @@ from _common import serve_out, BG_ARGS, OUT, page_url
 
 MODE = sys.argv[1] if len(sys.argv) > 1 else 'ffa'
 NG = int(sys.argv[2]) if len(sys.argv) > 2 else 3
-PICKS = sys.argv[3].split(',') if len(sys.argv) > 3 else ['ac', 'volt', 'winston', 'brick']
+PICKS = sys.argv[3].split(',') if len(sys.argv) > 3 else ['ac', 'slime', 'winston', 'imp']
 
 
 async def main():
