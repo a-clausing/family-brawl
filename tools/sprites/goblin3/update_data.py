@@ -1,0 +1,8 @@
+# Copy Goblin v3 (gb2.json from pack.py) into the game's asset files; then run tools/build.py from the repo root.
+import json, os
+A = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../src/assets/')
+D = json.load(open('gb2.json'))
+open(A + 'goblin-sheet.js', 'w').write('window.GB_SHEET=' + json.dumps(D['main']) + ';')
+s = open(A + 'supers.js').read(); d = json.loads(s[s.index('{'):s.rindex('}') + 1]); d['goblin'] = D['super']
+open(A + 'supers.js', 'w').write('window.SUPERS=' + json.dumps(d, separators=(',', ':')) + ';')
+print('ok')

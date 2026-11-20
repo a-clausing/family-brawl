@@ -2083,7 +2083,7 @@ const SUPER_COST=100, CINE=86;   // close-up length in frames (~1.4s): zoom in, 
 const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6,skeleton:1.9}, CINE_FY={skeleton:22,goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
 const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:52,skeleton:56};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
 const SUPER_NAME={ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB',skeleton:'SKELETON ARMY'};
-const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:3,imp:4,goblin:4,skeleton:3};
+const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:3,imp:3,goblin:3,skeleton:3};
 const AC_RELEASE=[33.3, 48.6], BK_REL=SUPERS.becky.meta.rel;   // where the barbell / book stack leaves their hands [ahead, above feet]
 const clampX=x=>Math.max(14,Math.min(AW-14,x));
 function startSuper(f,o){
@@ -2155,20 +2155,19 @@ function superStep(f,o){
       } else if(u<36) s.fr=6; else return endSuper(f,o);
       break; }
     case 'imp': {   // DEMON FIREBALL: he powers up in flames, then a huge demon-skull fireball roars across the stage
-      // super frames (v2 sheet): 1-2 fireball in hand, 3 crouched in flames, 4 arms up and wings out (close-up),
-      // 5 fire in both hands, 6 punch forward (launch), 7-8 back to normal
+      // super frames (v3 sheet): 0-1 stance, 2 flames rise, 3 arms up in a ring of fire (close-up), 4 flames, 5-7 stance
       const FX=f.alt?IMP_FX_ALT:IMP_FX;
-      if(t<=CINE){ s.fr=t<8?0:t<16?1:t<26?2:t<36?3:4;
+      if(t<=CINE){ s.fr=t<8?0:t<16?1:t<26?2:3;
         if(t>=10 && t%3===0) part(f.x+(rnd()-0.5)*30,f.y-rnd()*30,(rnd()-0.5)*0.4,-0.6-rnd()*0.6,16,FX[t%3],rnd()<0.4?2:1,-0.02);
         break; }
-      if(u<12){ s.fr=u<6?5:6;
+      if(u<12){ s.fr=u<6?4:5;
         if(u===8){ f.dir=o.x>=f.x?1:-1;
           G.proj.push({type:'sdemon',sup:1,owner:f,x:f.x+f.dir*24,y:GROUND-26,vx:f.dir*5.5,t:0,
             dmg:SUPER_DMG.imp,kb:4,hs:46,bs:0,unblockable:true,launch:true});
           sfx('whoosh'); G.shake=Math.max(G.shake,5); G.flashT=3; G.flashCol=f.alt?'rgba(60,140,255,.14)':'rgba(255,120,30,.16)';
           sparks(f.x+f.dir*20,f.y-24,FX,14); }
         break; }
-      s.fr=u<22?6:u<32?7:8; if(u>=40) return endSuper(f,o);
+      s.fr=u<22?5:u<32?6:7; if(u>=40) return endSuper(f,o);
       break; }
     case 'skeleton': {   // SKELETON ARMY: arms up in blue spirit flames, then three ghost skeletons appear and run across the stage,
       // each slashing everyone in its path (armyProj)
@@ -2187,15 +2186,15 @@ function superStep(f,o){
       if(u>=50 && (u>400 || !G.proj.some(p=>p.type==='sarmy'&&p.owner===f))) return endSuper(f,o);   // back to his stance once the army is gone
       break; }
     case 'goblin': {   // POISON BOMB: pulls out a bubbling bomb, holds it up grinning, then lobs it where the opponent stands
-      // super frames (v2 sheet): 1 bomb out, 2 one in each hand, 3 bomb up, 4 overhead with a roar (close-up), 5 bomb forward,
-      // 6 throw, 7-8 recover
-      if(t<=CINE){ s.fr=t<10?1:t<18?2:t<24?3:4; if(t>=20 && t%4===0) part(f.x+f.dir*4+(rnd()-0.5)*10,f.y-44-rnd()*6,(rnd()-0.5)*0.3,-0.5,16,POISON_FX[t%3],1,-0.01); break; }
-      if(u<8){ s.fr=5; break; }
+      // super frames (v3 sheet): 0-1 stance, 2 green flames rise, 3 fists up with a roar (close-up), 4 flames swirl,
+      // 5 throw (the bomb leaves his hand), 6-7 stance
+      if(t<=CINE){ s.fr=t<10?1:t<18?2:3; if(t>=20 && t%4===0) part(f.x+f.dir*4+(rnd()-0.5)*10,f.y-44-rnd()*6,(rnd()-0.5)*0.3,-0.5,16,POISON_FX[t%3],1,-0.01); break; }
+      if(u<8){ s.fr=4; break; }
       if(u===8){ f.dir=o.x>=f.x?1:-1;
         const x0=f.x+f.dir*18, y0=f.y-24, tx=clampX(o.x), T=Math.round(Math.max(32,Math.min(50,Math.abs(tx-x0)/3.6)));
         G.proj.push({type:'sbomb',sup:1,owner:f,x:x0,y:y0,x0,y0,tx,T,vx:f.dir,t:0,dmg:SUPER_DMG.goblin,kb:3,hs:46,bs:0,unblockable:true,launch:true});
         sfx('whoosh'); G.shake=Math.max(G.shake,2); }
-      s.fr=u<20?6:u<25?7:8; if(u>=30) return endSuper(f,o);
+      s.fr=u<20?5:u<25?6:7; if(u>=30) return endSuper(f,o);
       break; }
     case 'slime': {   // SPLIT & SLAM: he splits in two, the halves leap to both sides of the opponent and smash together
       // super frames (v2 sheet): 1 bubbling, 2 roar, 3 power pose (close-up), 4 roar, 5 flattened (splitting / slammed),
@@ -3746,7 +3745,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=26;
+const HASH_EVERY=30, KEEP=900, NET_V=27;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late
