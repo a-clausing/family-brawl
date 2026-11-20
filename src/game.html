@@ -409,20 +409,6 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
       </button>
       </div>
       <div class="picks" data-group="MONSTERS">
-      <button class="pick" data-c="brick" aria-pressed="false" style="--fc:#e0402a">
-        <img class="tport" alt="" data-port="brick">
-        <span class="badges"></span>
-        <span class="nm">BRICK</span>
-        <span class="spc">Special: Quake Slam</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Jump</span><span class="pips"><span class="f"></span><span></span><span></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
-      </button>
-      <button class="pick" data-c="volt" aria-pressed="false" style="--fc:#ffd400">
-        <img class="tport" alt="" data-port="volt">
-        <span class="badges"></span>
-        <span class="nm">VOLT</span>
-        <span class="spc">Special: Hyper Sprint</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
-      </button>
       <button class="pick" data-c="slime" aria-pressed="false" style="--fc:#7ee01f">
         <img class="tport" alt="" data-port="slime">
         <span class="badges"></span>
@@ -471,8 +457,6 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
             <button data-o="haddie" aria-pressed="false">Haddie</button>
             <button data-o="harper" aria-pressed="false">Harper</button>
             <button data-o="winston" aria-pressed="false">Winston</button>
-            <button data-o="brick" aria-pressed="false">Brick</button>
-            <button data-o="volt" aria-pressed="false">Volt</button>
             <button data-o="slime" aria-pressed="false">Slime</button>
             <button data-o="imp" aria-pressed="false">Imp</button>
             <button data-o="random" aria-pressed="true">Random</button>
@@ -499,7 +483,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
           <b>P, K</b><span>Punch and kick. Land a hit, then tap P or K again right away to chain a combo. Duck and punch for a low jab.</span>
           <b>B</b><span>Tap or hold to block. Blocked hits only chip a little health. Double-tap B right next to an opponent who isn’t attacking or blocking to throw them.</span>
           <b>ROLL</b><span>Hold B and push the stick left or right to roll, even right past an opponent. You can’t be hit in the middle of a roll, but you can at the start and end, and a Super still catches you. To turn around while blocking, let go of B first.</span>
-          <b>SPECIAL</b><span>Your fighter’s own move: the dumbbell, quake wave, coffee mug, Hyper Sprint and so on. It’s free; after you use it, the SPECIAL button fills back up (2 to 3 seconds, depending on the fighter). Jump or block the dumbbell, jump the quake, jump, duck or block the mug, and jump Volt’s Hyper Sprint (it can’t be blocked).</span>
+          <b>SPECIAL</b><span>Your fighter’s own move: the dumbbell, coffee mug, bone and so on. It’s free; after you use it, the SPECIAL button fills back up (2 to 3 seconds, depending on the fighter). Jump or block the dumbbell, and jump, duck or block the mug.</span>
           <b>SUPER</b><span>Land and take hits to fill your meter. When it’s full, SUPER lights up. Supers can’t be blocked, jumped or rolled through.</span>
           <b>TEAMS · FFA</b><span>Pick the fight type at the top of this screen. Up to four fighters share a wider arena and the camera follows the action. Everyone has a few lives (set them in Fight Options). Last fighter (or team) standing wins. Specials and supers hit everyone in their path, but never your teammate.</span>
           <b>SAME</b><span>Picking the same fighter as the CPU is fine: the CPU's copy wears different colors.</span>
@@ -543,11 +527,9 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 </div>
 
 <script>
-@@asset:brick-sheet.js@@
 @@asset:gym-backdrop.js@@
 @@asset:house-backdrop.js@@
 @@asset:becky-sheet.js@@
-@@asset:volt-sheet.js@@
 @@asset:portraits.js@@
 @@asset:cards.js@@
 @@asset:supers.js@@
@@ -596,20 +578,6 @@ const CH = {
       special:{st:12, ac:0, rc:16, cost:40}
     }
   },
-  brick: {
-    key:'brick', name:'BRICK', s:1.5, shX:10, speed:0.95, jump:-4.7, grav:0.28, weight:0.6, armor:0.33, jumpVx:1.3, w:24, h:54,
-    uArm:7, fArm:6, fist:7, thigh:8, shin:7, topW:30, botW:18, meterCol:'#ff7a2f',
-    pal:{ skin:'#bdb5a6', skinD:'#8b8477', skinL:'#ddd6c8', skinB:'#9b9487', skinBD:'#6e685d',
-      crack:'#4e4840', glow:'#ff6a1f', shorts:'#1f1b1b', shortsB:'#151212', accent:'#d8432a',
-      belt:'#3b2a20', stud:'#b3a58f', buckle:'#9a9384', band:'#d8432a', shoe:'#1f1b1b', sole:'#d8432a' },
-    moves:{
-      punch:{st:6, ac:3, rc:11, dmg:7,  kb:2.2, hs:16, bs:10, box:[10,34,-50,-36]},
-      low:  {st:6, ac:3, rc:11, dmg:6,  kb:1.6, hs:14, bs:9,  box:[10,32,-28,-6]},
-      kick: {st:9, ac:4, rc:15, dmg:11, kb:3.4, hs:20, bs:12, box:[10,36,-34,-14]},
-      air:  {st:4, ac:12,rc:5,  dmg:9,  kb:2.8, hs:18, bs:10, box:[4,30,-22,2]},
-      special:{st:18, ac:0, rc:20, cost:40}
-    }
-  },
   becky: {
     key:'becky', name:'BECKY', speed:1.85, jump:-5.2, grav:0.3, weight:0.95, armor:0, jumpVx:1.9, w:15, h:45.5,
     lightArmor:true,   // punches and jump kicks don't stagger her (she still takes the damage)
@@ -620,18 +588,6 @@ const CH = {
       kick: {st:6, ac:4, rc:12, dmg:9, kb:2.8, hs:18, bs:11, box:[8,26,-28,-11]},
       air:  {st:3, ac:12,rc:4,  dmg:8, kb:2.2, hs:16, bs:9,  box:[2,21,-15,2]},
       special:{st:10, ac:0, rc:10, cost:40}
-    }
-  },
-  volt: {
-    key:'volt', name:'VOLT', speed:2.3, jump:-6.4, grav:0.32, weight:1.1, armor:0, jumpVx:2.5, w:15, h:48,
-    meterCol:'#ffd400',
-    moves:{
-      punch:{st:3, ac:3, rc:7,  dmg:4, kb:1.5, hs:13, bs:8,  box:[8,27,-40,-31]},
-      low:  {st:3, ac:3, rc:7,  dmg:4, kb:1.5, hs:13, bs:8,  box:[8,27,-40,-31]},
-      kick: {st:5, ac:4, rc:11, dmg:7, kb:2.6, hs:17, bs:10, box:[8,27,-30,-12]},
-      air:  {st:3, ac:12,rc:4,  dmg:6, kb:2.0, hs:15, bs:9,  box:[2,22,-16,2]},
-      // Hyper Sprint: 16-frame sprinter's start, the sprint itself, then 28 frames of recovery
-      special:{st:16, ac:0, rc:28, cost:40, dmg:13, kb:2.2, hs:26, bs:0, unblockable:true, kd:true}
     }
   },
   bmoney: {
@@ -707,14 +663,14 @@ const CH = {
     }
   }
 };
-CH.ac.altMeterCol='#ff4a3d'; CH.brick.altMeterCol='#3b7cff'; CH.becky.altMeterCol='#ff3b6b'; CH.volt.altMeterCol='#33d6ff'; CH.bmoney.altMeterCol='#2fe0a8'; CH.winston.altMeterCol='#ff8a1f'; CH.haddie.altMeterCol='#3b9dff'; CH.harper.altMeterCol='#2fe07a'; CH.slime.altMeterCol='#b05cff'; CH.imp.altMeterCol='#3b8cff';
+CH.ac.altMeterCol='#ff4a3d'; CH.becky.altMeterCol='#ff3b6b'; CH.bmoney.altMeterCol='#2fe0a8'; CH.winston.altMeterCol='#ff8a1f'; CH.haddie.altMeterCol='#3b9dff'; CH.harper.altMeterCol='#2fe07a'; CH.slime.altMeterCol='#b05cff'; CH.imp.altMeterCol='#3b8cff';
 // Fighters are drawn 10% larger than the original design; scale their bodies and attack reach to match.
 const FIGHTER_SCALE=1.1;
 for(const c of Object.values(CH)){
   c.w=Math.round(c.w*FIGHTER_SCALE); c.h=Math.round(c.h*FIGHTER_SCALE);
   for(const m of Object.values(c.moves)) if(m.box) m.box=m.box.map(v=>Math.round(v*FIGHTER_SCALE));
 }
-CH.ac.jump=-7.3;   // keeps AC's jump high enough to clear the taller Brick
+CH.ac.jump=-7.3;
 // Winston is drawn ~62% of a human's height (33px), but his hitbox stays tall enough that standing punches still land.
 CH.winston.h=46; CH.winston.w=28; CH.winston.artH=33;
 // Haddie is drawn 5% smaller than Winston (31px) with the same 46px hit area, so standing punches still land.
@@ -741,9 +697,7 @@ for(const [k,th] of Object.entries(FIGHTER_H)){
 // ---- Balance pass (tuned with CPU-vs-CPU simulations: thousands of matches per pairing) ----
 const BAL={
   ac:   {punch:{rc:6, dmg:6}, low:{dmg:5}, kick:{dmg:10}, plateDmg:13},
-  brick:{armor:0.18, kick:{dmg:9}},
   becky:{punch:{dmg:5}, low:{dmg:5}, kick:{dmg:9}, armorCD:75, speed:1.75},
-  volt: {},
   bmoney:{punch:{dmg:6}, low:{dmg:6}, kick:{dmg:10}, air:{dmg:8}, speed:2.1},
   winston:{punch:{dmg:6, st:2, rc:5, hs:15, bs:10}, low:{dmg:5, st:2, hs:14}, kick:{dmg:10, st:4, rc:9, hs:19, bs:11}, air:{dmg:8}, speed:2.1}
 };
@@ -973,8 +927,6 @@ function blit(g,f,x,y){
 const ACS=window.AC_SHEET, ACIMG=new Image(); let acReady=false;
 ACIMG.onload=()=>{ acReady=true; }; ACIMG.src=ACS.src;
 const acFlash=mk(420,300), acFlashG=acFlash.getContext('2d');
-const BRS=window.BR_SHEET, BRIMG=new Image(); let brReady=false;
-BRIMG.onload=()=>{ brReady=true; }; BRIMG.src=BRS.src;
 function brAttackFrame(f){
   const m=f.cfg.moves[f.move], k=f.mf, st=m.st, ac=m.ac, rc=m.rc;
   const ph=k<=st?0:(k<=st+ac?1:2);
@@ -989,23 +941,6 @@ function brAttackFrame(f){
     case 'special':   // grip, deadlift, overhead, then slam the bar into the ground
       if(k<st) return 'special'+Math.min(2,Math.floor(k/st*3));
       return k<st+10?'special3':'special5';
-  }
-  return 'idle0';
-}
-function brFrame(f){
-  const key=f.state+(f.move||'');
-  if(f.vS!==key){ f.vS=key; f.vA=f.anim; }
-  const t=f.anim-f.vA;
-  switch(f.state){
-    case 'idle': if(f.landT<9 && f.anim>12) return 'land'+Math.min(2,Math.floor(f.landT/3)); return 'idle'+(Math.floor(t/9)%6);
-    case 'walk': { const i=Math.floor(t/7)%6; return (Math.sign(f.vx)===f.dir?'walk':'walkb')+i; }
-    case 'jump': return f.vy<-1?'jump1':'jump1';
-    case 'crouch': return 'jump0';
-    case 'block': return f.bstun>0?'block3':'block'+Math.min(2,Math.floor(t/3));
-    case 'hit': return 'hit'+Math.min(3,Math.floor(t/4));
-    case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<5?'down2':(f.landT<10?'down3':'down4');
-    case 'win': return 'special2';   // barbell held overhead
-    case 'attack': return brAttackFrame(f);
   }
   return 'idle0';
 }
@@ -1071,7 +1006,6 @@ function makeAlt(key,img,test,shift,boost=1,store=ALT){
 BKIMG.onload=()=>{ bkReady=true; makeAlt('becky',BKIMG,(h,s)=>h>=70&&h<=170&&s>0.22,232,1.45); };
 BKIMG.src=BKS.src;
 ACIMG.addEventListener('load',()=>makeAlt('ac',ACIMG,(h,s)=>h>=190&&h<=255&&s>0.3,150));
-BRIMG.addEventListener('load',()=>makeAlt('brick',BRIMG,(h,s)=>(h>=345||h<=22)&&s>0.5,205));
 function bkAttackFrame(f){   // Becky v3 art (Alex's game-ready package, Nov 2026)
   const m=f.cfg.moves[f.move], k=f.mf, st=m.st, ac=m.ac, rc=m.rc;
   const ph=k<=st?0:(k<=st+ac?1:2);
@@ -1106,44 +1040,6 @@ function bkFrame(f){
     case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<5?'down2':'down3';
     case 'win': return 'idle0';   // the package has no victory pose
     case 'attack': return bkAttackFrame(f);
-  }
-  return 'idle0';
-}
-const VTS=window.VT_SHEET, VTIMG=new Image(); let vtReady=false;
-VTIMG.onload=()=>{ vtReady=true; makeAlt('volt',VTIMG,(h,s)=>h>=38&&h<=70&&s>0.4,150); };
-VTIMG.src=VTS.src;
-function vtFrame(f){
-  const key=f.state+(f.move||'');
-  if(f.vS!==key){ f.vS=key; f.vA=f.anim; }
-  const t=f.anim-f.vA;
-  switch(f.state){
-    case 'idle': if(f.landT<7 && f.anim>12) return 'jump3'; return 'idle'+(Math.floor(t/7)%6);
-    case 'walk': { const i=Math.floor(t/4)%6; return (Math.sign(f.vx)===f.dir?'walk':'walkb')+i; }
-    case 'jump': if(f.vy<-1.5) return 'jump1'; if(f.vy>1.5&&f.y>GROUND-12) return 'jump3'; return 'jump2';
-    case 'crouch': return 'jump0';
-    case 'block': return f.bstun>0?'block3':'block'+Math.min(2,Math.floor(t/3));
-    case 'hit': return 'hit'+Math.min(3,Math.floor(t/4));
-    case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<5?'down2':(f.landT<10?'down3':'down4');
-    case 'win': return 'special5';
-    case 'attack': {
-      const m=f.cfg.moves[f.move], k=f.mf, st=m.st, ac=m.ac, rc=m.rc;
-      const ph=k<=st?0:(k<=st+ac?1:2);
-      const pr=ph===0?k/Math.max(1,st):(ph===2?(k-st-ac)/Math.max(1,rc):0);
-      const six=()=>ph===0?Math.min(2,Math.floor(pr*3)):(ph===1?3:4+Math.min(1,Math.floor(pr*2)));
-      switch(f.move){
-        case 'punch': case 'low':
-          if(f.combo>0 && f.move==='punch') return 'hpunch'+six();
-          return 'lpunch'+(ph===0?0:(ph===1?1:2+Math.min(1,Math.floor(pr*2))));
-        case 'kick':
-          if(f.combo>0) return 'combo'+(ph===0?2:(ph===1?3:(pr<0.5?4:5)));   // chained kicks use the combo row
-          return 'hkick'+six();
-        case 'air': return ph===0?'lkick1':'lkick2';
-        case 'special':
-          if(f.sprint) return f.impactT>0?'special3':'special2';
-          if(k<st) return k<st-4?'special0':'special1';
-          return (k-st)<12?'special4':'special5';
-      }
-    }
   }
   return 'idle0';
 }
@@ -1313,9 +1209,7 @@ function wnFrame(f){
   return 'idle0';
 }
 const SHEETS={ac:{S:()=>ACS,img:()=>ACIMG,frame:acFrame,ready:()=>acReady},
-  brick:{S:()=>BRS,img:()=>BRIMG,frame:brFrame,ready:()=>brReady},
   becky:{S:()=>BKS,img:()=>BKIMG,frame:bkFrame,ready:()=>bkReady},
-  volt:{S:()=>VTS,img:()=>VTIMG,frame:vtFrame,ready:()=>vtReady},
   bmoney:{S:()=>BMS,img:()=>BMIMG,frame:bmFrame,ready:()=>bmReady},
   winston:{S:()=>WNS,img:()=>WNIMG,frame:wnFrame,ready:()=>wnReady},
   haddie:{S:()=>HDS,img:()=>HDIMG,frame:dogFrame,ready:()=>hdReady},
@@ -1367,7 +1261,7 @@ function drawAC(g,f,x,y,tint,frameKey){
 }
 function drawFighterAny(g,f,x,y){
   if(SHEETS[f.key].ready()) drawAC(g,f,x,y);
-  else if(f.key==='ac'||f.key==='brick'){ compose(f); blit(g,f,x,y); }
+  else if(f.key==='ac'){ compose(f); blit(g,f,x,y); }
 }
 
 /* ---------------- Stage ---------------- */
@@ -1754,7 +1648,7 @@ const G={fmode:(()=>{ try{ return localStorage.getItem('nrb.fmode')||'1v1'; }cat
   rules:{mode:'bestof',bestOf:5,minutes:2,stocks:3}, mclock:0, sudden:false, mode:'menu', paused:false, diff:'normal', pick:'ac', cpuPick:'random', f:null, proj:[], parts:[], shake:0, hitstop:0, slow:0,
   round:1, timer:60, ft:0, phase:'intro', pt:0, winner:null, combo:null, t:0};
 
-const FIGHTERS=['ac','brick','becky','volt','bmoney','winston','haddie','harper','slime','imp'];
+const FIGHTERS=['ac','becky','bmoney','winston','haddie','harper','slime','imp'];   // Brick and Volt removed Nov 20 2026 (Alex is making new monsters)
 const MAXHP=200;
 // Fight Options: 'bestof' (1/3/5/7 rounds, 60s per round) or 'mostwins' (most KOs in 1-4 minutes, then sudden death)
 const OPT_DEFAULT={mode:'bestof',bestOf:5,minutes:2,stocks:3};
@@ -1805,7 +1699,7 @@ function startRound(){
 /* ---------------- Combat ---------------- */
 // Specials (Nov 2026, Alex): no longer cost meter. Free, with a recharge per fighter (frames), one out at a time,
 // and softer than when they cost meter. (Code calls this "skill"; on screen it's SPECIAL, and supers are SUPER.)
-const SKILL_CD_BY={ac:150, brick:180, becky:120, volt:105, bmoney:120, winston:150, haddie:120, harper:150, slime:150, imp:180};
+const SKILL_CD_BY={ac:150, becky:120, bmoney:120, winston:150, haddie:120, harper:150, slime:150, imp:180};
 const skillCDOf=f=>SKILL_CD_BY[f.key]||120;
 const SKILL_DMG=0.75;   // every special hits 25% softer than the old meter version
 const SKILL_PROJ={plate:1,mug:1,bone:1,puke:1,yap:1,slimeshot:1,fireball:1,ripple:1,wave:1};
@@ -2168,15 +2062,6 @@ function superStep(f,o){
           dmg:SUPER_DMG.haddie,kb:4,hs:46,bs:0,unblockable:true,launch:true}); sfx('whoosh'); G.shake=Math.max(G.shake,3); }
       } else if(u<34) s.fr=5; else return endSuper(f,o);
       break; }
-    case 'brick': {   // RACK QUAKE: rip the squat rack up, slam it down, send an eruption across the floor
-      if(t<=CINE){ s.fr=t<14?0:t<28?1:2; break; }
-      if(u<10) s.fr=3;
-      else if(u<30){
-        if(u===10){ f.dir=o.x>=f.x?1:-1; const x=f.x+f.dir*30; G.shake=Math.max(G.shake,11); sfx('quake'); debris(x,GROUND-2,14); dust(x,GROUND,10);
-          G.proj.push({type:'squake',sup:1,owner:f,x,y:GROUND,vx:f.dir*4.2,t:0,dmg:SUPER_DMG.brick,kb:3,hs:52,bs:0,unblockable:true,launch:true}); }
-        s.fr=4;
-      } else if(u<52) s.fr=5; else if(u<60) s.fr=6; else return endSuper(f,o);
-      break; }
     case 'becky': {   // BOOK STACK THROW: a bookshelf pops up, she pulls a stack off it and heaves it across the arena
       // v3 frames: 0 guard, 1-3 at the shelf (shelf drawn in), 4-5 stack in her arms, 6 throw, 8 back to guard
       const shX=()=>f.x+f.dir*SUPERS.becky.meta.shelf*(CH.becky.drawK||1);
@@ -2237,43 +2122,6 @@ function superStep(f,o){
       phys(f);
       return;
     }
-    case 'volt': {   // OVERLOAD FURY: dash through the opponent three times, then a lightning uppercut
-      if(t<=CINE){ s.fr=0; if(t%3===0) G.parts.push({type:'bolt',x:f.x+(rnd()-0.5)*40,y:f.y-4-rnd()*46,len:8+rnd()*10,life:5,max:5,seed:rnd()*99}); break; }
-      const minD=(f.cfg.w+o.cfg.w)/2;
-      if(s.ph===0){
-        s.fr=1;
-        if(u===1){ dust(f.x-f.dir*6,GROUND,10); sfx('zap'); G.shake=Math.max(G.shake,4); }
-        if(u>=6){ s.ph=1; s.pass=0; s.hitDone=false; f.dir=o.x>=f.x?1:-1; }
-      } else if(s.ph===1||s.ph===3){
-        if(s.ph===1 && !s.hitDone) s.dest=clampX(o.x+f.dir*(minD+28));
-        if(s.ph===3) s.dest=clampX(o.x-f.dir*(minD-2));
-        s.fr=s.hitT>0?s.hitFr:2;
-        const px=f.x, dx=s.dest-f.x; f.x+=Math.sign(dx)*Math.min(Math.abs(dx),12);
-        s.trail.push(f.x); if(s.trail.length>5) s.trail.shift();
-        if(G.t%2===0) G.parts.push({type:'bolt',x:f.x-f.dir*(6+rnd()*14),y:f.y-8-rnd()*38,len:5+rnd()*7,life:4,max:4,seed:rnd()*99});
-        if(s.ph===1 && !s.hitDone && (px-o.x)*(f.x-o.x)<=0) voltPassHit(f,o,s);
-        if(G.multi && s.ph===1) passExtras(f,o,s,px,11,{kb:0.3,hs:40});
-        if(Math.abs(s.dest-f.x)<0.5){
-          if(s.ph===1){
-            if(!s.hitDone && Math.abs(f.x-o.x)<minD+30) voltPassHit(f,o,s);
-            if((o.x-f.x)*f.dir>-minD) o.x=clampX(f.x-f.dir*(minD+4));   // always finish on the far side
-            s.ph=2; s.kt=0; dust(f.x,GROUND,5);
-          } else { s.ph=4; s.kt=0; }
-        }
-      } else if(s.ph===2){
-        s.fr=4; if(s.trail.length) s.trail.shift();
-        if(++s.kt>=8){ s.pass++; f.dir=o.x>=f.x?1:-1; s.trail=[]; if(s.pass<3){ s.ph=1; s.hitDone=false; } else s.ph=3; }
-      } else if(s.ph===4){
-        s.fr=6; s.trail=[];
-        if(++s.kt===3){
-          superHit(f,o,29,{launch:true,kb:2.5,hs:46,vy:-5.2,big:true}); s.lock=false;
-          G.parts.push({type:'sfx',key:'volt',name:'bolt',x:o.x,y:GROUND+2,life:22,max:22,sc:1.6,alt:f.alt});
-          G.parts.push({type:'sfx',key:'volt',name:'star',x:o.x,y:o.y-24,life:14,max:14,sc:0.55,alt:f.alt});
-        }
-        if(s.kt>=18){ s.ph=5; s.kt=0; }
-      } else if(s.ph===5){ s.fr=7; if(++s.kt>=12){ s.ph=6; s.kt=0; } }
-      else { s.fr=8; if(++s.kt>=8) return endSuper(f,o); }
-      break; }
     case 'winston': {   // TAIL LASH RUSH: three high-speed passes through the opponent, a tail whip on each
       const FX=f.alt?WN_FX_ALT:WN_FX;
       if(t<=CINE){ s.fr=10;   // sprinter's crouch while blue energy streaks gather
@@ -2777,7 +2625,7 @@ function aiInput(f,o){
   if(a.cool>0){ a.cool--; return inp; }
   a.cool=D.react+((arnd()*D.react)|0);
   if(skillOk(f) && d>70 && arnd()<0.4*D.aggr){ inp.special=true; return inp; }
-  // AC escapes a corner by jumping over Brick
+  // AC escapes a corner by jumping over the opponent
   const cornered=(f.x<44&&dx>0)||(f.x>AW-44&&dx<0);
   if(f.key==='ac' && cornered && d<46 && f.onGround && arnd()<0.55*D.aggr){ inp.up=true; inp[tw]=true; return inp; }
   if(d>34){
@@ -3036,12 +2884,6 @@ function drawProj(p){
     const [sx,sy,w,h,ax,ay]=BMS.spr.ripple, IMG=sheetImg('bmoney',p.owner.alt), j=(p.t>>2)%2, fade=Math.max(0,Math.min(1,(p.range-p.t)/10+0.2));
     ctx.save(); ctx.translate(Math.round(p.x*2)/2,GROUND+1); if(p.vx<0) ctx.scale(-1,1);
     ctx.globalAlpha=fade; ctx.scale(1.3,1.3); ctx.drawImage(IMG,sx,sy,w,h,-ax/2,-ay/2*(0.85+0.15*j),w/2,h/2*(0.85+0.15*j)); ctx.restore();
-  } else if(brReady){
-    const [sx,sy,w,h,ax,ay]=BRS.spr.wave, j=(p.t>>2)%2, IMGB=sheetImg('brick',p.owner.alt);
-    ctx.save(); ctx.translate(Math.round(p.x*2)/2,GROUND+1); if(p.vx<0) ctx.scale(-1,1);
-    ctx.globalAlpha=0.45; ctx.drawImage(IMGB,sx,sy,w,h,-ax/2-6,-ay/2+2,w/2,h/2);
-    ctx.globalAlpha=1; ctx.drawImage(IMGB,sx,sy,w,h,-ax/2,-ay/2+(j?0.5:0),w/2,h/2);
-    ctx.restore();
     P(Math.round(p.x)-7,GROUND-1,14,2,'#ff6a1f');
   } else {
     const x=Math.round(p.x), j=p.t%6<3?1:0;
@@ -3622,7 +3464,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=17;
+const HASH_EVERY=30, KEEP=900, NET_V=18;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late

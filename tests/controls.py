@@ -12,7 +12,7 @@ JS = """
   const {G,mkF,startRound,step}=__sim;
   const K=['left','right','up','down','punch','kick','special','block','super'];
   const inp=o=>{ const r={}; K.forEach(k=>r[k]=!!(o&&o[k])); return r; };
-  function setup(a='ac',b='brick',xa=150,xb=176){
+  function setup(a='ac',b='bmoney',xa=150,xb=176){
     G.mode='play'; G.paused=false; G.diff='hard';
     G.f=[mkF(a,0,false),mkF(b,1,false)]; G.round=1; startRound();
     G.phase='fight'; G.f[0].x=xa; G.f[1].x=xb; G.f[0].dir=1; G.f[1].dir=-1;
@@ -24,22 +24,22 @@ JS = """
   setup(); run(40,i=>[i<1?{block:true}:i<30?{block:true,right:i>=1}:{}]);
   out.rollPast={x0:G.f[0].x|0,x1:G.f[1].x|0,dir:G.f[0].dir,hp:G.f[0].hp,rolling:!!G.f[0].roll};
   // 2. punched in the middle of a roll: no damage
-  setup('ac','brick',150,190); run(30,i=>[i<1?{block:true}:i<24?{block:true,right:true}:{}, i===2?{punch:true}:{}]);
+  setup('ac','bmoney',150,190); run(30,i=>[i<1?{block:true}:i<24?{block:true,right:true}:{}, i===2?{punch:true}:{}]);
   out.midRollPunch=G.f[0].hp;
   // 3. same punch without rolling: it lands
-  setup('ac','brick',150,176); run(30,i=>[{}, i===2?{punch:true}:{}]);
+  setup('ac','bmoney',150,176); run(30,i=>[{}, i===2?{punch:true}:{}]);
   out.standPunch=G.f[0].hp;
   // 4. a super still catches a rolling fighter
   setup('ac','becky',150,260); G.f[1].meter=100; run(500,i=>[i<1?{block:true}:i<24?{block:true,right:true}:{}, i===6?{super:true}:{}]);
   out.superOnRoll=G.f[0].hp;
   // 5. skill: free, then recharging
-  setup('ac','brick',100,300); const m0=G.f[0].meter;
+  setup('ac','bmoney',100,300); const m0=G.f[0].meter;
   run(1,()=>[{special:true}]); const first=G.f[0].move; run(40); run(1,()=>[{special:true}]); const second=G.f[0].move;
   run(200); run(1,()=>[{special:true}]); const third=G.f[0].move;
   out.skill={first,second,third,meterSame:G.f[0].meter>=m0};
   // 6. stick up jumps, down ducks
-  setup('ac','brick',100,300); run(3,()=>[{up:true}]); out.jump=!G.f[0].onGround;
-  setup('ac','brick',100,300); run(3,()=>[{down:true}]); out.duck=G.f[0].state;
+  setup('ac','bmoney',100,300); run(3,()=>[{up:true}]); out.jump=!G.f[0].onGround;
+  setup('ac','bmoney',100,300); run(3,()=>[{down:true}]); out.duck=G.f[0].state;
   return out;
 })()
 """
