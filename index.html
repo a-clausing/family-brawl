@@ -54,6 +54,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   color:#120e14;font-family:var(--pixel);font-size:12px;line-height:1;opacity:.52;
   box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810;transition:background .15s}
 .act i{font-style:normal;font-family:var(--ui);font-weight:700;font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-top:4px;opacity:.75}
+#updToast{position:fixed;left:50%;top:calc(10px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:9999;max-width:86vw;padding:9px 16px;border-radius:12px;border:2px solid var(--gold);background:rgba(20,16,36,.94);color:#fff;font:700 14px system-ui,sans-serif;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.5);pointer-events:none}
 .pu{background:var(--gold)} .ki{background:var(--ember)} .bl{background:#9a90b3} .ju{background:#6fd36a}
 .rightside{display:flex;flex-direction:column;align-items:flex-end;gap:4px;touch-action:none;margin-left:auto}
 .sp{background:#3d4a69;color:#9fb0d6;border-radius:14px;width:calc(var(--b)*1.8);height:calc(var(--b)*0.78);font-size:11px;letter-spacing:.04em;margin-right:calc(var(--b)*-0.15)}
@@ -3755,22 +3756,34 @@ function keepAwake(){
 }
 setInterval(keepAwake,1500); document.addEventListener('visibilitychange',keepAwake);
 /* ---------------- Auto-update ---------------- */
-// A home-screen app keeps running the copy it loaded, so a new release used to need the app fully closed and reopened.
-// tools/build.py stamps each build with BUILD_ID and writes version.json next to index.html. The game checks it when the
-// app comes back on screen and every 2 minutes; when the live build is different, it reloads itself the next time you're
-// on a menu (never mid-fight, in an online room, or while typing a join code). The ?v= on the reload URL skips any cached copy.
-const BUILD_ID='3acc6259b150'; let UPD=null;
+// A home-screen app keeps running the copy it loaded. tools/build.py stamps each build with BUILD_ID and writes
+// version.json next to index.html. Alex (Nov 20 2026): check only when the app is opened (launch, or coming back on
+// screen), tell the player, load the new version right away if they're on a menu, and otherwise tell them to close and
+// reopen the app. After an update loads, a message says so (the last build seen is kept in localStorage nrb.build).
+const BUILD_ID='5f7beb137ec5'; let UPD=null, updTold=false;
+function toast(msg,ms=4000){
+  let t=document.getElementById('updToast');
+  if(!t){ t=document.createElement('div'); t.id='updToast'; t.setAttribute('role','status'); document.body.appendChild(t); }
+  t.textContent=msg; t.hidden=false; clearTimeout(t._h); t._h=setTimeout(()=>{ t.hidden=true; },ms);
+}
+(()=>{ try{ const last=localStorage.getItem('nrb.build'); if(last && last!==BUILD_ID) setTimeout(()=>toast('Updated! You have the newest version of Family Brawl.'),700); localStorage.setItem('nrb.build',BUILD_ID); }catch(e){} })();
+const updBusy=()=>G.mode==='play' || NET.room || NET.active || NET.conn || !onlineOv.hidden;
+function tellReopen(){   // shown on a menu or in the lobby, never over a fight
+  if(updTold) return;
+  if(G.mode==='play'){ setTimeout(tellReopen,1500); return; }
+  updTold=true; toast('An update is ready. Close the app and reopen it to get it.',8000);
+}
 async function checkUpdate(){
   if(!/^https?:$/.test(location.protocol)) return;   // the claude.ai copy and local files have no version.json
-  try{ const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'}); if(!r.ok) return; const j=await r.json(); if(j&&j.v&&j.v!==BUILD_ID) UPD=j.v; }catch(e){}
-  applyUpdate();
+  try{ const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'}); if(!r.ok) return; const j=await r.json(); if(j&&j.v&&j.v!==BUILD_ID) UPD=j.v; }catch(e){ return; }
+  if(!UPD) return;
+  let tried=false; try{ tried=sessionStorage.getItem('nrb.upd')===UPD; }catch(e){}
+  if(tried || updBusy()){ tellReopen(); return; }   // the reload didn't get the new copy, or they're busy
+  try{ sessionStorage.setItem('nrb.upd',UPD); }catch(e){}
+  toast('Update found! Loading the new version…',3000);
+  setTimeout(()=>{ const u=new URL(location.href); u.searchParams.set('v',UPD); location.replace(u.toString()); },900);   // ?v= skips any cached copy
 }
-function applyUpdate(){
-  if(!UPD || G.mode==='play' || NET.room || NET.active || NET.conn || !onlineOv.hidden || document.hidden) return;
-  try{ if(sessionStorage.getItem('nrb.upd')===UPD) return; sessionStorage.setItem('nrb.upd',UPD); }catch(e){}   // one try per version: never a reload loop if the site still serves the old copy
-  const u=new URL(location.href); u.searchParams.set('v',UPD); location.replace(u.toString());
-}
-setTimeout(checkUpdate,2500); setInterval(checkUpdate,120000); setInterval(applyUpdate,1500);
+setTimeout(checkUpdate,1200);
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkUpdate(); });
 function nextSlot(){ for(let s=1;s<=3;s++) if(!NET.conns.some(y=>y.slot===s)) return s; return -1; }
 function dropGuest(x){ NET.conns=NET.conns.filter(y=>y!==x); setTimeout(()=>{ try{ x.c.close&&x.c.close(); const f=x.c.peer&&!NET.conns.some(y=>y.c.peer===x.c.peer)&&NET.fastBy[x.c.peer]; f&&f.close(); }catch(e){} },300); lobbyUpdate(); }
