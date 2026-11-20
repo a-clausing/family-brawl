@@ -23,6 +23,11 @@ JS = """
   // 1. roll past a standing opponent
   setup(); run(40,i=>[i<1?{block:true}:i<30?{block:true,right:i>=1}:{}]);
   out.rollPast={x0:G.f[0].x|0,x1:G.f[1].x|0,dir:G.f[0].dir,hp:G.f[0].hp,rolling:!!G.f[0].roll};
+  // 1b. rolling again right away doesn't work (1 s wait after a roll); after the wait it does
+  setup('ac','bmoney',100,300); run(1,()=>[{block:true}]); run(3,()=>[{block:true,right:true}]); run(30,()=>[{}]);
+  run(1,()=>[{block:true}]); run(3,()=>[{block:true,left:true}]); const again=!!G.f[0].roll;
+  run(80,()=>[{}]); run(1,()=>[{block:true}]); run(3,()=>[{block:true,left:true}]); const later=!!G.f[0].roll;
+  out.rollWait={again,later};
   // 2. punched in the middle of a roll: no damage
   setup('ac','bmoney',150,190); run(30,i=>[i<1?{block:true}:i<24?{block:true,right:true}:{}, i===2?{punch:true}:{}]);
   out.midRollPunch=G.f[0].hp;
@@ -59,6 +64,8 @@ async def main():
         print(json.dumps(r, indent=1))
         ok = {
             'roll past': r['rollPast']['x0'] > r['rollPast']['x1'] and r['rollPast']['dir'] == -1 and not r['rollPast']['rolling'],
+            'no roll right after a roll': not r['rollWait']['again'],
+            'roll again after the wait': r['rollWait']['later'],
             'mid-roll punch misses': r['midRollPunch'] == 200,
             'standing punch lands': r['standPunch'] < 200,
             'special hits a roller': r['superOnRoll'] < 200,

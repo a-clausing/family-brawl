@@ -1846,9 +1846,11 @@ const skillWait=f=>Math.max(0,Math.min(1,(f.skillCD||0)/skillCDOf(f)));
 // Dodge roll (Nov 2026, Alex): hold Block and push the stick left or right. Passes through fighters,
 // can't be hit in the middle (regular attacks and specials), but supers still hit,
 // and the end leaves you open. You come out facing back the way you came.
-const ROLL_T=28, ROLL_MOVE=18, ROLL_V=3.2, ROLL_I0=3, ROLL_I1=17;
+// Nov 20 2026 (Alex: rolling was overused, "hard to even hit someone who constantly does it"): a 1 s wait between rolls
+// (ROLL_CD, counted from the end of the roll, no on-screen indicator: Alex's pick) and a shorter can't-be-hit window (was 3-17).
+const ROLL_T=28, ROLL_MOVE=18, ROLL_V=3.2, ROLL_I0=4, ROLL_I1=12, ROLL_CD=60;
 const dodgy=d=>!!d.roll&&d.roll.t>=ROLL_I0&&d.roll.t<ROLL_I1;   // the Goblin's dagger still hits a roller (Alex, Nov 20 2026: players were rolling past it)
-function startRoll(f,d){ f.roll={t:0,d}; f.state='crouch'; f.vx=d*ROLL_V; f.lastBlk=undefined; dust(f.x,GROUND,4); sfx('whoosh'); }
+function startRoll(f,d){ f.roll={t:0,d}; f.rollCD=ROLL_T+ROLL_CD; f.state='crouch'; f.vx=d*ROLL_V; f.lastBlk=undefined; dust(f.x,GROUND,4); sfx('whoosh'); }
 function rollStep(f){
   const r=f.roll; r.t++;
   f.state='crouch'; f.vx=r.t<=ROLL_MOVE?r.d*ROLL_V:0;
@@ -2769,7 +2771,7 @@ function updF(f,o){
   let fresh=null; for(const k of ['super','special','kick','punch','up']) if(E(k)){ fresh=k; break; }
   if(fresh) f.ib={k:fresh,t:BUFFER_FRAMES,down:I.down}; else if(f.ib && --f.ib.t<=0) f.ib=null;
   const B=k=>E(k)||(!!f.ib&&f.ib.k===k), useBuf=()=>{ f.ib=null; };
-  f.anim++; if(f.flash>0) f.flash--; if(f.armorCD>0) f.armorCD--; if(f.inv>0) f.inv--; if(f.skillCD>0) f.skillCD--; superArmorCheck(f); poisonTick(f);
+  f.anim++; if(f.flash>0) f.flash--; if(f.armorCD>0) f.armorCD--; if(f.inv>0) f.inv--; if(f.skillCD>0) f.skillCD--; if(f.rollCD>0) f.rollCD--; superArmorCheck(f); poisonTick(f);
   if(f.roll && (f.kd||f.held||f.stun>0||f.bstun>0||f.move||f.state==='ko')) f.roll=null;   // hit out of a roll
   if(f.state==='ko'){ f.kd=null; f.held=false; phys(f); return; }
   if(G.multi){   // a throw that got cut short (another fighter's super grabbed the thrower) lets go of its victim
@@ -2812,7 +2814,7 @@ function updF(f,o){
   }
   if(G.phase!=='fight'){ f.state=f.onGround?'idle':'jump'; f.vx=0; phys(f); return; }
   if(f.onGround){
-    if(I.block && (E('left')!==E('right')) && f.landT>3){ useBuf(); startRoll(f,E('right')?1:-1); phys(f); return; }
+    if(I.block && (E('left')!==E('right')) && f.landT>3 && !(f.rollCD>0)){ useBuf(); startRoll(f,E('right')?1:-1); phys(f); return; }
     steerFace(f,o);
     if(B('super') && f.meter>=SUPER_COST && G.phase==='fight' && !G.cine && !o.sup && !o.superArmor && !untouchable(o)){ useBuf(); startSuper(f,o); phys(f); return; }
     if(E('block')){   // double-tap Block next to an idle or walking opponent: throw
@@ -2890,7 +2892,7 @@ function aiInput(f,o){
   // react to opponent's attack
   if(o.move && o.move!=='special' && o.moveId!==a.defId && d<50){
     a.defId=o.moveId;
-    if(f.onGround && !f.move && !f.prev[tw] && arnd()<0.15*D.dodge){ return Object.assign(blankIn(),{block:true,[tw]:true}); }   // roll through it
+    if(f.onGround && !f.move && !f.prev[tw] && !(f.rollCD>0) && arnd()<0.15*D.dodge){ return Object.assign(blankIn(),{block:true,[tw]:true}); }   // roll through it
     if(arnd()<D.block && f.onGround && !f.move){ a.holds={block:true}; a.holdT=16; inp.block=true; return inp; }
   }
   if(f.meter>=SUPER_COST && f.onGround && !f.move && !G.cine && !o.sup && !o.superArmor && arnd()<0.035*D.aggr){ inp.super=true; return inp; }
@@ -3744,7 +3746,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=24;
+const HASH_EVERY=30, KEEP=900, NET_V=25;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late
@@ -3774,7 +3776,7 @@ function stateHash(){
   let h=2166136261>>>0; const add=v=>{ h^=(Math.round(v)|0); h=Math.imul(h,16777619)>>>0; };
   const str=t=>{ for(let i=0;i<(t||'').length;i++) add(t.charCodeAt(i)); };
   for(const f of G.f){ add(f.x*100); add(f.y*100); add(f.vx*1000); add(f.vy*1000); add(f.hp*10); add(f.meter*10);
-    add(f.mf); add(f.stun); add(f.bstun); add(f.dir); add(f.wins); str(f.state); str(f.move); add(f.kd?f.kd.t+100:-1); add(f.inv||0); add(f.thr?f.thr.t:-1); add(f.roll?f.roll.t*2+(f.roll.d>0):-1); add(f.skillCD||0); add(f.poison?f.poison.t:-1); add(f.stocks||0); add(f.dead?1:0); add(f.out?1:0); }
+    add(f.mf); add(f.stun); add(f.bstun); add(f.dir); add(f.wins); str(f.state); str(f.move); add(f.kd?f.kd.t+100:-1); add(f.inv||0); add(f.thr?f.thr.t:-1); add(f.roll?f.roll.t*2+(f.roll.d>0):-1); add(f.skillCD||0); add(f.rollCD||0); add(f.poison?f.poison.t:-1); add(f.stocks||0); add(f.dead?1:0); add(f.out?1:0); }
   add(G.cine?G.cine.t:-1); for(const f of G.f) add(f.sup?f.sup.t*10+f.sup.ph:-1);
   add(G.mclock); add(G.sudden?1:0); add(G.timer); add(G.pt); add(G.round); add(G.hitstop); add(G.slow); str(G.phase); add((G.rs||0)%100000);
   for(const q of G.proj){ add(q.x*100); add(q.y*100); }
