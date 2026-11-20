@@ -14,3 +14,5 @@ Rows (left to right):
 7. super 8 (includes a power pose facing the viewer, for the close-up) | super object 3 | super impact 3
 
 The card (name + "SUPER: name") comes as a separate image.
+
+**Proportions (Nov 20 2026):** the first version of the prompt didn't say what body proportions to use, and Skeleton Warrior came back chibi/classic-pixel (big head, short legs) next to the family's realistic ~7-heads-tall fighters. The prompt now has a STYLE AND PROPORTIONS section and tells Alex to attach `art/specs/style-reference.png` (AC idle, Becky idle/kick/punch, B-Money idle cut from the game atlases, 3x, on magenta). The full prompt text is the project doc `claude/sprite-sheet-prompt.md`; a copy is `art/specs/sprite-sheet-prompt-full.md`.

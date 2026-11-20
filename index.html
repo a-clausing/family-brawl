@@ -716,7 +716,7 @@ const CH = {
     }
   },
   skeleton: {   // monster (Nov 20 2026, Alex's spec): fast, fragile undead swordsman; relentless combos, low durability
-    key:'skeleton', name:'SKELETON WARRIOR', speed:2.2, jump:-6.4, grav:0.3, weight:1.0, armor:0, jumpVx:2.3, w:16, h:45,
+    key:'skeleton', name:'SKELETON', speed:2.2, jump:-6.4, grav:0.3, weight:1.0, armor:0, jumpVx:2.3, w:16, h:45,
     meterCol:'#3fd0ff',
     moves:{
       punch:{st:3, ac:3, rc:6,  dmg:5, kb:1.5, hs:14, bs:9,  box:[8,26,-38,-28]},     // quick bony jab
@@ -3934,7 +3934,7 @@ setInterval(keepAwake,1500); document.addEventListener('visibilitychange',keepAw
 // version.json next to index.html. Alex (Nov 20 2026): check only when the app is opened (launch, or coming back on
 // screen), tell the player, load the new version right away if they're on a menu, and otherwise tell them to close and
 // reopen the app. After an update loads, a message says so (the last build seen is kept in localStorage nrb.build).
-const BUILD_ID='96d5c49c0ed9'; let UPD=null, updTold=false;
+const BUILD_ID='666753b1eb1f'; let UPD=null, updTold=false;
 function toast(msg,ms=4000){
   let t=document.getElementById('updToast');
   if(!t){ t=document.createElement('div'); t.id='updToast'; t.setAttribute('role','status'); document.body.appendChild(t); }
