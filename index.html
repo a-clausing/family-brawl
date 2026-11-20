@@ -2303,12 +2303,12 @@ function superBlast(f,o,p){
 // (any height), but running out of the circle in time escapes it. Anyone it hits is poisoned, and the cloud it leaves
 // poisons anyone who walks into it. Poison never stacks: it just tops up to its full length.
 const POISON_FX=['#7dff3a','#b6ff4a','#3fd12a'], BOMB_R=28, CLOUD_R=30, CLOUD_T=150, POISON_T=120, POISON_EVERY=15, POISON_DMG=2;
-function poisonOn(o,f){ if(o.dead||o.state==='ko') return; if(!o.poison) o.poison={t:0,o:fidx(f)}; o.poison.t=Math.max(o.poison.t,POISON_T); o.poison.o=fidx(f); }
+function poisonOn(o,f){ if(o.dead||o.state==='ko'||o.superArmor) return; if(!o.poison) o.poison={t:0,o:fidx(f)}; o.poison.t=Math.max(o.poison.t,POISON_T); o.poison.o=fidx(f); }
 function poisonTick(f){   // called every frame from updF
   const p=f.poison; if(!p) return;
   if(f.state==='ko'||f.dead||G.phase!=='fight'){ f.poison=null; return; }
   p.t--;
-  if(p.t%POISON_EVERY===0 && f.hp>0){
+  if(p.t%POISON_EVERY===0 && f.hp>0 && !f.superArmor){   // no poison damage while doing a super
     f.hp=Math.max(0,f.hp-POISON_DMG); f.flash=Math.max(f.flash,2); if(G.multi) f.lastAtt=p.o;
     if(f.hp<=0 && f.cfg.lastStand && !f.stood) lastStand(f);
   }
@@ -2590,7 +2590,7 @@ function passExtras(f,o,s,px,dmg,opt){
   }
 }
 function knockDown(d,dir,vx,vy){
-  if(d.state==='ko') return;
+  if(d.state==='ko' || d.superArmor) return;   // a fighter mid-super can't be knocked out of it (the hit already bounced off)
   d.kd={ph:'air',t:0}; d.state='down'; d.move=null; d.sup=null; d.sprint=null; d.bandOut=false; d.superArmor=false;
   d.stun=0; d.bstun=0; d.held=false; d.vx=dir*vx; d.vy=vy; d.onGround=false; d.y=Math.min(d.y,GROUND-1);
 }
@@ -3264,6 +3264,8 @@ function render(){
   if(!gymReady){ ctx.drawImage(SKY,0,0); clouds.forEach(c=>ctx.drawImage(CLOUD,Math.round(c.x),c.y)); }
   else { ctx.fillStyle='#14121c'; ctx.fillRect(0,0,W,H); }
   let sx=0,sy=0;
+  // no screen shake while a super is going, from the button press until its hit is done (Alex, Nov 2026); the zoom stays
+  if(G.cine || (G.f && (G.f.some(f=>f.sup) || G.proj.some(p=>p.sup)))) G.shake=0;
   if(G.shake>0){ const A=G.shake*SHAKE_SCALE; sx=Math.round((rnd()*2-1)*A); sy=Math.round((rnd()*2-1)*A); G.shake*=0.86; if(G.shake<0.4) G.shake=0; }
   ctx.save(); ctx.translate(sx,sy);
   const base=G.mode==='play'?baseCam():null;
@@ -3801,7 +3803,7 @@ setInterval(keepAwake,1500); document.addEventListener('visibilitychange',keepAw
 // version.json next to index.html. Alex (Nov 20 2026): check only when the app is opened (launch, or coming back on
 // screen), tell the player, load the new version right away if they're on a menu, and otherwise tell them to close and
 // reopen the app. After an update loads, a message says so (the last build seen is kept in localStorage nrb.build).
-const BUILD_ID='35bfbc2906e7'; let UPD=null, updTold=false;
+const BUILD_ID='6c3a23a9c3ec'; let UPD=null, updTold=false;
 function toast(msg,ms=4000){
   let t=document.getElementById('updToast');
   if(!t){ t=document.createElement('div'); t.id='updToast'; t.setAttribute('role','status'); document.body.appendChild(t); }
