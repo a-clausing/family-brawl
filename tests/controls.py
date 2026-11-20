@@ -29,6 +29,9 @@ JS = """
   // 3. same punch without rolling: it lands
   setup('ac','bmoney',150,176); run(30,i=>[{}, i===2?{punch:true}:{}]);
   out.standPunch=G.f[0].hp;
+  // 3b. the Goblin's dagger catches a roller (other specials can be rolled through)
+  setup('becky','goblin',150,260); run(40,i=>[i<1?{block:true}:i<24?{block:true,right:true}:{}, i===0?{special:true}:{}]);
+  out.daggerRoll=G.f[0].hp;
   // 4. a super still catches a rolling fighter
   setup('ac','becky',150,260); G.f[1].meter=100; run(500,i=>[i<1?{block:true}:i<24?{block:true,right:true}:{}, i===6?{super:true}:{}]);
   out.superOnRoll=G.f[0].hp;
@@ -59,6 +62,7 @@ async def main():
             'mid-roll punch misses': r['midRollPunch'] == 200,
             'standing punch lands': r['standPunch'] < 200,
             'special hits a roller': r['superOnRoll'] < 200,
+            'dagger hits a roller': r['daggerRoll'] < 200,
             'skill free + recharge': r['skill']['first'] == 'special' and r['skill']['second'] != 'special' and r['skill']['third'] == 'special' and r['skill']['meterSame'],
             'jump (J) works': r['jump'],
             'stick down ducks': r['duck'] == 'crouch',
