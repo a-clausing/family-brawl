@@ -110,7 +110,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 @media (prefers-reduced-motion:reduce){.sp.ready,.phone{animation:none}}
 .sprow{display:flex;gap:6px;align-items:center;margin-right:calc(var(--b)*-0.15)}
 .sprow .sp{margin-right:0}
-.su{border-radius:14px;width:calc(var(--b)*1.2);height:calc(var(--b)*0.78);font-size:9px;letter-spacing:.02em;background:#2a2238;color:#6d6390;opacity:.34}
+.su{border-radius:14px;width:calc(var(--b)*1.05);height:calc(var(--b)*0.78);font-size:9px;letter-spacing:.02em;background:#2a2238;color:#6d6390;opacity:.34}
 .su.ready{background:linear-gradient(180deg,#ffe066,#ff8a1f);color:#120e14;opacity:.85;animation:suglow .7s ease-in-out infinite}
 @keyframes suglow{50%{box-shadow:inset 0 -6px 0 rgba(0,0,0,.25),0 3px 0 #0a0810,0 0 22px 4px rgba(255,170,40,.85)}}
 @media (prefers-reduced-motion:reduce){.su.ready{animation:none}}
@@ -276,7 +276,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
       <button class="mini" id="fsBtn" aria-label="Full screen" hidden><svg viewBox="0 0 10 10"><path d="M1 1h3v1.3H2.3V4H1zM6 1h3v3H7.7V2.3H6zM1 6h1.3v1.7H4V9H1zM7.7 6H9v3H6V7.7h1.7z"/></svg></button>
     </div>
     <div class="rightside" id="rightside">
-      <div class="sprow"><button class="act su" data-k="super" id="suBtn"><span>SPECIAL</span></button><button class="act sp sk" data-k="special" id="spBtn"><span>SKILL</span></button></div>
+      <div class="sprow"><button class="act su" data-k="super" id="suBtn"><span>SUPER</span></button><button class="act sp sk" data-k="special" id="spBtn"><span>SPECIAL</span></button></div>
       <div class="pad" id="apad" aria-label="Action buttons">
         <span></span>
         <button class="act ju" data-k="up"><span>J</span><i>Jump</i></button>
@@ -357,7 +357,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
       </div>
       <div class="hero-info">
         <div class="hero-stats" id="heroStats"></div>
-        <p class="hero-sup"><span>SPECIAL MOVE</span><b id="heroSup">MAX REP</b></p>
+        <p class="hero-sup"><span>SUPER MOVE</span><b id="heroSup">MAX REP</b></p>
       </div>
     </aside>
     <section class="fs-center">
@@ -498,13 +498,13 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
           <b>J</b><span>Jump. Steer with the stick while you're in the air, and press P or K for a jump kick.</span>
           <b>P, K</b><span>Punch and kick. Land a hit, then tap P or K again right away to chain a combo. Duck and punch for a low jab.</span>
           <b>B</b><span>Tap or hold to block. Blocked hits only chip a little health. Double-tap B right next to an opponent who isn’t attacking or blocking to throw them.</span>
-          <b>ROLL</b><span>Hold B and push the stick left or right to roll, even right past an opponent. You can’t be hit in the middle of a roll, but you can at the start and end, and a Special still catches you. To turn around while blocking, let go of B first.</span>
-          <b>SKILL</b><span>Your fighter’s own move: the dumbbell, quake wave, coffee mug, Hyper Sprint and so on. It’s free; after you use it, the SKILL button fills back up in about 2 seconds. Jump or block the dumbbell, jump the quake, jump, duck or block the mug, and jump Volt’s Hyper Sprint (it can’t be blocked).</span>
-          <b>SPECIAL</b><span>Land and take hits to fill your meter. When it’s full, SPECIAL lights up. Specials can’t be blocked, jumped or rolled through.</span>
-          <b>TEAMS · FFA</b><span>Pick the fight type at the top of this screen. Up to four fighters share a wider arena and the camera follows the action. Everyone has a few lives (set them in Fight Options). Last fighter (or team) standing wins. Skills and Specials hit everyone in their path, but never your teammate.</span>
+          <b>ROLL</b><span>Hold B and push the stick left or right to roll, even right past an opponent. You can’t be hit in the middle of a roll, but you can at the start and end, and a Super still catches you. To turn around while blocking, let go of B first.</span>
+          <b>SPECIAL</b><span>Your fighter’s own move: the dumbbell, quake wave, coffee mug, Hyper Sprint and so on. It’s free; after you use it, the SPECIAL button fills back up (2 to 3 seconds, depending on the fighter). Jump or block the dumbbell, jump the quake, jump, duck or block the mug, and jump Volt’s Hyper Sprint (it can’t be blocked).</span>
+          <b>SUPER</b><span>Land and take hits to fill your meter. When it’s full, SUPER lights up. Supers can’t be blocked, jumped or rolled through.</span>
+          <b>TEAMS · FFA</b><span>Pick the fight type at the top of this screen. Up to four fighters share a wider arena and the camera follows the action. Everyone has a few lives (set them in Fight Options). Last fighter (or team) standing wins. Specials and supers hit everyone in their path, but never your teammate.</span>
           <b>SAME</b><span>Picking the same fighter as the CPU is fine: the CPU's copy wears different colors.</span>
         </div>
-        <p class="kbd" style="margin-top:10px;text-align:left">Keyboard: A/D or ←/→ walk, W/↑/space jump, S/↓ duck, J punch, K kick, L skill, U special, I or Shift block (hold it and tap a direction to roll), P pause.</p>
+        <p class="kbd" style="margin-top:10px;text-align:left">Keyboard: A/D or ←/→ walk, W/↑/space jump, S/↓ duck, J punch, K kick, L special, U super, I or Shift block (hold it and tap a direction to roll), P pause.</p>
     <button class="go" id="howClose">GOT IT</button>
   </div>
 </div>
@@ -1803,15 +1803,18 @@ function startRound(){
 }
 
 /* ---------------- Combat ---------------- */
-// SKILL (Nov 2026, Alex): the old meter special is now a free move with a recharge, one out at a time.
-const SKILL_CD=120;   // 2 s
-const SKILL_DMG=0.75;   // thrown skills hit softer than the old meter specials did (Volt's sprint isn't thrown and keeps its damage)
+// Specials (Nov 2026, Alex): no longer cost meter. Free, with a recharge per fighter (frames), one out at a time,
+// and softer than when they cost meter. (Code calls this "skill"; on screen it's SPECIAL, and supers are SUPER.)
+const SKILL_CD_BY={ac:150, brick:180, becky:120, volt:105, bmoney:120, winston:150, haddie:120, harper:150, slime:150, imp:180};
+const skillCDOf=f=>SKILL_CD_BY[f.key]||120;
+const SKILL_DMG=0.75;   // every special hits 25% softer than the old meter version
 const SKILL_PROJ={plate:1,mug:1,bone:1,puke:1,yap:1,slimeshot:1,fireball:1,ripple:1,wave:1};
+const softSp=m=>({...m,dmg:Math.max(1,Math.round(m.dmg*SKILL_DMG))});
 const skillOut=f=>G.proj.some(p=>p.owner===f&&SKILL_PROJ[p.type]);
 const skillOk=f=>!(f.skillCD>0)&&!skillOut(f);
-const skillWait=f=>Math.max(0,Math.min(1,(f.skillCD||0)/SKILL_CD));
+const skillWait=f=>Math.max(0,Math.min(1,(f.skillCD||0)/skillCDOf(f)));
 // Dodge roll (Nov 2026, Alex): hold Block and push the stick left or right. Passes through fighters,
-// can't be hit in the middle (regular attacks and skills), but supers ("Specials" on screen) still hit,
+// can't be hit in the middle (regular attacks and specials), but supers still hit,
 // and the end leaves you open. You come out facing back the way you came.
 const ROLL_T=28, ROLL_MOVE=18, ROLL_V=3.2, ROLL_I0=3, ROLL_I1=17;
 const dodgy=d=>!!d.roll&&d.roll.t>=ROLL_I0&&d.roll.t<ROLL_I1;
@@ -1827,7 +1830,7 @@ function startMove(f,k){
   f.move=k; f.mf=0; f.mhit=false; f.state='attack'; f.moveId++;
   if(f.onGround) f.vx=(k==='punch'||k==='kick')?f.dir*0.4:0;
   if(f.key==='winston' && f.onGround && f.combo>0 && (k==='punch'||k==='kick')) f.vx=f.dir*(k==='punch'?2.6:1.6);   // lunging bite / jumping paw strike close the gap
-  if(k==='special') f.skillCD=SKILL_CD; else sfx('whoosh');
+  if(k==='special') f.skillCD=skillCDOf(f); else sfx('whoosh');
 }
 function hurt(f){
   const low=f.state==='crouch'||f.move==='low'||(f.move==='special'&&f.key==='brick'&&f.mf>=f.cfg.moves.special.st);
@@ -1999,7 +2002,7 @@ function sprintStep(f,o){
         if(!sp.hitl.includes(fidx(e)) && grounded && G.phase==='fight' && !untouchable(e) && !dodgy(e)){
           sp.hitl.push(fidx(e)); sp.hit=true; f.impactT=7;
           const hx=(f.x+e.x)/2, hy=f.y-30;
-          applyHit(f,e,f.cfg.moves.special,e.x+f.dir*10,hx,hy);
+          applyHit(f,e,softSp(f.cfg.moves.special),e.x+f.dir*10,hx,hy);
           G.parts.push({type:'zap',x:e.x,y:hy,life:12,max:12}); G.flashT=4; sfx('heavy');
         }
       }
@@ -2012,7 +2015,7 @@ function sprintStep(f,o){
     if(!sp.hit && grounded && G.phase==='fight' && !untouchable(o) && !dodgy(o)){
       sp.hit=true; f.impactT=7;
       const hx=(f.x+o.x)/2, hy=f.y-30;
-      applyHit(f,o,f.cfg.moves.special,o.x+f.dir*10,hx,hy);
+      applyHit(f,o,softSp(f.cfg.moves.special),o.x+f.dir*10,hx,hy);
       G.parts.push({type:'zap',x:o.x,y:hy,life:12,max:12}); G.flashT=4; sfx('heavy');
     }
   }
@@ -2517,7 +2520,7 @@ function drawCineBanner(){
     ctx.drawImage(im,px,y0+2,30,30); ctx.restore(); ctx.imageSmoothingEnabled=false; }
   ctx.strokeStyle=col; ctx.lineWidth=1; ctx.strokeRect(px,y0+2,30,30);
   const tx=left?48:W-48, al=left?'left':'right';
-  txt('SPECIAL',tx,y0+4,8,col,al); txt(SUPER_NAME[w.key]+'!',tx,y0+14,16,'#ffffff',al);
+  txt('SUPER',tx,y0+4,8,col,al); txt(SUPER_NAME[w.key]+'!',tx,y0+14,16,'#ffffff',al);
   ctx.restore();
 }
 
@@ -2824,7 +2827,7 @@ function updProj(){
     const hb=hurt(d);
     if(G.phase==='fight' && d.state!=='ko' && !untouchable(d) && !dodgy(d) && !(box.x1<hb.x0||box.x0>hb.x1||box.y1<hb.y0||box.y0>hb.y1)){
       const hx=(Math.max(box.x0,hb.x0)+Math.min(box.x1,hb.x1))/2;
-      applyHit(p.owner,d,SKILL_PROJ[p.type]?{...p,dmg:Math.max(1,Math.round(p.dmg*SKILL_DMG))}:p,p.x-p.vx*10,hx,(Math.max(box.y0,hb.y0)+Math.min(box.y1,hb.y1))/2);
+      applyHit(p.owner,d,SKILL_PROJ[p.type]?softSp(p):p,p.x-p.vx*10,hx,(Math.max(box.y0,hb.y0)+Math.min(box.y1,hb.y1))/2);
       if(p.type==='plate'){ G.parts.push({type:'impact',x:hx,y:GROUND,life:18,max:18,alt:p.owner.alt}); debris(hx,GROUND-2,5); }
       if(p.type==='bone'){ sparks(hx,p.y,p.owner.alt?WN_FX_ALT:WN_FX,8); G.parts.push({type:'sfx',key:'winston',name:'burst',x:hx,y:p.y,life:10,max:10,sc:0.4,alt:p.owner.alt,main:true}); }
       if(p.type==='puke'){ sparks(hx,p.y,PUKE_FX,10); G.parts.push({type:'sfx',key:'haddie',name:'splash',x:hx,y:p.y+4,life:16,max:16,sc:0.9,dir:Math.sign(p.vx),alt:p.owner.alt,main:true}); }
@@ -3114,7 +3117,7 @@ function meterBar(f,x,y,anchorLeft){
   P(anchorLeft?x:x+w-mw,y,mw,h,fcol(f));
   if(f.meter>=SUPER_COST){
     P(x,y,w,h,(G.t>>2)%2?'#ffe066':'#ff9a1f');
-    txt('SPECIAL',anchorLeft?x+w+5:x-5,y-2,8,(G.t>>3)%2?'#ffe066':'#ffffff',anchorLeft?'left':'right');
+    txt('SUPER',anchorLeft?x+w+5:x-5,y-2,8,(G.t>>3)%2?'#ffe066':'#ffffff',anchorLeft?'left':'right');
   }
 }
 function hud(){
