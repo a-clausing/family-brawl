@@ -30,6 +30,19 @@ def anchor(d, mode):
     return dict(img=d, ax=ax, ay=feet, h=h, w=d.shape[1])
 
 
+def edge_clean(raw):
+    """Super frames sit in blue flames that join neighbouring drawings together: drop pieces of the body (anything that
+    isn't flame) that touch the frame's left/right edge and aren't joined to the skeleton himself (a neighbour's arm or cape)."""
+    c = raw[..., :3].astype(int); on = raw[..., 3] > 0
+    flame = (c[..., 2] > 170) & (c[..., 1] > 140) & (c[..., 0] < 170)
+    body = on & ~flame; lab, n = nd.label(body)
+    if n < 2: return raw
+    size = nd.sum(body, lab, range(1, n + 1)); big = size.max(); out = raw.copy()
+    for i, sl in enumerate(nd.find_objects(lab)):
+        if size[i] < big * 0.25 and (sl[1].start == 0 or sl[1].stop == raw.shape[1]): out[..., 3][lab == i + 1] = 0
+    return out
+
+
 def frame(raw, mode='body', s=None): return anchor(despill(trim(down(trim(raw), s or SCALE)), BG), mode)
 
 
@@ -43,6 +56,7 @@ ASC = float(C.ARMY_H / np.median([trim(f).shape[0] for f in army_raw[:3]]))
 army = [anchor(despill(trim(down(trim(r), ASC)), ABG), 'body') for r in army_raw]
 print('army', len(army), 'scale', round(ASC, 3))
 main = {k: [frame(f, 'center' if k == 'roll' and 1 <= j <= 3 else 'body') for j, f in enumerate(v)] for k, v in R.items() if k not in PROPS + ('super',)}
+R['super'] = [edge_clean(trim(f)) for f in R['super']]
 sup = [frame(f) for f in R['super']]
 fx = {f'{k}{j}': frame(f, 'center') for k in PROPS for j, f in enumerate(R[k])}
 fxraw = {f'{k}{j}': trim(f) for k in PROPS for j, f in enumerate(R[k])}   # props at full size, so pack.py can size them freely

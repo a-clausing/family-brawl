@@ -114,8 +114,9 @@ def cut(A, img, fg, band, a, b):
     wl, wn = nd.label(win); keep = np.zeros(fg.shape, bool)
     for i, sl in enumerate(nd.find_objects(wl)):
         m = wl[sl] == i + 1; xs = np.where(m.any(0))[0]; cx = sl[1].start + (np.where(m)[1].mean())
-        if not (a <= cx < b): continue
-        if sl[1].stop - sl[1].start > 1.6 * (b - a):
+        wide = sl[1].stop - sl[1].start > 1.6 * (b - a)
+        if not wide and not (a <= cx < b): continue
+        if wide:   # joined figures: every frame it crosses takes its own slice
             part = np.zeros(fg.shape, bool); part[sl] = m; keep[y0:y1, a:b] |= part[y0:y1, a:b]
         else: keep[sl] |= m
     lab, n = nd.label(keep); size = nd.sum(keep, lab, range(1, n + 1))
