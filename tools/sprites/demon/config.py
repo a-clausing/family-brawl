@@ -4,7 +4,7 @@ GAP = 3
 ROWGAP = 3
 SPLITS = {}
 JOIN = {}
-IDLE_H = 117         # same height as the Cave Troll, Iron Ogre and Runic Golem
+IDLE_H = 137         # his head (not his horns) at the Runic Golem's height: horns add ~17 atlas px (Alex, Nov 20 2026)
 MATCH = ('walk', 'block', 'punch', 'kick', 'throw')
 MAXK = 1.1
 # # Like the Iron Ogre's sheet, the fighting rows (jump to get-up) are drawn ~18% smaller than idle (head and body alike);

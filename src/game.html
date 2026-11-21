@@ -1998,7 +1998,7 @@ function trollStomp(f){
 // GRASP_DMG and grabs them; it then pulls back at GRASP_PULL, the opponent held in place (hit stun, can't act), until they're
 // right in front of him; released with GRASP_STUN frames of stun (a punch's worth, enough to be hit, not a lock). A blocking
 // opponent (facing it, on the ground) or one with super armor makes it fade without a grab; it also fades at its range.
-const DL_HAND=[30,32], GRASP_V=6, GRASP_RANGE=110, GRASP_PULL=5, GRASP_DMG=5, GRASP_STUN=15;
+const DL_HAND=[35,37], GRASP_V=6, GRASP_RANGE=110, GRASP_PULL=5, GRASP_DMG=5, GRASP_STUN=15;
 const HELL_FX=['#ffb347','#ff3b3b','#ffe27a'], HELL_FX_ALT=['#7fd4ff','#3b7cff','#d6f0ff'];
 const graspOut=f=>G.proj.some(p=>p.type==='sgrasp'&&p.owner===f);
 function graspStep(p){
