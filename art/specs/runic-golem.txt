@@ -1,0 +1,114 @@
+Add New Fighter: RUNIC GOLEM
+
+Add Runic Golem as a playable fighter in Family Brawl using the provided character card and sprite sheet.
+
+Character Description
+
+Runic Golem is a massive ancient stone warrior constructed from dark gray and purple rock. His body consists of large, angular stone plates covered in glowing purple magical runes. He has glowing purple eyes, a stern face with stone teeth, and enormous fists.
+
+He is a slow, extremely durable fighter who combines powerful physical attacks with ancient rune magic.
+
+Fighting Style: Heavyweight magic bruiser
+Strength: High
+Defense: Very High
+Speed: Low
+Jump: Low
+Magic Range: Medium
+
+SPECIAL MOVE: Runic Blast
+
+Runic Golem extends one arm toward his opponent and releases a quick burst of concentrated purple magical energy from his palm.
+
+Animation:
+
+1. Golem plants his feet and draws his arm backward.
+2. The rune on his shoulder begins glowing brighter.
+3. He thrusts his hand forward, palm facing the opponent.
+4. A bright purple magical blast shoots horizontally from his palm.
+5. The blast travels a short-to-medium distance before dissipating.
+6. Golem lowers his arm and returns to his fighting stance.
+
+Gameplay Mechanics:
+
+* Fast, medium-range magical projectile.
+* Travels approximately 3 character widths.
+* Deals moderate damage.
+* Causes brief hit stun and light knockback.
+* Can be blocked, reducing damage and preventing knockback.
+* Projectile disappears when it hits an opponent, reaches maximum range, or collides with an appropriate obstacle.
+* Use the separate purple projectile and impact sprites from the sprite sheet.
+* No ground explosion or lingering damage.
+
+The attack should feel quick and powerful, rather than like a slow, charged fireball.
+
+SUPER MOVE: Runic Eruption
+
+Runic Golem activates the ancient magic within his body, causing enormous rune-covered stone pillars to erupt from the ground beneath every opponent.
+
+Animation:
+
+1. Golem plants his feet firmly.
+2. He slowly opens both arms outward.
+3. His eyes and the runes across his entire body glow intensely purple.
+4. He enters a dramatic POWER POSE with his arms spread wide, facing the viewer.
+5. Purple magical energy surrounds his body as small stones levitate around him.
+6. Glowing purple rune symbols appear on the ground directly beneath every opponent.
+7. After a brief warning, enormous jagged stone pillars covered in glowing purple runes erupt upward from those positions.
+8. Golem lowers his arms, the magical energy fades, and he returns to his normal stance.
+
+Gameplay Mechanics:
+
+* Targets ALL active opponents, regardless of their distance from Golem.
+* Each opponent receives their own ground eruption at their position when the targeting phase begins.
+* The eruptions happen simultaneously.
+* Display a brief purple rune warning on the ground before the pillars emerge.
+* Each pillar deals heavy damage and launches opponents upward.
+* Opponents can avoid the attack by moving away from their marked position before the pillars erupt.
+* Blocking reduces damage and prevents the launch.
+* Each opponent can only take damage once from the same eruption.
+* Pillars remain visible briefly before crumbling and disappearing.
+* Add a powerful screen shake when the pillars erupt.
+* Use the separate stone pillar and magical eruption effects from the sprite sheet.
+
+Important: This is NOT a traveling ground shockwave. The pillars emerge vertically from beneath the opponents, wherever they are standing when the locations are marked.
+
+VICTORY ANIMATION: Runic Awakening
+
+After winning, Runic Golem celebrates by activating the ancient magic within his stone body.
+
+Animation:
+
+1. Golem stands upright and clenches both fists.
+2. He raises both arms triumphantly into the air.
+3. His eyes and body runes glow bright purple.
+4. He holds his arms overhead in a powerful victory pose.
+
+Hold the final victory pose until the match transitions.
+
+Normal Attacks
+
+* Punch: Heavy stone-fisted punch with strong impact.
+* Low Jab: Crouching punch aimed at the opponent’s lower body.
+* Kick: Powerful forward kick with moderate reach.
+* Jump Kick: Heavy airborne kick.
+* Throw: Grabs the opponent and forcefully tosses them forward.
+* Block: Raises both massive stone forearms to protect his upper body.
+
+Implementation Requirements
+
+* Use the provided sprite sheet for all animations.
+* Maintain consistent character height and scale across all frames.
+* Keep his feet aligned with the arena floor.
+* Use the correct animations for idle, walk, jump, duck, roll, punch, low jab, kick, jump kick, throw, block, hit, knocked down, get up, special, super, and victory.
+* Preserve his heavy, deliberate movement style.
+* Make his physical attacks feel powerful through animation timing and knockback.
+* Ensure both special and super function correctly when facing either direction.
+* Use the supplied purple magical effects rather than generic effects.
+* Keep the Runic Blast projectile separate from the character animation.
+* Spawn Runic Eruption pillars at opponent positions, not at Golem’s feet.
+* Support multiple opponents during Runic Eruption.
+* Follow the existing Family Brawl combat architecture, controls, damage system, and super meter.
+* Add his character card to the fighter selection screen.
+* Do not alter existing fighters or their abilities.
+
+Character Identity: Runic Golem should feel like an ancient, nearly indestructible magical guardian. His strength comes from heavy stone attacks and powerful rune magic, distinguishing him from Cave Troll’s earthquakes and Iron Ogre’s armored charges and axe attacks.

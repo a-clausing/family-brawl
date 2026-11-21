@@ -451,6 +451,12 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
         <span class="nm">IRON OGRE</span>
         <span class="spc">Special: Shoulder Hit</span>
       </button>
+      <button class="pick" data-c="golem" aria-pressed="false" style="--fc:#b05cff">
+        <img class="tport" alt="" data-port="golem">
+        <span class="badges"></span>
+        <span class="nm">RUNIC GOLEM</span>
+        <span class="spc">Special: Runic Blast</span>
+      </button>
       </div>
       </div></div>
     </section>
@@ -492,6 +498,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
             <button data-o="orc" aria-pressed="false">Orc Brute</button>
             <button data-o="troll" aria-pressed="false">Cave Troll</button>
             <button data-o="ogre" aria-pressed="false">Iron Ogre</button>
+            <button data-o="golem" aria-pressed="false">Runic Golem</button>
             <button data-o="random" aria-pressed="true">Random</button>
           </div>
         </div>
@@ -577,6 +584,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 @@asset:orc-sheet.js@@
 @@asset:troll-sheet.js@@
 @@asset:ogre-sheet.js@@
+@@asset:golem-sheet.js@@
 @@asset:ac-sheet.js@@
 </script>
 <script>
@@ -770,9 +778,25 @@ const CH = {
       // active, stops on contact). High damage, strong knockback and a brief stun, but no knockdown (Alex's rule for specials).
       special:{st:12, ac:10, rc:16, dmg:14, kb:4.6, hs:15, bs:10, box:[4,24,-42,-10], cost:40}
     }
+  },
+  golem: {   // monster (Nov 20 2026; Alex's spec art/specs/runic-golem.txt, ratings Power 7, Speed 3, Defense 9, Range 8).
+    // Ancient stone guardian: the Troll's height, shrugs off light hits like the Troll, slow heavy stone fists, plus rune magic
+    // (a short, fast palm blast and pillars that erupt under every opponent).
+    key:'golem', name:'RUNIC GOLEM', speed:1.15, jump:-5.6, grav:0.32, weight:1.25, armor:0.20, jumpVx:1.6, w:22, h:46,
+    lightArmor:true,
+    meterCol:'#b05cff',
+    moves:{
+      punch:{st:6, ac:3, rc:13, dmg:7, kb:2.0, hs:15, bs:10, box:[8,28,-40,-30]},     // heavy stone fist
+      low:  {st:6, ac:3, rc:13, dmg:7, kb:1.6, hs:14, bs:9,  box:[8,27,-24,-6]},
+      kick: {st:9, ac:4, rc:20, dmg:12, kb:3.0, hs:19, bs:12, box:[8,30,-30,-12]},
+      air:  {st:5, ac:12,rc:6,  dmg:9, kb:2.4, hs:16, bs:10, box:[2,22,-18,2]},
+      // RUNIC BLAST: draws his arm back (the shoulder rune glows), thrusts his palm: a fast purple bolt (RBLAST_V) that fades
+      // after RBLAST_RANGE px (~3 bodies). Moderate damage; hits like a punch; blockable.
+      special:{st:11, ac:0, rc:16, cost:40}
+    }
   }
 };
-CH.ac.altMeterCol='#ff4a3d'; CH.becky.altMeterCol='#ff3b6b'; CH.bmoney.altMeterCol='#2fe0a8'; CH.winston.altMeterCol='#ff8a1f'; CH.haddie.altMeterCol='#3b9dff'; CH.harper.altMeterCol='#2fe07a'; CH.slime.altMeterCol='#b05cff'; CH.goblin.altMeterCol='#4a7dff'; CH.imp.altMeterCol='#3b8cff'; CH.skeleton.altMeterCol='#5ce07a'; CH.orc.altMeterCol='#3b7cff'; CH.troll.altMeterCol='#b05cff'; CH.ogre.altMeterCol='#3b7cff';
+CH.ac.altMeterCol='#ff4a3d'; CH.becky.altMeterCol='#ff3b6b'; CH.bmoney.altMeterCol='#2fe0a8'; CH.winston.altMeterCol='#ff8a1f'; CH.haddie.altMeterCol='#3b9dff'; CH.harper.altMeterCol='#2fe07a'; CH.slime.altMeterCol='#b05cff'; CH.goblin.altMeterCol='#4a7dff'; CH.imp.altMeterCol='#3b8cff'; CH.skeleton.altMeterCol='#5ce07a'; CH.orc.altMeterCol='#3b7cff'; CH.troll.altMeterCol='#b05cff'; CH.ogre.altMeterCol='#3b7cff'; CH.golem.altMeterCol='#7ee01f';
 // Fighters are drawn 10% larger than the original design; scale their bodies and attack reach to match.
 const FIGHTER_SCALE=1.1;
 for(const c of Object.values(CH)){
@@ -802,7 +826,7 @@ for(const [k,r] of [['winston',1.1],['haddie',60/63]]){
   for(const m of Object.values(c.moves)) if(m.box) m.box=m.box.map(v=>Math.round(v*r));
 }
 // Per-fighter heights in pixels (Alex's 60–99 ratings: 50px = 60, 59px = 99). Art, hit area and reach grow together.
-const FIGHTER_H={ac:53, becky:51, orc:53, troll:58, ogre:58};   // the Orc Brute: AC's height (Alex), bulkier through his art and width
+const FIGHTER_H={ac:53, becky:51, orc:53, troll:58, ogre:58, golem:58};   // the Orc Brute: AC's height (Alex), bulkier through his art and width
 for(const [k,th] of Object.entries(FIGHTER_H)){
   const c=CH[k], r=th/c.h;
   c.drawK=r; c.h=th; c.w=Math.round(c.w*r);
@@ -810,6 +834,7 @@ for(const [k,th] of Object.entries(FIGHTER_H)){
 }
 // ---- Balance pass (tuned with CPU-vs-CPU simulations: thousands of matches per pairing) ----
 const BAL={
+  golem:{armorCD:75},   // shrugs off light hits like the Cave Troll
   ogre:{armorCD:240, punch:{st:10, rc:22, box:[9,30,-46,-34]}, low:{st:10, rc:22, box:[9,29,-30,-9]}, kick:{st:13, rc:33, box:[9,32,-34,-14]}, air:{st:8, rc:12}, special:{rc:30}},   // Defense/Power 10 paid for with very slow swings; he shrugs off at most one light hit every 4 s
   troll:{armorCD:75},   // like Becky: after shrugging off a light hit, the next one within 1.25 s staggers him
   ac:   {punch:{rc:6, dmg:6}, low:{dmg:6}, kick:{dmg:11, st:5}, plateDmg:10, speed:1.7, armor:0.08},
@@ -1168,7 +1193,7 @@ function bkFrame(f){
 }
 // ---- Super move sheets (one per fighter) + alternate-color versions for mirror matches
 const SUPERS=window.SUPERS, SUPIMG={}, ALT_S={}, supReady={};
-const ALT_RULES={ogre:[(h,s)=>h>=18&&h<=42&&s>0.62,200,1],troll:[(h,s)=>h>=12&&h<=45&&s>0.5,250,1],orc:[(h,s)=>(h>=340||h<=20)&&s>0.4,210,1],skeleton:[(h,s)=>h>=265&&h<=350&&s>0.2,180,1],goblin:[(h,s)=>h>=45&&h<=82&&s>0.35,170,1],ac:[(h,s)=>h>=190&&h<=255&&s>0.3,150,1],brick:[(h,s)=>(h>=345||h<=22)&&s>0.5,205,1],
+const ALT_RULES={golem:[(h,s)=>h>=265&&h<=320&&s>0.4,150,1],ogre:[(h,s)=>h>=18&&h<=42&&s>0.62,200,1],troll:[(h,s)=>h>=12&&h<=45&&s>0.5,250,1],orc:[(h,s)=>(h>=340||h<=20)&&s>0.4,210,1],skeleton:[(h,s)=>h>=265&&h<=350&&s>0.2,180,1],goblin:[(h,s)=>h>=45&&h<=82&&s>0.35,170,1],ac:[(h,s)=>h>=190&&h<=255&&s>0.3,150,1],brick:[(h,s)=>(h>=345||h<=22)&&s>0.5,205,1],
   becky:[(h,s)=>h>=70&&h<=170&&s>0.22,232,1.45],volt:[(h,s)=>h>=38&&h<=70&&s>0.4,150,1],bmoney:[(h,s)=>h>=255&&h<=315&&s>0.3,240,1],winston:[(h,s)=>h>=185&&h<=240&&s>0.3,178,1],haddie:[(h,s)=>(h>=340||h<=15)&&s>0.45,205,1],harper:[(h,s)=>h>=295&&h<=345&&s>0.4,170,1],imp:[(h,s)=>(h<=16||h>=340)&&s>0.45,210,1],slime:[(h,s)=>h>=55&&h<=140&&s>0.3,180,1]};
 for(const k of Object.keys(SUPERS)){ const im=new Image(); SUPIMG[k]=im;
   im.onload=()=>{ supReady[k]=true; const r=ALT_RULES[k]; makeAlt(k,im,r[0],r[1],r[2],ALT_S); }; im.src=SUPERS[k].src; }
@@ -1245,6 +1270,9 @@ TRIMG.src=TRS.src;
 const OGS=window.OG_SHEET, OGIMG=new Image(); let ogReady=false;   // Iron Ogre: standard sprite-sheet layout (stdFrame)
 OGIMG.onload=()=>{ ogReady=true; makeAlt('ogre',OGIMG,(h,s)=>h>=18&&h<=42&&s>0.62,200); };   // mirror match: brass and orange leather -> blue
 OGIMG.src=OGS.src;
+const GMS=window.GM_SHEET, GMIMG=new Image(); let gmReady=false;   // Runic Golem: standard sprite-sheet layout (stdFrame)
+GMIMG.onload=()=>{ gmReady=true; makeAlt('golem',GMIMG,(h,s)=>h>=265&&h<=320&&s>0.4,150); };   // mirror match: purple runes -> green
+GMIMG.src=GMS.src;
 function gobFrame(f){   // Goblin v1 art (unused since v2 uses stdFrame; kept for reference): idle 0-5, walk 0-6, jump 0-7, duck 0-4, roll 0-6, block 0-5, punch 0-5, kick 0-6, hit 0-6, down 0-5, getup 0-3, win 0-4, special 0-8
   const key=f.state+(f.move||'');
   if(f.vS!==key){ f.vS=key; f.vA=f.anim; }
@@ -1296,7 +1324,7 @@ function stdFrame(f){   // fighters drawn with Alex's sprite-sheet prompt (art/s
     case 'block': return f.bstun>0?'block1':'block0';
     case 'hit': return 'hit'+Math.min(2,Math.floor(t/5));
     case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<6?'down2':'down3';
-    case 'win': if(f.key==='ogre') return t<10?'win0':t<22?'win1':'win2';   // Iron Ogre: pulls the axe, raises it and holds it overhead
+    case 'win': if(f.key==='ogre'||f.key==='golem') return t<10?'win0':t<22?'win1':'win2';   // Iron Ogre: pulls the axe, raises it and holds it overhead
       return t<10?'win0':'win'+(1+Math.floor(t/12)%2);
     case 'attack': {
       const m=f.cfg.moves[f.move], k=f.mf, st=m.st, ac=m.ac, rc=m.rc||0;
@@ -1434,10 +1462,11 @@ const SHEETS={ac:{S:()=>ACS,img:()=>ACIMG,frame:acFrame,ready:()=>acReady},
   skeleton:{S:()=>SKS,img:()=>SKIMG,frame:stdFrame,ready:()=>skReady},
   orc:{S:()=>ORS,img:()=>ORIMG,frame:stdFrame,ready:()=>orReady},
   troll:{S:()=>TRS,img:()=>TRIMG,frame:stdFrame,ready:()=>trReady},
-  ogre:{S:()=>OGS,img:()=>OGIMG,frame:stdFrame,ready:()=>ogReady}};
+  ogre:{S:()=>OGS,img:()=>OGIMG,frame:stdFrame,ready:()=>ogReady},
+  golem:{S:()=>GMS,img:()=>GMIMG,frame:stdFrame,ready:()=>gmReady}};
 // Free-for-all can have up to four of the same fighter: color sets 2 and 3 rotate the accent hue further
-const PAL_SHIFT={ac:[263,183],brick:[116,276],becky:[165,290],volt:[301,226],bmoney:[75,120],winston:[273,73],haddie:[120,280],harper:[60,240],slime:[120,240],imp:[120,270],goblin:[200,290],skeleton:[60,150],orc:[120,240],troll:[120,240],ogre:[120,240]};
-const PAL_COL={ac:['#3ddc5a','#ffc23d'],brick:['#3ddc5a','#b05cff'],becky:['#b05cff','#ffc23d'],volt:['#ff4a3d','#b05cff'],bmoney:['#ff4a3d','#ffc23d'],winston:['#3ddc5a','#c05cff'],haddie:['#3ddc5a','#ffc23d'],harper:['#ffc23d','#b05cff'],slime:['#3b9dff','#ff3b8a'],imp:['#3ddc5a','#b05cff'],goblin:['#b05cff','#ff3b6b'],skeleton:['#ffc23d','#ff3b6b'],orc:['#3b9dff','#b05cff'],troll:['#3b9dff','#ff3b6b'],ogre:['#3ddc5a','#b05cff']};
+const PAL_SHIFT={ac:[263,183],brick:[116,276],becky:[165,290],volt:[301,226],bmoney:[75,120],winston:[273,73],haddie:[120,280],harper:[60,240],slime:[120,240],imp:[120,270],goblin:[200,290],skeleton:[60,150],orc:[120,240],troll:[120,240],ogre:[120,240],golem:[120,240]};
+const PAL_COL={ac:['#3ddc5a','#ffc23d'],brick:['#3ddc5a','#b05cff'],becky:['#b05cff','#ffc23d'],volt:['#ff4a3d','#b05cff'],bmoney:['#ff4a3d','#ffc23d'],winston:['#3ddc5a','#c05cff'],haddie:['#3ddc5a','#ffc23d'],harper:['#ffc23d','#b05cff'],slime:['#3b9dff','#ff3b8a'],imp:['#3ddc5a','#b05cff'],goblin:['#b05cff','#ff3b6b'],skeleton:['#ffc23d','#ff3b6b'],orc:['#3b9dff','#b05cff'],troll:['#3b9dff','#ff3b6b'],ogre:['#3ddc5a','#b05cff'],golem:['#3b9dff','#ffc23d']};
 const PALS={2:{},3:{}}, PALS_S={2:{},3:{}}, PALS_P={2:{},3:{}}, PALS_C={2:{},3:{}};
 function ensurePal(key,p){
   if(p<2) return; const r=ALT_RULES[key], sh=PAL_SHIFT[key][p-2];
@@ -1867,7 +1896,7 @@ const G={fmode:(()=>{ try{ return localStorage.getItem('nrb.fmode')||'1v1'; }cat
   rules:{mode:'bestof',bestOf:5,minutes:2,stocks:3}, mclock:0, sudden:false, mode:'menu', paused:false, diff:'normal', pick:'ac', cpuPick:'random', f:null, proj:[], parts:[], shake:0, hitstop:0, slow:0,
   round:1, timer:60, ft:0, phase:'intro', pt:0, winner:null, combo:null, t:0};
 
-const FIGHTERS=['ac','becky','bmoney','winston','haddie','harper','slime','imp','goblin','skeleton','orc','troll','ogre'];   // Brick and Volt removed Nov 20 2026 (Alex is making new monsters)
+const FIGHTERS=['ac','becky','bmoney','winston','haddie','harper','slime','imp','goblin','skeleton','orc','troll','ogre','golem'];   // Brick and Volt removed Nov 20 2026 (Alex is making new monsters)
 const MAXHP=200;
 // Fight Options: 'bestof' (1/3/5/7 rounds, 60s per round) or 'mostwins' (most KOs in 1-4 minutes, then sudden death)
 const OPT_DEFAULT={mode:'bestof',bestOf:5,minutes:2,stocks:3};
@@ -1919,7 +1948,7 @@ function startRound(){
 // Specials (Alex, Nov 20 2026): no longer earned with meter (only supers are). They're free, one out at a time, and
 // recharge; the stronger the special, the longer the wait (frames, 60 = 1 s). The dagger and fireball hit like a punch,
 // so they come back fast. Every special ends on the first fighter it hits.
-const SKILL_CD_BY={goblin:36, imp:36, becky:90, haddie:90, slime:90, skeleton:150, orc:120, troll:180, ogre:240, harper:120, bmoney:135, winston:135, ac:150};
+const SKILL_CD_BY={goblin:36, imp:36, becky:90, haddie:90, slime:90, skeleton:150, orc:120, troll:180, ogre:240, golem:120, harper:120, bmoney:135, winston:135, ac:150};
 const skillCDOf=f=>SKILL_CD_BY[f.key]||120;
 // CAVE TROLL'S STOMP (Alex's spec): a foot stomp whose small shockwave hits everyone on the ground within STOMP_R of his
 // body on either side, for moderate damage and a small hop back (never a knockdown). Fighters in the air above it are missed.
@@ -1939,13 +1968,15 @@ function trollStomp(f){
     if(o.hp<hp0 && o.state==='hit' && !o.kd){ o.vy=STOMP_HOP; o.onGround=false; o.y=Math.min(o.y,GROUND-1); o.vx=away*STOMP_PUSH*o.cfg.weight; }   // hop back
   }
 }
+const GM_HAND=[30,30], RBLAST_V=6.0, RBLAST_RANGE=90;   // Runic Golem: palm position (forward, up), blast speed and range (~3 bodies)
+const RUNE_FX=['#e7a8ff','#b05cff','#ffffff'], RUNE_FX_ALT=['#c8ff8a','#7ee01f','#ffffff'];
 const OGRE_CHARGE=4.6, OGRE_PUSH=4.2, OGRE_HOP=-2.4;   // Iron Ogre's Shoulder Hit lunges ~46px (about 1.5 of his widths), stopping when it connects
 const ORC_CHARGE=4.2;   // Orc Brute's Shoulder Charge rushes ~50px while active, and stops when it connects
 const SLASH_LUNGE=3.2;   // Skeleton Warrior's Sword Slash lunges ~25px forward during the swing (he has nothing thrown, so it closes the gap)
 // Specials hit like a punch (Alex, Nov 20 2026): the target flinches the way a punch makes it flinch (the thrower's punch
 // knockback and hit/block stun), never falls or gets knocked down. Damage stays the special's own.
 function punchLike(p){ const pm=p.owner.cfg.moves.punch; return {...p, kb:pm.kb, hs:pm.hs, bs:pm.bs, kd:false, launch:false}; }
-const SKILL_PROJ={plate:1,mug:1,bone:1,puke:1,yap:1,slimeshot:1,fireball:1,ripple:1,wave:1,dagger:1};
+const SKILL_PROJ={rblast:1,plate:1,mug:1,bone:1,puke:1,yap:1,slimeshot:1,fireball:1,ripple:1,wave:1,dagger:1};
 const skillOut=f=>G.proj.some(p=>p.owner===f&&SKILL_PROJ[p.type]);
 const skillOk=f=>!(f.skillCD>0)&&!skillOut(f);
 const skillWait=f=>Math.max(0,Math.min(1,(f.skillCD||0)/skillCDOf(f)));
@@ -2062,6 +2093,10 @@ function spawnSpecial(f){
     const x=f.x+f.dir*IMP_HAND[0], y=f.y-IMP_HAND[1];
     G.proj.push({type:'fireball',owner:f,x,y,vx:f.dir*4.6,t:0,dmg:5,kb:2.2,hs:20,bs:10});
     sparks(x,y,f.alt?IMP_FX_ALT:IMP_FX,6); sfx('whoosh');
+  } else if(f.key==='golem'){   // RUNIC BLAST: a fast purple bolt from his palm, short-to-medium range
+    const k=f.cfg.drawK||1, x=f.x+f.dir*GM_HAND[0]*k, y=f.y-GM_HAND[1]*k;
+    G.proj.push({type:'rblast',owner:f,x,y,x0:x,vx:f.dir*RBLAST_V,t:0,dmg:9,kb:2.2,hs:20,bs:10});
+    sparks(x,y,f.alt?RUNE_FX_ALT:RUNE_FX,6); sfx('whoosh');
   } else if(f.key==='ogre'){   // SHOULDER HIT: the lunge is in updF (OGRE_CHARGE); the hit comes from moves.special's box
     sfx('whoosh'); dust(f.x-f.dir*10,GROUND,5);
   } else if(f.key==='troll'){   // STOMP
@@ -2191,11 +2226,11 @@ function endSprint(f,o){
    A full meter (100 = 2.5 specials) unlocks a super. The camera closes in on the fighter while they set up,
    everything else freezes, then it pulls back out and the attack plays. Supers can't be blocked or jumped,
    and each one does the damage of three of that fighter's specials. */
-const SUPER_COST=100, CINE=86, ORC_SUPER_V=5.2, TQ_V=4.4, OWAVE_V=4.8, OGRE_AXE_DMG=66;   // OWAVE_V: the Axe Chop shockwave's speed; OGRE_AXE_DMG: a direct axe hit   // TQ_V: the Cave Troll's Earthquake ripple speed   // ORC_SUPER_V: the Body Slam's rush speed   // close-up length in frames (~1.4s): zoom in, hold on the power pose, snap back out
-const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6,skeleton:1.9,orc:1.9,troll:1.8,ogre:1.45}, CINE_FY={ogre:46,troll:26,orc:24,skeleton:22,goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
-const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:52,skeleton:56,orc:60,troll:58,ogre:52};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
-const SUPER_NAME={ogre:'AXE CHOP',troll:'EARTHQUAKE',orc:'BODY SLAM',ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB',skeleton:'SKELETON ARMY'};
-const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:3,imp:3,goblin:3,skeleton:3,orc:1,troll:3,ogre:2};
+const SUPER_COST=100, CINE=86, ORC_SUPER_V=5.2, TQ_V=4.4, OWAVE_V=4.8, OGRE_AXE_DMG=66, RUNE_WARN=40, PILLAR_T=50;   // RUNE_WARN: frames of rune warning before the Golem's pillars erupt; PILLAR_T: how long they stand   // OWAVE_V: the Axe Chop shockwave's speed; OGRE_AXE_DMG: a direct axe hit   // TQ_V: the Cave Troll's Earthquake ripple speed   // ORC_SUPER_V: the Body Slam's rush speed   // close-up length in frames (~1.4s): zoom in, hold on the power pose, snap back out
+const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6,skeleton:1.9,orc:1.9,troll:1.8,ogre:1.45,golem:1.35}, CINE_FY={golem:50,ogre:46,troll:26,orc:24,skeleton:22,goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
+const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:52,skeleton:56,orc:60,troll:58,ogre:52,golem:56};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
+const SUPER_NAME={golem:'RUNIC ERUPTION',ogre:'AXE CHOP',troll:'EARTHQUAKE',orc:'BODY SLAM',ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB',skeleton:'SKELETON ARMY'};
+const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:3,imp:3,goblin:3,skeleton:3,orc:1,troll:3,ogre:2,golem:3};
 const AC_RELEASE=[33.3, 48.6], BK_REL=SUPERS.becky.meta.rel;   // where the barbell / book stack leaves their hands [ahead, above feet]
 const clampX=x=>Math.max(14,Math.min(AW-14,x));
 function startSuper(f,o){
@@ -2346,6 +2381,19 @@ function superStep(f,o){
       }
       if(s.ph===9){ s.liftI=-1; s.fr=7; if(++s.kt===1) dust(f.x+f.dir*6,GROUND,6); if(s.kt>=24){ superLanded(f); return endSuper(f,o); } break; }   // whiffed
       s.kt++; s.fr=s.kt<10?7:8; if(s.kt>=20) return endSuper(f,o);
+      break; }
+    case 'golem': {   // RUNIC ERUPTION (Alex's spec): plants his feet, opens his arms, the runes blaze (close-up: arms spread in purple
+      // energy), then a glowing rune marks the floor under EVERY opponent; after a short warning (RUNE_WARN) stone pillars erupt
+      // there (geyser in superProj). Move off your mark to dodge; standing on it, any height gets hit (supers can't be jumped).
+      // Super frames: 0 stance, 1 feet planted, 2 arms opening with a roar, 3 power pose (close-up), 4 energy fading, 5-7 stance.
+      if(t<=CINE){ s.fr=t<12?0:t<24?1:t<40?2:3; if(t>=30 && t%3===0) part(f.x+(rnd()-0.5)*40,f.y-rnd()*50,(rnd()-0.5)*0.3,-0.5,16,(f.alt?RUNE_FX_ALT:RUNE_FX)[t%3],rnd()<0.4?2:1,-0.01); break; }
+      if(u===1){
+        const xs=foes(f).filter(e=>!e.dead && e.state!=='ko').map(e=>clampX(e.x));
+        G.proj.push({type:'reruption',sup:1,owner:f,x:f.x,y:GROUND,vx:0,t:0,xs,hitl:[],dmg:SUPER_DMG.golem,kb:1,hs:46,bs:0,unblockable:true,launch:true});
+        sfx('super');
+      }
+      s.fr=u<RUNE_WARN?3:u<RUNE_WARN+16?4:u<RUNE_WARN+28?5:u<RUNE_WARN+38?6:7;
+      if(u>=RUNE_WARN+44) return endSuper(f,o);
       break; }
     case 'ogre': {   // AXE CHOP (Alex's spec): grips his giant axe, raises it overhead, holds a power pose (the close-up), then chops
       // it into the floor just ahead: a direct hit there deals OGRE_AXE_DMG; a shockwave then runs forward across the arena
@@ -2685,7 +2733,32 @@ function ogreWave(p){
   if(p.x<6||p.x>AW-6){ G.parts.push({type:'sfx',key:'ogre',name:'wave1',x:clampX(p.x),y:GROUND+2,life:20,max:20,sc:0.7,dir,alt:f.alt}); return true; }
   return false;
 }
+// RUNIC ERUPTION (Runic Golem): a rune glows on the floor at every mark for RUNE_WARN frames, then a stone pillar erupts
+// at each one. Anyone still on a mark (within half their width + 16) is hit once at any height: launched up, or, if they're
+// blocking on the ground, a quarter of the damage and no launch. The pillars stand for PILLAR_T frames, then crumble.
+function golemEruption(p){
+  const f=p.owner; p.t++;
+  if(p.t===RUNE_WARN){
+    G.flashT=3; G.flashCol=f.alt?'rgba(120,230,40,.18)':'rgba(176,92,255,.2)'; G.hitstop=Math.max(G.hitstop,4); sfx('quake');
+    for(const x of p.xs){ debris(x,GROUND-2,10); dust(x,GROUND,8); }
+    if(G.phase==='fight') for(const o of foes(f)){
+      if(o.dead || o.state==='ko' || p.hitl.includes(fidx(o))) continue;
+      if(!p.xs.some(x=>Math.abs(o.x-x)<o.cfg.w/2+16)) continue;
+      p.hitl.push(fidx(o)); superLanded(f);
+      if(untouchable(o)) continue;
+      const keep=f.meter, away=o.x>=f.x?1:-1;
+      if(o.state==='block' && o.onGround){ applyHit(f,o,{dmg:Math.round(p.dmg/4),kb:0.6,hs:18,bs:0,unblockable:true,noScale:true},o.x-away,o.x,o.y-20); sparks(o.x,o.y-26,['#bfe0ff','#ffffff','#e7a8ff'],10); }
+      else { p.noScale=true; applyHit(f,o,p,o.x-away,o.x,o.y-20); if(o.hp>0) knockDown(o,away,1.0,-6.4); }
+      f.meter=keep; sfx('superhit');
+    }
+  }
+  if(p.t<RUNE_WARN && p.t%4===0) for(const x of p.xs) sparks(x+(rnd()-0.5)*14,GROUND-2,f.alt?RUNE_FX_ALT:RUNE_FX,1);
+  if(p.t===RUNE_WARN+PILLAR_T) for(const x of p.xs){ debris(x,GROUND-20,10); dust(x,GROUND,6); }
+  if(p.t>=RUNE_WARN+PILLAR_T+12){ superLanded(f); return true; }
+  return false;
+}
 function superProj(p){
+  if(p.type==='reruption') return golemEruption(p);
   if(p.type==='owave') return ogreWave(p);
   if(p.type==='tquake') return trollQuake(p);
   if(p.type==='sarmy') return armyProj(p);
@@ -2777,6 +2850,22 @@ function drawSuperProj(p){
   if(p.type==='sbar') drawSup('ac',f.alt,'bar_fly',p.x,p.y,dir,1,1,Math.sin(p.t*0.5)*0.06);
   else if(p.type==='squake') drawSup('brick',f.alt,'erupt_small',p.x,GROUND+2,dir,0.62+0.1*Math.sin(p.t*0.9));
   else if(p.type==='sshake') drawSup('harper',f.alt,'swoosh2',p.x,GROUND+2,dir,0.95+0.08*Math.sin(p.t*0.8));
+  else if(p.type==='reruption'){   // glowing rune circles, then pillars rising, standing and crumbling
+    const t=p.t, col=f.alt?'#7ee01f':'#c26bff';
+    for(const x of p.xs){
+      if(t<RUNE_WARN){   // the warning: a pulsing rune ring on the floor
+        const k=t/RUNE_WARN, pulse=0.5+0.5*Math.sin(t*0.6);
+        ctx.save(); ctx.globalAlpha=0.35+0.5*k*pulse; ctx.strokeStyle=col; ctx.lineWidth=1.5;
+        ctx.beginPath(); ctx.ellipse(x,GROUND+1,18,4.5,0,0,Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(x,GROUND+1,10,2.5,0,0,Math.PI*2); ctx.stroke(); ctx.restore();
+        drawSup('golem',f.alt,'pillar0',x,GROUND+2,1,0.6+0.2*k,0.4+0.6*k);
+      } else {
+        const e=t-RUNE_WARN, end=PILLAR_T, nm=e<3?'pillar1':e<6?'pillar2':'pillar3';
+        const al=e>end?Math.max(0,1-(e-end)/12):1, sink=e>end?(e-end)*1.5:0;
+        drawSup('golem',f.alt,nm,x,GROUND+2+sink,1,1,al);
+      }
+    }
+  }
   else if(p.type==='owave') drawSup('ogre',f.alt,'wave3',p.x,GROUND+2,dir,0.55+0.07*Math.sin(p.t*0.9));   // the shockwave: rocks and orange energy
   else if(p.type==='tquake') drawSup('troll',f.alt,'erupt',p.x,GROUND+2,dir,0.5+0.08*Math.sin(p.t*0.9));   // jagged rocks erupting along the ripple
   else if(p.type==='strash'){ drawSup('haddie',f.alt,'trashfly',p.x,p.y+Math.sin(p.t*0.5)*1.5,dir,1); if(p.t%2===0) debris(p.x-dir*20,p.y+4,1,true); }
@@ -2889,7 +2978,7 @@ function drawCineBanner(){
 // Each hit after the 2nd in a combo does less: 100%, 100%, 85%, 70%, 55%, then 50% floor. Supers aren't scaled.
 const comboScale=n=>Math.max(0.5,1-0.15*Math.max(0,n-1));
 const KD_LIE=46, KD_UP=28, WAKE_INV=14;   // frames lying down, getting up, and invincible after standing
-const THROW_POWER={ac:3,brick:5,becky:3,volt:3,bmoney:3,winston:2,haddie:2,harper:2,slime:2,imp:3,goblin:2,skeleton:3,orc:5,troll:5,ogre:5};   // matches the Power stat on the fighter cards
+const THROW_POWER={ac:3,brick:5,becky:3,volt:3,bmoney:3,winston:2,haddie:2,harper:2,slime:2,imp:3,goblin:2,skeleton:3,orc:5,troll:5,ogre:5,golem:5};   // matches the Power stat on the fighter cards
 const untouchable=d=>d.kd||d.inv>0||d.held||d.thr;
 /* ---------------- Team fights & free-for-all (2-4 fighters) ----------------
    G.multi is on for 2v2 and free-for-all. Every fighter has a team (in free-for-all each is its own team);
@@ -3118,6 +3207,11 @@ function aiInput(f,o){
   if(f.onGround && !f.move && canThrow(f,o) && arnd()<0.025*D.aggr){ a.tap=[0,1,0,0,1]; return blankIn(); }
   // airborne: steer toward the opponent instead of holding the take-off direction (air control overshoots otherwise)
   if(!f.onGround){ inp.left=inp.right=false; if(d>16) inp[tw]=true; }
+  // a Runic Eruption mark under its feet: a CPU that reacts in time walks off it (harder CPUs more often)
+  for(const p of G.proj) if(p.type==='reruption' && p.owner!==f && !(G.multi&&p.owner.team===f.team) && p.t<RUNE_WARN && f.onGround && !f.move){
+    const m=p.xs.find(x=>Math.abs(f.x-x)<f.cfg.w/2+20);
+    if(m!==undefined && (a.dodgeRune===p.t>>3 || arnd()<0.12*D.dodge)){ a.dodgeRune=p.t>>3; return Object.assign(blankIn(),{[f.x>=m?'right':'left']:true}); }
+  }
   // projectiles
   let threat=false;
   for(const p of G.proj){
@@ -3127,7 +3221,7 @@ function aiInput(f,o){
       const dk='d'+G.f.indexOf(f); if(p[dk]===undefined) p[dk]=arnd()<D.dodge;
       if(p[dk]){
         threat=true;
-        if(p.type==='plate'||p.type==='mug'||p.type==='bone'||p.type==='puke'||p.type==='yap'||p.type==='slimeshot'||p.type==='fireball'||p.type==='dagger'){ if(pd<70) Object.assign(inp,{block:true,left:false,right:false,up:false}); }
+        if(p.type==='rblast'||p.type==='plate'||p.type==='mug'||p.type==='bone'||p.type==='puke'||p.type==='yap'||p.type==='slimeshot'||p.type==='fireball'||p.type==='dagger'){ if(pd<70) Object.assign(inp,{block:true,left:false,right:false,up:false}); }
         else if(pd<36 && pd>12 && f.onGround){ inp.up=true; inp.block=false; }
       }
     }
@@ -3153,7 +3247,7 @@ function aiInput(f,o){
   if(f.meter>=SUPER_COST && f.onGround && !f.move && !G.cine && !o.sup && !o.superArmor && arnd()<0.035*D.aggr){ inp.super=true; return inp; }
   if(a.cool>0){ a.cool--; return inp; }
   a.cool=D.react+((arnd()*D.react)|0);
-  if(skillOk(f) && (f.key==='skeleton'?d>40&&d<80:f.key==='orc'?d>30&&d<72:f.key==='troll'?d<44:f.key==='ogre'?d>28&&d<64:d>70) && arnd()<0.4*D.aggr){ inp.special=true; return inp; }   // the Skeleton lunges in with his sword from just out of reach
+  if(skillOk(f) && (f.key==='skeleton'?d>40&&d<80:f.key==='orc'?d>30&&d<72:f.key==='troll'?d<44:f.key==='ogre'?d>28&&d<64:f.key==='golem'?d>40&&d<110:d>70) && arnd()<0.4*D.aggr){ inp.special=true; return inp; }   // the Skeleton lunges in with his sword from just out of reach
   // AC escapes a corner by jumping over the opponent
   const cornered=(f.x<44&&dx>0)||(f.x>AW-44&&dx<0);
   if(f.key==='ac' && cornered && d<46 && f.onGround && arnd()<0.55*D.aggr){ inp.up=true; inp[tw]=true; return inp; }
@@ -3195,11 +3289,14 @@ function updProj(){
     const p=G.proj[i];
     if(p.sup){ if(superProj(p)){ G.proj.splice(i,1); superArmorCheck(p.owner); } continue; }
     p.x+=p.vx; p.t++;
+    if(p.type==='rblast' && Math.abs(p.x-p.x0)>RBLAST_RANGE){   // the rune bolt fades out at its range
+      sparks(p.x,p.y,p.owner.alt?RUNE_FX_ALT:RUNE_FX,5); G.proj.splice(i,1); continue;
+    }
     if(p.type==='ripple' && p.t>p.range){   // energy dissipates at max range
       sparks(p.x,GROUND-4,p.owner.alt?BM_FX_ALT:BM_FX,6); dust(p.x,GROUND,4); G.proj.splice(i,1); continue;
     }
     if(p.type==='ripple' && p.t%3===0) sparks(p.x-Math.sign(p.vx)*10,GROUND-2,p.owner.alt?BM_FX_ALT:BM_FX,1);
-    const box=p.type==='plate'?{x0:p.x-4,x1:p.x+4,y0:p.y-4,y1:p.y+4}:p.type==='mug'?{x0:p.x-6,x1:p.x+6,y0:p.y-4,y1:p.y+4}:p.type==='bone'?{x0:p.x-6,x1:p.x+6,y0:p.y-3,y1:p.y+3}:p.type==='puke'?{x0:p.x-8,x1:p.x+8,y0:p.y-5,y1:p.y+5}:p.type==='yap'?{x0:p.x-6,x1:p.x+6,y0:p.y-9,y1:p.y+9}:p.type==='slimeshot'?{x0:p.x-7,x1:p.x+7,y0:p.y-4,y1:p.y+4}:p.type==='fireball'?{x0:p.x-7,x1:p.x+7,y0:p.y-5,y1:p.y+5}:p.type==='dagger'?{x0:p.x-8,x1:p.x+8,y0:p.y-3,y1:p.y+3}:{x0:p.x-6,x1:p.x+6,y0:GROUND-13,y1:GROUND};
+    const box=p.type==='rblast'?{x0:p.x-8,x1:p.x+8,y0:p.y-5,y1:p.y+5}:p.type==='plate'?{x0:p.x-4,x1:p.x+4,y0:p.y-4,y1:p.y+4}:p.type==='mug'?{x0:p.x-6,x1:p.x+6,y0:p.y-4,y1:p.y+4}:p.type==='bone'?{x0:p.x-6,x1:p.x+6,y0:p.y-3,y1:p.y+3}:p.type==='puke'?{x0:p.x-8,x1:p.x+8,y0:p.y-5,y1:p.y+5}:p.type==='yap'?{x0:p.x-6,x1:p.x+6,y0:p.y-9,y1:p.y+9}:p.type==='slimeshot'?{x0:p.x-7,x1:p.x+7,y0:p.y-4,y1:p.y+4}:p.type==='fireball'?{x0:p.x-7,x1:p.x+7,y0:p.y-5,y1:p.y+5}:p.type==='dagger'?{x0:p.x-8,x1:p.x+8,y0:p.y-3,y1:p.y+3}:{x0:p.x-6,x1:p.x+6,y0:GROUND-13,y1:GROUND};
     if(p.type==='wave' && p.t%3===0) debris(p.x,GROUND-2,2,true);
     let gone=false;
     for(const d of (G.multi?foes(p.owner):[p.owner===G.f[0]?G.f[1]:G.f[0]])){
@@ -3213,6 +3310,7 @@ function updProj(){
       if(p.type==='puke'){ sparks(hx,p.y,PUKE_FX,10); G.parts.push({type:'sfx',key:'haddie',name:'splash',x:hx,y:p.y+4,life:16,max:16,sc:0.9,dir:Math.sign(p.vx),alt:p.owner.alt,main:true}); }
       if(p.type==='yap'){ sparks(hx,p.y,p.owner.alt?YAP_FX_ALT:YAP_FX,10); }
       if(p.type==='dagger'){ sparks(hx,p.y,['#fff6a8','#ffd23f','#ffffff'],10); G.parts.push({type:'sfx',key:'goblin',name:'spark1',x:hx,y:p.y+8,life:10,max:10,sc:0.45,alt:p.owner.alt}); }
+      if(p.type==='rblast'){ sparks(hx,p.y,p.owner.alt?RUNE_FX_ALT:RUNE_FX,12); G.parts.push({type:'sfx',key:'golem',name:'impact',x:hx,y:p.y,life:12,max:12,sc:0.5,alt:p.owner.alt,main:true}); }
       if(p.type==='fireball'){ sparks(hx,p.y,p.owner.alt?IMP_FX_ALT:IMP_FX,12); G.parts.push({type:'sfx',key:'imp',name:'spark1',x:hx,y:p.y+8,life:12,max:12,sc:0.45,alt:p.owner.alt}); }
       if(p.type==='slimeshot'){ sparks(hx,p.y,p.owner.alt?SLIME_FX_ALT:SLIME_FX,10); G.parts.push({type:'sfx',key:'slime',name:'splat',x:hx,y:p.y+6,life:16,max:16,sc:0.45,alt:p.owner.alt}); }
       if(p.type==='mug'){ sparks(hx,p.y,COFFEE_FX,12); G.parts.push({type:'sfx',key:'becky',name:'star',x:hx,y:p.y,life:10,max:10,sc:0.7}); }
@@ -3373,6 +3471,12 @@ function drawProj(p){
     const [sx,sy,w,h,ax,ay]=GBS.spr['dagger'+((p.t>>2)%3)], dir=Math.sign(p.vx)||1;
     ctx.save(); ctx.translate(Math.round(p.x*2)/2,Math.round(p.y*2)/2); if(dir<0) ctx.scale(-1,1);
     ctx.drawImage(sheetImg('goblin',p.owner.alt),sx,sy,w,h,-ax/2,-ay/2,w/2,h/2); ctx.restore();
+  }
+  if(p.type==='rblast' && gmReady){   // the rune bolt: grows as it leaves his palm
+    const nm='blast'+Math.min(2,p.t>>1), [sx,sy,w,h,ax,ay]=GMS.spr[nm], dir=Math.sign(p.vx)||1;
+    ctx.save(); ctx.translate(Math.round(p.x*2)/2,Math.round(p.y*2)/2); ctx.scale(dir*0.75,0.75);
+    ctx.drawImage(sheetImg('golem',p.owner.alt),sx,sy,w,h,-ax/2,-ay/2,w/2,h/2); ctx.restore();
+    return;
   }
   if(p.type==='fireball' && imReady){   // a flickering fireball with embers
     const nm=p.t<4?'fire1':(p.t>>2)%2?'fire3':'fire2', [sx,sy,w,h,ax,ay]=IMS.spr[nm], dir=Math.sign(p.vx)||1;
@@ -3721,7 +3825,7 @@ function drawVSMulti(){   // 2v2 / free-for-all intro: every fighter's card in a
 const VS_LEN=156, VS_SLAM=26;
 const PORT={}; for(const [k,src] of Object.entries(window.PORTRAITS)){ const im=new Image(); im.src=src; PORT[k]=im; }
 const CARD={}; for(const [k,src] of Object.entries(window.CARDS)){ const im=new Image(); im.src=src; CARD[k]=im; }
-const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'COFFEE MUG TOSS',volt:'HYPER SPRINT',bmoney:'GROUND RIPPLE',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP',slime:'SLIME SHOT',imp:'FIREBALL',goblin:'DAGGER TOSS',skeleton:'SWORD SLASH',orc:'SHOULDER CHARGE',troll:'STOMP',ogre:'SHOULDER HIT'};
+const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'COFFEE MUG TOSS',volt:'HYPER SPRINT',bmoney:'GROUND RIPPLE',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP',slime:'SLIME SHOT',imp:'FIREBALL',goblin:'DAGGER TOSS',skeleton:'SWORD SLASH',orc:'SHOULDER CHARGE',troll:'STOMP',ogre:'SHOULDER HIT',golem:'RUNIC BLAST'};
 function vsSkip(){ if(G.mode==='play' && G.phase==='vs' && !NET.active && G.pt<VS_LEN-14) G.pt=VS_LEN-14; }
 function drawVS(){
   const t=G.pt, [a,b]=G.f, C=W/2, PS=112, top=16;
@@ -3758,7 +3862,7 @@ function drawVS(){
 }
 
 /* ---------------- Fighter select: portraits, hero panel, pick badges ---------------- */
-const FC={ac:'#3b7cff',brick:'#e0402a',becky:'#4cc93a',volt:'#ffd400',bmoney:'#a24dff',winston:'#3fa9ff',haddie:'#ff3b3b',harper:'#ff2fa0',slime:'#7ee01f',imp:'#ff5a1f',goblin:'#9bd12a',skeleton:'#3fd0ff',orc:'#e0402a',troll:'#3fd04a',ogre:'#ff7a1f'};
+const FC={ac:'#3b7cff',brick:'#e0402a',becky:'#4cc93a',volt:'#ffd400',bmoney:'#a24dff',winston:'#3fa9ff',haddie:'#ff3b3b',harper:'#ff2fa0',slime:'#7ee01f',imp:'#ff5a1f',goblin:'#9bd12a',skeleton:'#3fd0ff',orc:'#e0402a',troll:'#3fd04a',ogre:'#ff7a1f',golem:'#b05cff'};
 document.querySelectorAll('.pick .tport').forEach(im=>{ im.src=window.CARDS[im.dataset.port]; });
 // Fighter pages (Family, Monsters): arrows or a sideways swipe flip between them
 const PAGES=[...document.querySelectorAll('#pagerTrack .picks')]; let fsPage=0;
@@ -3794,7 +3898,8 @@ const STATS={
   skeleton:{power:6, speed:6, defense:5, range:7},
   orc:     {power:8, speed:4, defense:6, range:3},
   troll:   {power:7, speed:3, defense:9, range:5},
-  ogre:    {power:10, speed:2, defense:10, range:3}
+  ogre:    {power:10, speed:2, defense:10, range:3},
+  golem:   {power:7, speed:3, defense:9, range:8}
 };
 function statStars(k){
   const r=STATS[k]||{}; let h='<span class="stats">';
@@ -3875,7 +3980,7 @@ document.getElementById('fsBack').addEventListener('click',()=>{ sfx('select'); 
 function leaveLobbyScreen(){ lastLobby=null; howOv.hidden=true; menuEl.hidden=true; menuEl.classList.remove('online'); show('room',false); show('roomCode',false); setRoomControls(); mainMenu.hidden=false; mmTop.hidden=true; mmArc.hidden=false; }
 // ---- 1v1 / 2v2 / free-for-all
 const fmodeSel=document.getElementById('fmodeSel'), cpuMulti=document.getElementById('cpuMulti');
-const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',winston:'Winston',haddie:'Haddie',harper:'Harper',slime:'Slime',imp:'Imp',goblin:'Goblin',skeleton:'Skeleton Warrior',orc:'Orc Brute',troll:'Cave Troll',ogre:'Iron Ogre'};
+const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',winston:'Winston',haddie:'Haddie',harper:'Harper',slime:'Slime',imp:'Imp',goblin:'Goblin',skeleton:'Skeleton Warrior',orc:'Orc Brute',troll:'Cave Troll',ogre:'Iron Ogre',golem:'Runic Golem'};
 function renderCpuSlots(){
   const fm=G.fmode, multi=fm!=='1v1', online=appMode==='online';
   document.getElementById('cpuPick').hidden=multi; cpuMulti.hidden=!multi;
@@ -4027,7 +4132,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=32;
+const HASH_EVERY=30, KEEP=900, NET_V=33;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late

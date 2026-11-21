@@ -25,7 +25,7 @@ JS = """
   return res;
 })
 """
-NAMES = {'ac': 'AC', 'brick': 'Brick', 'becky': 'Becky', 'volt': 'Volt', 'bmoney': 'BMoney', 'winston': 'Winston', 'haddie': 'Haddie', 'harper': 'Harper', 'slime': 'Slime', 'imp': 'Imp', 'goblin': 'Goblin', 'skeleton': 'Skeleton', 'orc': 'Orc', 'troll': 'Troll', 'ogre': 'Ogre'}
+NAMES = {'ac': 'AC', 'brick': 'Brick', 'becky': 'Becky', 'volt': 'Volt', 'bmoney': 'BMoney', 'winston': 'Winston', 'haddie': 'Haddie', 'harper': 'Harper', 'slime': 'Slime', 'imp': 'Imp', 'goblin': 'Goblin', 'skeleton': 'Skeleton', 'orc': 'Orc', 'troll': 'Troll', 'ogre': 'Ogre', 'golem': 'Golem'}
 
 
 def report(d):
