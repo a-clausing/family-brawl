@@ -41,7 +41,7 @@ async def main():
         b = await p.chromium.launch()
         for me in who:
             for gap in (16, -16, 130): await run(b, me, OPP[me], gap)
-            if me != 'bmoney': await run(b, me, OPP[me], 24, True)
+            await run(b, me, OPP[me], 24, True)   # (B-Money was skipped while his super was the Rising Quake)
         await b.close()
     print('ALL OK' if not fails else f'CHECK: {sorted(set(fails))}')
     sys.exit(1 if fails else 0)

@@ -1,0 +1,26 @@
+B-Money ability update (Alex, Nov 21 2026; sent in the chat with the card art/originals/bmoney-card-v2.png and sheet
+art/originals/bmoney-sheet-v2.png)
+
+Character: a teenage street fighter, short brown hair, purple basketball tank top with a large white 8, black sweatpants,
+purple shoes. Punches, kicks and a sword infused with purple energy. Fast, aggressive sword combat, medium range.
+
+SPECIAL - PURPLE SLASH: draws his sword, raises it overhead, swings down with both hands; a bright purple crescent shockwave
+shoots forward along the ground; back to his stance. The sword deals close-range damage; the shockwave travels
+short-to-medium distance, damages and slightly knocks back; no duplicate damage from sword and shockwave to the same
+opponent; the sword disappears when the special ends.
+
+SUPER - FERRARI: summons Ferrari, a supernatural armored black warhorse with purple trim, glowing purple eyes and purple
+flames from mane, tail and hooves. He raises his sword, flames erupt beside him, Ferrari materializes, he jumps on, Ferrari
+charges across the entire stage while B-Money swings his sword at opponents in the path, flames trailing; Ferrari carries
+him offscreen, then he returns to his normal fighting position. Fast full-screen horizontal charge in the direction he
+faces; heavy damage and knockback; limit repeated hits on the same opponent; Ferrari much larger than B-Money; he returns
+safely. Ferrari is a horse, NOT a car.
+
+VICTORY: raises his sword overhead with purple energy flashing along the blade. (The sheet's victory row has no sword:
+fists up and a flex. The game uses the sheet's frames.)
+
+Implementation: replace his old special (Ground Ripple) and super (Rising Quake) entirely; keep his normal punches, kicks,
+jumps, blocks and movement; consistent scaling; both directions; card shows SUPER: FERRARI; keep controls, cooldowns,
+damage system and meter; don't modify other characters.
+
+Alex's answer (Nov 21 2026): use the new sheet for all of B-Money (not only the sword and Ferrari), same height as before.

@@ -9,6 +9,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 SHEET = os.path.join(ROOT, 'art/originals/fighter-cards.png')
 OUTJS = os.path.join(ROOT, 'src/assets/cards.js')
 REMOVED = {'brick', 'volt'}   # on the sheet but taken out of the game (Nov 20 2026)
+NEWCARD = {'bmoney'}   # have a newer single card made with tools/make_card.py (B-Money v2, Nov 21 2026): don't overwrite
 ORDER = [['ac', 'brick', 'becky', 'volt'], ['bmoney', 'winston', 'haddie', 'harper']]   # as laid out on the sheet
 W, H = 360, 480   # stored size (3:4); the sheet's cards are ~375 x 502
 
@@ -50,7 +51,7 @@ if __name__ == '__main__':
     boxes = find_cards(a); keys = ORDER[0] + ORDER[1]
     s = open(OUTJS).read(); cards = json.loads(s[s.index('{'):s.rindex('}') + 1])
     for key, (y0, x0, y1, x1) in zip(keys, boxes):
-        if key in REMOVED: continue
+        if key in REMOVED or key in NEWCARD: continue
         c = im.crop((x0, y0, x1, y1)).resize((W, H), Image.LANCZOS)
         cards[key] = enc(c); cards[key + '_alt'] = enc(alt(c, key))
     open(OUTJS, 'w').write('window.CARDS=' + json.dumps(cards, separators=(',', ':')) + ';')
