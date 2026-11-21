@@ -42,6 +42,7 @@ def body_h(raw, s):   # standing height (each row's median, so the few flame fra
     ys = np.where(on.any(1))[0]; return ys.max() - ys.min() + 1
 IH = np.median([body_h(f, SCALE) for f in R['idle']])
 RS = {k: min(getattr(C, 'MAXK', 9), float(IH / np.median([body_h(f, SCALE) for f in R[k]]))) for k in getattr(C, 'MATCH', ())}
+if hasattr(C, 'GLOBALK'): RS = {k: C.GLOBALK for k in R if k not in ('idle', 'walk') + PROPS}   # the sheet draws every pose but idle/walk smaller
 print('row scales', {k: round(v, 3) for k, v in RS.items()})
 main = {k: [frame(f, 'center' if k == 'roll' and 1 <= j <= 3 else 'body', SCALE * RS.get(k, 1)) for j, f in enumerate(v)] for k, v in R.items() if k not in PROPS + ('super',)}
 sup = [frame(f, s=SCALE * RS.get('super', 1)) for f in R['super']]
