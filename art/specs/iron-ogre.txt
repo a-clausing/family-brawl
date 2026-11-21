@@ -1,0 +1,104 @@
+Add New Fighter: IRON OGRE
+
+Add Iron Ogre as a playable character in Family Brawl using the provided sprite sheet and character card.
+
+Character Description
+
+Iron Ogre is a massive, muscular, gray-skinned monster with glowing orange eyes, large tusks, battle scars, and heavy iron armor covered in spikes. He wears rugged leather and fur clothing.
+
+He is a slow, powerful heavyweight fighter who specializes in close-range attacks, high damage, and knocking opponents backward.
+
+Fighting Style: Heavyweight bruiser
+Strength: Very High
+Defense: High
+Speed: Low
+Jump: Low
+Attack Range: Short to Medium
+
+SPECIAL MOVE: Shoulder Hit
+
+Iron Ogre lowers his body, leans forward, and charges toward his opponent with his spiked iron shoulder armor.
+
+Animation:
+
+1. Ogre plants his feet and lowers his shoulder.
+2. Briefly pauses to prepare the charge.
+3. Explosively lunges forward, leading with his armored shoulder.
+4. His shoulder spikes strike the opponent.
+5. Opponent is knocked backward.
+6. Ogre slides to a stop and returns to his fighting stance.
+
+Gameplay Mechanics:
+
+* Short-range forward charge.
+* Travels approximately 1.5 character widths.
+* Deals high damage if the shoulder connects.
+* Causes strong knockback.
+* Briefly stuns the opponent on a successful hit.
+* Can be blocked, significantly reducing damage and preventing knockback.
+* Has a short recovery period if the attack misses.
+* No projectile or ranged damage.
+* Include dust effects behind his feet during the charge and a sharp impact effect on contact.
+
+SUPER MOVE: Axe Chop
+
+Iron Ogre summons a massive, thick-handled iron battle axe and performs a devastating overhead chop. When the axe strikes the ground, it sends a destructive shockwave traveling forward across the arena.
+
+Animation:
+
+1. Ogre reaches for and grips his enormous iron axe.
+2. Raises the axe above his head with both hands.
+3. Briefly holds a dramatic POWER POSE, showing his strength.
+4. Swings the axe downward with tremendous force.
+5. Axe strikes the ground directly in front of him.
+6. A large burst of rocks, dust, and orange energy erupts from the impact.
+7. A ground shockwave travels horizontally toward the opponent.
+8. Ogre pulls the axe free and returns to his normal stance.
+
+Gameplay Mechanics:
+
+* The initial axe strike deals massive damage at close range.
+* The ground shockwave travels across the arena toward the opponent.
+* Shockwave deals damage and knocks opponents backward.
+* A direct axe hit deals more damage than the traveling shockwave.
+* The shockwave stays close to the ground and can be avoided by jumping.
+* Blocking reduces shockwave damage and prevents knockback.
+* The super should feel extremely powerful, with screen shake when the axe hits the ground.
+* Use the separate ground impact and shockwave effects from the sprite sheet.
+* The axe is only used during his super and victory animations, not regular attacks.
+
+VICTORY ANIMATION: Axe Raise
+
+After winning, Iron Ogre celebrates by raising his massive iron axe triumphantly into the air.
+
+Animation:
+
+1. Ogre stands upright and pulls out his axe.
+2. Raises the axe high overhead in one hand.
+3. Holds the axe above his head while roaring victoriously.
+
+Loop or hold the final victory pose until the match transitions.
+
+Normal Attacks
+
+* Punch: Heavy forward punch with significant impact.
+* Low Jab: Crouching punch aimed at the opponent’s midsection.
+* Kick: Powerful forward kick with moderate reach.
+* Jump Kick: Heavy airborne kick.
+* Throw: Grabs the opponent and forcefully tosses them forward.
+* Block: Raises his armored arms to protect his upper body.
+
+Implementation Requirements
+
+* Use the supplied sprite sheet for all animations.
+* Preserve consistent character size and positioning.
+* Ensure his feet align with the arena floor.
+* Use the correct sprite frames for idle, walk, jump, duck, roll, block, hit, knocked down, get up, special, super, and victory.
+* Keep his movement noticeably slower than smaller fighters.
+* Make his attacks feel heavy through animation timing, knockback, and impact effects.
+* Maintain compatibility with the existing Family Brawl combat system.
+* Follow the existing character architecture and controls rather than creating a separate combat system.
+* Ensure both special and super work correctly when facing either direction.
+* Add his character card to the fighter selection screen.
+
+Important: Iron Ogre’s special is a physical shoulder charge, NOT a ground slam. His super is an overhead axe strike that creates a traveling ground shockwave. His victory animation is raising his axe overhead.
