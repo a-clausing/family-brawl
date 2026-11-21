@@ -6,9 +6,9 @@ import sys, io, json, base64, numpy as np
 from PIL import Image
 
 # mirror-match hue rules, the same as ALT_RULES in the game: (hue from, hue to, min saturation, shift); a wrap-around range when from > to
-ALT = {'imp': (340, 16, 0.45, 210), 'goblin': (45, 82, 0.35, 170), 'slime': (55, 140, 0.3, 180), 'skeleton': (265, 350, 0.2, 180), 'orc': (340, 20, 0.4, 210), 'troll': (95, 160, 0.35, 180), 'ogre': (18, 42, 0.62, 200), 'golem': (265, 320, 0.4, 150), 'demon': (330, 25, 0.45, 200)}
+ALT = {'imp': (340, 16, 0.45, 210), 'goblin': (45, 82, 0.35, 170), 'slime': (55, 140, 0.3, 180), 'skeleton': (265, 350, 0.2, 180), 'orc': (340, 20, 0.4, 210), 'troll': (95, 160, 0.35, 180), 'ogre': (18, 42, 0.62, 200), 'golem': (265, 320, 0.4, 150), 'demon': (330, 25, 0.45, 200), 'dragon': (12, 50, 0.5, 190), 'forgotten': (265, 330, 0.35, 120)}
 # face crop for the portrait, as fractions of the card (left, top, right, bottom)
-FACE = {'imp': (0.28, 0.07, 0.83, 0.48), 'goblin': (0.33, 0.04, 0.90, 0.47), 'slime': (0.22, 0.10, 0.88, 0.60), 'skeleton': (0.25, 0.05, 0.85, 0.50), 'orc': (0.36, 0.06, 0.86, 0.56), 'troll': (0.34, 0.08, 0.86, 0.56), 'ogre': (0.32, 0.06, 0.86, 0.6), 'golem': (0.36, 0.1, 0.86, 0.6), 'demon': (0.24, 0.12, 0.84, 0.72)}
+FACE = {'imp': (0.28, 0.07, 0.83, 0.48), 'goblin': (0.33, 0.04, 0.90, 0.47), 'slime': (0.22, 0.10, 0.88, 0.60), 'skeleton': (0.25, 0.05, 0.85, 0.50), 'orc': (0.36, 0.06, 0.86, 0.56), 'troll': (0.34, 0.08, 0.86, 0.56), 'ogre': (0.32, 0.06, 0.86, 0.6), 'golem': (0.36, 0.1, 0.86, 0.6), 'demon': (0.24, 0.12, 0.84, 0.72), 'dragon': (0.12, 0.12, 0.72, 0.62), 'forgotten': (0.25, 0.08, 0.78, 0.55)}
 
 key, src = sys.argv[1], sys.argv[2]
 card = Image.open(src).convert('RGB')

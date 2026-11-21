@@ -13,7 +13,7 @@ All attributes rated 1–10 (10 = highest).
 | Iron Ogre | 10 | 2 | 10 | 3 | in game |
 | Runic Golem | 7 | 3 | 9 | 8 | in game |
 | Demon Lord | 9 | 7 | 5 | 7 | in game (Nov 20 2026) |
-| Ancient Dragon | 9 | 6 | 6 | 10 | planned |
+| Ancient Dragon | 9 | 6 | 6 | 10 | in game (Nov 21 2026) |
 | The Forgotten One | 8 | 4 | 7 | 10 | planned |
 
 - **Power** = attack damage potential.
@@ -70,3 +70,4 @@ Higher `weight` = harder to knock back.
 - **Iron Ogre** (built Nov 20 2026 to his ratings): speed 1.0, armor +0.25, weight 1.3, shrugs off light hits (one every 4 s); punch 8 / kick 14 / shoulder hit 14; Orc-length reach. At these ratings he first won 96%; balanced only with very slow swings (punch st 10 rc 22, kick st 13 rc 33) and a 4 s special recharge. Sim 52%, but lopsided matchups.
 - **Runic Golem** (built Nov 20 2026): Troll-like body (speed 1.15, armor +0.20, light-hit armor), Range 8 from rune magic: a fast 90 px blast and pillars under every opponent. Sim 46% with no tuning.
 - **Demon Lord** (built Nov 20 2026): speed 1.75, armor +0.07, no light-hit armor, strong punches/kicks (Power 9). Range 7 from Soul Grasp (a ~110 px grab that pulls the opponent in front of him) and a full-arena meteor super with warning rings. Sim 55%.
+- **Ancient Dragon** (built Nov 21 2026): speed 1.6, armor +0.10, strong bites and claws (Power 9). Range 10 from the Tail Sweep (reaches ~3 bodies with a forward lurch) and Inferno Breath (fire across the whole arena in front of him). Sim 55%.

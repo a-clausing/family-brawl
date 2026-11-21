@@ -1,0 +1,25 @@
+Ancient Dragon spec (Alex, Nov 21 2026; sent in the chat with the card art/originals/dragon-card.png and sheet art/originals/dragon-sheet.png)
+
+Character: A massive, four-legged black dragon with orange scales, horns, wings, and a long tail. Slow movement, very high
+damage and defense. He must fight like a dragon, NOT a humanoid.
+
+Normal attacks: Punch = quick forward bite. Low jab = low crouching bite. Kick = powerful front-claw swipe. Jump kick =
+flying claw strike. Throw = grabs opponent with jaws and tosses them. Block = folds wings forward. Roll = curls his body
+and rolls forward.
+
+SPECIAL - Tail Sweep: twists his body and swings his massive tail forward, striking opponents at medium range and knocking
+them down. Strong physical damage, no projectile.
+
+SUPER - Inferno Breath: spreads his wings, pulls his head backward, charges orange fire in his throat, then unleashes a
+massive continuous stream of fire horizontally across the arena for several seconds. Repeated damage with a maximum damage
+cap. Opponents can escape by getting behind him or interrupting the wind-up.
+
+VICTORY - Dragon's Roar: raises his head, spreads his wings, roars as flames escape his mouth.
+
+Implementation: use the supplied sheet and effects; identical scale in every animation (never shrink him in jumps or
+attacks); keep his whole body (wings, legs, tail) in jumps; four legs in normal movement and combat; works facing either
+way; existing combat, damage and super meter; card on fighter select; don't change existing fighters.
+
+Alex's answers (Nov 21 2026): the Golem's height with a long body; Tail Sweep = hop back with no fall (not a knockdown);
+Inferno Breath escape = get behind him only (the super can't be interrupted, like every super; it can't be jumped either);
+keep the roster ratings (Power 9, Speed 6, Defense 6, Range 10), not "slow, very high defense".
