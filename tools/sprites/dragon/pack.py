@@ -35,13 +35,14 @@ def body_ax(f):   # anchor from his body only (not the bright fire stream in the
 for j in (5,): sup[j]['ax'] = body_ax(sup[j])
 # super frame 3 picked up a wing tip from frame 2 (a separate piece on its far left): keep only pieces near his body
 from scipy import ndimage as _nd
-for j in (3,):
-    im = sup[j]['img'].copy(); al = im[..., 3] > 0; lab, n = _nd.label(al); sz = _nd.sum(al, lab, range(1, n + 1))
-    for i, z in enumerate(sz):
-        if z < 0.25 * sz.max(): im[lab == i + 1, 3] = 0
-    sup[j]['img'] = im
+def cut_left(im):   # frame 3 picked up frame 2's wing tip (overlapping its own left wing on the sheet): erase everything left
+    # of the thinnest column between 15% and 35% of its width, where the two wings barely touch
+    al = im[..., 3] > 40; cnt = al.sum(0); w = im.shape[1]; lo = int(w * 0.15); hi = int(w * 0.35)
+    x = lo + int(np.argmin(cnt[lo:hi])); im = im.copy(); im[:, :x + 1, 3] = 0
+    return im
+sup[3]['img'] = cut_left(sup[3]['img'])
 it = [(str(j), f['img'], f['ax'], f['ay'], 2) for j, f in enumerate(sup)]
-hd = despill(trim(down(raw_pose, sup[P]['img'].shape[0] * 2 / raw_pose.shape[0])), BG)
+hd = trim(cut_left(despill(trim(down(raw_pose, sup[P]['img'].shape[0] * 2 / raw_pose.shape[0])), BG)))
 it.append(('hd', hd, sup[P]['ax'] * 2, hd.shape[0], 4))
 it += [prop(f'fire{j}', f'pobj{j}', w, 'center') for j, w in enumerate((70, 92, 96))]   # pieces of the fire stream, tiled along it
 it += [prop(f'blast{j}', f'pobj{j + 3}', w, 'floor') for j, w in enumerate((120, 150))]   # fire bursts where it hits

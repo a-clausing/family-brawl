@@ -6,7 +6,7 @@ GAP = 3
 ROWGAP = 3
 SPLITS = {0: [144, 270, 396, 523, 814, 944, 1051, 1150, 1253, 1346, 1436], 1: [116, 233, 352, 448, 576, 678, 960, 1084, 1385], 2: [109, 202, 290, 384, 472, 718, 831, 946, 1222, 1319, 1423], 3: [103, 193, 294, 520, 621, 834, 954, 1069, 1303, 1407], 4: [119, 233, 366, 498, 725, 829, 940, 1209, 1366], 5: [133, 279, 446, 617, 764, 1050, 1171, 1396], 6: [102, 207, 311, 468, 585, 704, 819, 1034, 1128, 1238, 1374]}
 JOIN = {}
-IDLE_H = 117         # Alex: the Golem's height (his raised wings and horns level with the Troll/Ogre/Golem's heads), long body
+IDLE_H = 129         # Alex: the Golem's height (117) + 10% (Nov 21 2026: "dragon to be 10% bigger"); art only, his hit area is unchanged
 MATCH = ()
 MAXK = 1.0
 # The sheet draws most poses smaller than idle, and the walk shrinks frame by frame (measured by the area of his dark body,

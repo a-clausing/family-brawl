@@ -6,7 +6,7 @@ GAP = 3
 ROWGAP = 3
 SPLITS = {0: [913, 1032, 1245], 1: [554, 1370], 2: [940], 3: [192, 297, 599, 1045, 1287], 4: [125], 5: [1158], 6: [586, 705, 927, 1021, 1116]}
 JOIN = {}
-IDLE_H = 117         # the Golem's art height; FIGHTER_H 61 (Golem 58) makes him 5% bigger (Alex), and he floats a few px up in the game
+IDLE_H = 123         # Alex: 5% bigger again (Nov 21 2026), on top of FIGHTER_H 61 vs the Golem's 58; art only
 MATCH = ()
 MAXK = 1.0
 # Like the dragon's sheet, most poses are drawn smaller than idle and the walk shrinks frame by frame (measured Nov 21 2026

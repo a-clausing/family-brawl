@@ -2094,7 +2094,7 @@ function graspStep(p){
 // opponent they touch is wrapped (VOID_DMG, held in place, can't act) for VOID_HOLD frames, squeezed (VOID_SQUEEZE more) and
 // flung away: a big hop back on their feet (VOID_PUSH/VOID_HOP, ~110 px), no knockdown (Alex). Blocked = the tentacles
 // recoil (1 chip); a miss fades at full reach. He holds the reaching pose until they're back, so a miss can be punished.
-const FO_HOVER=4, FO_REACH0=26, FO_REACH_Y=30, VOID_V=6.5, VOID_RANGE=100, VOID_DMG=4, VOID_SQUEEZE=8, VOID_HOLD=22, VOID_PUSH=5.0, VOID_HOP=-3.0;
+const FO_HOVER=4, FO_REACH0=27, FO_REACH_Y=32, VOID_V=6.5, VOID_RANGE=100, VOID_DMG=4, VOID_SQUEEZE=8, VOID_HOLD=22, VOID_PUSH=5.0, VOID_HOP=-3.0;
 const VOID_FX=['#e7a8ff','#b05cff','#ffffff'], VOID_FX_ALT=['#f3ff9a','#c8e03a','#ffffff'];
 function voidStep(p){
   const f=p.owner, dir=p.dir, FX=f.alt?VOID_FX_ALT:VOID_FX;
@@ -2398,7 +2398,7 @@ function endSprint(f,o){
    everything else freezes, then it pulls back out and the attack plays. Supers can't be blocked or jumped,
    and each one does the damage of three of that fighter's specials. */
 const SUPER_COST=100, CINE=86, ORC_SUPER_V=5.2, TQ_V=4.4, OWAVE_V=4.8, OGRE_AXE_DMG=66, RUNE_WARN=40, PILLAR_T=50, HOLE_AHEAD=72, HOLE_GROW=22, HOLE_PULL=96, HOLE_R=112, HOLE_TICK=16, HOLE_DMG=4, HOLE_CAP=24, HOLE_BOOM=30, HOLE_BOOM_R=56, FIRE_WIND=26, FIRE_T=110, FIRE_TICK=10, FIRE_DMG=5, METEOR_N=6, METEOR_WARN=32, METEOR_GAP=10, METEOR_FALL=22, METEOR_SMALL=12, METEOR_BIG=36;   // Demon Lord's meteor shower   // RUNE_WARN: frames of rune warning before the Golem's pillars erupt; PILLAR_T: how long they stand   // OWAVE_V: the Axe Chop shockwave's speed; OGRE_AXE_DMG: a direct axe hit   // TQ_V: the Cave Troll's Earthquake ripple speed   // ORC_SUPER_V: the Body Slam's rush speed   // close-up length in frames (~1.4s): zoom in, hold on the power pose, snap back out
-const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6,skeleton:1.9,orc:1.9,troll:1.8,ogre:1.45,golem:1.35,demon:1.35,dragon:1.3,forgotten:1.4}, CINE_FY={forgotten:48,dragon:50,demon:50,golem:50,ogre:46,troll:26,orc:24,skeleton:22,goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
+const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6,skeleton:1.9,orc:1.9,troll:1.8,ogre:1.45,golem:1.35,demon:1.35,dragon:1.18,forgotten:1.35}, CINE_FY={forgotten:48,dragon:50,demon:50,golem:50,ogre:46,troll:26,orc:24,skeleton:22,goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
 const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:52,skeleton:56,orc:60,troll:58,ogre:52,golem:56,demon:36,dragon:50,forgotten:54};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
 const SUPER_NAME={forgotten:'REALITY COLLAPSE',dragon:'INFERNO BREATH',demon:'INFERNAL APOCALYPSE',golem:'RUNIC ERUPTION',ogre:'AXE CHOP',troll:'EARTHQUAKE',orc:'BODY SLAM',ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB',skeleton:'SKELETON ARMY'};
 const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:3,imp:3,goblin:3,skeleton:3,orc:1,troll:3,ogre:2,golem:3,demon:3,dragon:3,forgotten:3};
@@ -2999,7 +2999,7 @@ function demonMeteors(p){
 // opponent takes at most SUPER_DMG.dragon in total (p.got), and the hit that reaches the cap (or the last tick) knocks them down.
 // A fighter blocking on the ground facing him takes a quarter and stays up. Behind him is safe.
 const DFIRE_FX=['#ffe27a','#ff8a1f','#ff3b1f'], DFIRE_FX_ALT=['#d6f0ff','#5aa8ff','#3b5cff'];
-const fireFront=f=>f.x+f.dir*44;   // where the stream starts: his open mouth (super frame 4)
+const fireFront=f=>f.x+f.dir*48;   // where the stream starts: his open mouth (super frame 4)
 function dragonFire(p){
   const f=p.owner, dir=p.dir; p.t++;
   if(p.t%3===0) sfx('whoosh');
