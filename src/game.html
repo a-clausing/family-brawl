@@ -755,9 +755,9 @@ const BAL={
   goblin:{punch:{dmg:6}, kick:{dmg:10}, air:{dmg:8}},
   // Since punches go over small fighters (Nov 20 2026), the smallest take a little more damage from what does land
   slime:{armor:-0.3}, harper:{armor:-0.1}, haddie:{armor:-0.08},
-  // Skeleton Warrior: very low health (Alex: 35/100) = hits hurt him more, same-size health bar (Alex's pick). He has nothing
-  // thrown, so he makes up for it with speed and harder hits (sim: armor -0.3 with his base hits won 2%; quick recovery = his high combos)
-  skeleton:{punch:{dmg:6, rc:5}, low:{dmg:6}, kick:{dmg:11, st:4, rc:8}, air:{dmg:8}, special:{dmg:11}, speed:2.3, armor:-0.1}
+  // Skeleton Warrior, matched to Alex's monster ratings (art/specs/monster-roster.md: Power 6, Speed 6, Defense 5, Range 7):
+  // mid speed (slower than Imp/Goblin/Slime), a bit tougher than them, hard hits and the long Sword Slash
+  skeleton:{punch:{dmg:6, rc:10}, low:{dmg:6, rc:10}, kick:{dmg:11, st:6, rc:15}, air:{dmg:8}, special:{dmg:11, st:10, rc:22}, speed:1.7, armor:0.07, weight:0.95}
 };
 // Winston's rapid, light hits build the opponent's super meter more slowly than a heavy hitter's would
 CH.winston.feed=0.7; CH.haddie.feed=0.85; CH.harper.feed=0.75; CH.slime.feed=0.7;
@@ -765,6 +765,7 @@ for(const [k,t] of Object.entries(BAL)){
   for(const [mv,props] of Object.entries(t)) if(CH[k].moves[mv]) Object.assign(CH[k].moves[mv],props);
   if(t.armor!==undefined) CH[k].armor=t.armor;
   if(t.speed!==undefined) CH[k].speed=t.speed;
+  if(t.weight!==undefined) CH[k].weight=t.weight;
 }
 const DIFF = {
   easy:  {react:14, block:0.15, dodge:0.25, aggr:1.0,  combo:0.3},
@@ -1833,7 +1834,7 @@ function startRound(){
 // Specials (Alex, Nov 20 2026): no longer earned with meter (only supers are). They're free, one out at a time, and
 // recharge; the stronger the special, the longer the wait (frames, 60 = 1 s). The dagger and fireball hit like a punch,
 // so they come back fast. Every special ends on the first fighter it hits.
-const SKILL_CD_BY={goblin:36, imp:36, becky:90, haddie:90, slime:90, skeleton:90, harper:120, bmoney:135, winston:135, ac:150};
+const SKILL_CD_BY={goblin:36, imp:36, becky:90, haddie:90, slime:90, skeleton:150, harper:120, bmoney:135, winston:135, ac:150};
 const skillCDOf=f=>SKILL_CD_BY[f.key]||120;
 const SLASH_LUNGE=3.2;   // Skeleton Warrior's Sword Slash lunges ~25px forward during the swing (he has nothing thrown, so it closes the gap)
 // Specials hit like a punch (Alex, Nov 20 2026): the target flinches the way a punch makes it flinch (the thrower's punch
@@ -3745,7 +3746,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=27;
+const HASH_EVERY=30, KEEP=900, NET_V=28;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late
