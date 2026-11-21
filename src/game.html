@@ -2224,7 +2224,7 @@ function superStep(f,o){
         if(gap<=1 || u>140){
           s.mn=null;
           if(gap>1 || o.state==='ko' || o.superArmor || o.kd || o.inv>0 || o.dead){ s.ph=9; s.kt=0; }   // nothing to grab: he skids to a stop
-          else { s.ph=1; s.kt=0; s.lock=true; o.roll=null; s.ox=o.x; s.oy=o.y; sfx('grab'); }
+          else { s.ph=1; s.kt=0; s.lock=true; s.liftI=G.f.indexOf(o); o.roll=null; s.ox=o.x; s.oy=o.y; sfx('grab'); }
         }
         break;
       }
@@ -2234,17 +2234,22 @@ function superStep(f,o){
           o.x=clampX(s.ox+(f.x+f.dir*(minD-6)-s.ox)*q); o.y=s.oy+(GROUND-6-s.oy)*q;
           if(s.kt>=10){ s.ph=2; s.kt=0; } }
         else { s.fr=s.kt<10?4:5; const q=Math.min(1,s.kt/10);
-          o.x=f.x+f.dir*(minD-6)*(1-q)+f.dir*2*q; o.y=GROUND-6-(48*k)*q;
+          o.x=f.x+f.dir*(minD-6)*(1-q)-lieMid(o)*q; o.y=GROUND-6-(48*k)*q;   // centred over his head
           if(s.kt===10){ G.flashT=2; sfx('heavy'); }
           if(s.kt>=26){ s.ph=3; s.kt=0; } }
         break;
       }
       if(s.ph===3){   // SLAM: down into the floor in front of him
         s.kt++; s.fr=6;
-        const q=Math.min(1,s.kt/4); o.x=clampX(f.x+f.dir*(2+(minD+6)*q)); o.y=GROUND-6-(48*k)*(1-q); o.vx=0; o.vy=0;
+        const q=Math.min(1,s.kt/4); o.x=clampX(f.x-lieMid(o)+f.dir*(minD+6)*q); o.y=GROUND-6-(48*k)*(1-q); o.vx=0; o.vy=0;
         if(s.kt===4){
-          s.lock=false; o.y=GROUND; o.onGround=true; s.ix=o.x;
-          superHit(f,o,SUPER_DMG.orc,{launch:true,kb:1.6,hs:46,vy:-3.4,big:true});
+          // Alex: the opponent stays lying flat from the grab until they get up, so the slam leaves them lying there
+          // (no bounce or fall), then they get up as from any knockdown
+          s.lock=false; s.liftI=-1; o.y=GROUND; o.vx=0; o.vy=0; o.onGround=true; s.ix=o.x;
+          superHit(f,o,SUPER_DMG.orc,{kb:0,hs:46});
+          if(o.state==='ko'){ o.y=GROUND; o.vy=0; o.vx=0; o.onGround=true; o.landT=6; }
+          else { o.kd={ph:'lie',t:0,flat:true}; o.state='down'; o.move=null; o.stun=0; o.bstun=0; o.landT=6; }
+          G.shake=Math.max(G.shake,10); sfx('superhit');
           G.parts.push({type:'sfx',key:'orc',name:'ring',x:s.ix,y:GROUND+2,life:20,max:20,sc:1.0,alt:f.alt});
           G.parts.push({type:'sfx',key:'orc',name:'rocks1',x:s.ix,y:GROUND+2,life:22,max:22,sc:0.7,alt:f.alt});
           debris(s.ix,GROUND-2,10); dust(s.ix,GROUND,10); G.hitstop=Math.max(G.hitstop,8); G.flashT=3; sfx('quake');
@@ -2252,7 +2257,7 @@ function superStep(f,o){
         if(s.kt>=18){ s.ph=4; s.kt=0; }
         break;
       }
-      if(s.ph===9){ s.fr=7; if(++s.kt===1) dust(f.x+f.dir*6,GROUND,6); if(s.kt>=24){ superLanded(f); return endSuper(f,o); } break; }   // whiffed
+      if(s.ph===9){ s.liftI=-1; s.fr=7; if(++s.kt===1) dust(f.x+f.dir*6,GROUND,6); if(s.kt>=24){ superLanded(f); return endSuper(f,o); } break; }   // whiffed
       s.kt++; s.fr=s.kt<10?7:8; if(s.kt>=20) return endSuper(f,o);
       break; }
     case 'goblin': {   // POISON BOMB: pulls out a bubbling bomb, holds it up grinning, then lobs it where the opponent stands
@@ -2791,6 +2796,7 @@ function kdStep(f,o){
 function kdFrame(f){
   const k=f.kd;
   if(k.ph==='air') return k.t<8?'down0':'down1';
+  if(k.ph==='lie' && k.flat) return lieFrame(f);   // slammed flat (Body Slam): no fall, just lying there until they get up
   if(k.ph==='lie'){ const d4=SHEETS[f.key].S().spr['down4']; return k.t<5?'down2':(k.t<10||!d4?'down3':'down4'); }
   const n=SHEETS[f.key].S().spr['getup3']?4:3;
   return 'getup'+Math.min(n-1,Math.floor(k.t/KD_UP*n));
@@ -2821,7 +2827,10 @@ function throwStep(f,o){
 function throwFrame(f){ const t=f.thr?f.thr.t:0;
   if(f.key==='becky') return t<6?'punch1':(t<24?'punch2':'punch3');   // Becky v3: reach, hold, toss
   return t<6?'lpunch1':(t<16?'hpunch3':(t<24?'hpunch4':'hpunch5')); }
+const lieFrame=f=>SHEETS[f.key].S().spr['down4']?'down4':'down3';   // lying flat on the floor
+function lieMid(f){ const r=SHEETS[f.key].S().spr[lieFrame(f)]; return r?f.dir*(r[2]/2-r[4])/(r[6]||2)*((CH[f.key]&&CH[f.key].drawK)||1):0; }   // body middle vs f.x while lying
 function commonFrame(f){
+  if(G.f.some(g=>g.sup&&g.sup.liftI===G.f.indexOf(f))) return lieFrame(f);   // held flat by the Orc Brute's Body Slam
   if(f.kd) return kdFrame(f);
   if(f.held) return 'hit1';
   if(f.move==='throw') return throwFrame(f);
