@@ -9,7 +9,7 @@ All attributes rated 1–10 (10 = highest).
 | Goblin | 5 | 9 | 3 | 5 | in game |
 | Skeleton Warrior | 6 | 6 | 5 | 7 | in game |
 | Orc Brute | 8 | 4 | 6 | 3 | in game |
-| Cave Troll | 7 | 3 | 9 | 5 | planned |
+| Cave Troll | 7 | 3 | 9 | 5 | in game |
 | Iron Ogre | 10 | 2 | 10 | 3 | planned |
 | Runic Golem | 7 | 3 | 9 | 8 | planned |
 | Demon Lord | 9 | 7 | 5 | 7 | planned |
@@ -66,3 +66,4 @@ Higher `weight` = harder to knock back.
 - **Skeleton Warrior** (retuned Nov 20 2026 to match): speed 2.3 → 1.7, armor −0.1 → +0.07, weight 1.05 (steadier than Imp/Goblin). Balanced with slower moves: punch/low recovery 10, kick startup 6 / recovery 15, Sword Slash startup 10 / recovery 22 and recharge 90 → 150 frames. Damage unchanged (Power 6). Sim: ~51% (weak vs Harper 20%, strong vs Becky 82%).
 - **Slime, Imp, Goblin:** already match.
 - **Orc Brute** (built Nov 20 2026 to his ratings): speed 1.3, armor +0.10, weight 1.1, punch 7 / kick 13 / charge 12, short reach (26–28). Balanced with slow startups and long recovery (kick st 8 rc 17, charge rc 20). Sim 53%.
+- **Cave Troll** (built Nov 20 2026 to his ratings): speed 1.15, armor +0.20, weight 1.25, shrugs off light hits; punch 7 / kick 12 / stomp 10; Range 5 = a both-sides stomp and an arena-wide quake. Balanced with slow moves (punch rc 13, kick st 9 rc 20) and a 2.5 s stomp recharge. Sim 57%.
