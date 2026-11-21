@@ -14,7 +14,7 @@ All attributes rated 1–10 (10 = highest).
 | Runic Golem | 7 | 3 | 9 | 8 | in game |
 | Demon Lord | 9 | 7 | 5 | 7 | in game (Nov 20 2026) |
 | Ancient Dragon | 9 | 6 | 6 | 10 | in game (Nov 21 2026) |
-| The Forgotten One | 8 | 4 | 7 | 10 | planned |
+| The Forgotten One | 8 | 4 | 7 | 10 | in game (Nov 21 2026) |
 
 - **Power** = attack damage potential.
 - **Speed** = movement and attack quickness.
@@ -71,3 +71,4 @@ Higher `weight` = harder to knock back.
 - **Runic Golem** (built Nov 20 2026): Troll-like body (speed 1.15, armor +0.20, light-hit armor), Range 8 from rune magic: a fast 90 px blast and pillars under every opponent. Sim 46% with no tuning.
 - **Demon Lord** (built Nov 20 2026): speed 1.75, armor +0.07, no light-hit armor, strong punches/kicks (Power 9). Range 7 from Soul Grasp (a ~110 px grab that pulls the opponent in front of him) and a full-arena meteor super with warning rings. Sim 55%.
 - **Ancient Dragon** (built Nov 21 2026): speed 1.6, armor +0.10, strong bites and claws (Power 9). Range 10 from the Tail Sweep (reaches ~3 bodies with a forward lurch) and Inferno Breath (fire across the whole arena in front of him). Sim 55%.
+- **The Forgotten One** (built Nov 21 2026): speed 1.3, armor +0.13 (Defense 7), tentacle hits (Power 8). Range 10 from the Void Grasp (reaches ~3.5 bodies) and the black hole that pulls in everyone near it. Sim 53%.

@@ -469,6 +469,12 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
         <span class="nm">ANCIENT DRAGON</span>
         <span class="spc">Special: Tail Sweep</span>
       </button>
+      <button class="pick" data-c="forgotten" aria-pressed="false" style="--fc:#b05cff">
+        <img class="tport" alt="" data-port="forgotten">
+        <span class="badges"></span>
+        <span class="nm">THE FORGOTTEN ONE</span>
+        <span class="spc">Special: Void Grasp</span>
+      </button>
       </div>
       </div></div>
     </section>
@@ -513,6 +519,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
             <button data-o="golem" aria-pressed="false">Runic Golem</button>
             <button data-o="demon" aria-pressed="false">Demon Lord</button>
             <button data-o="dragon" aria-pressed="false">Dragon</button>
+            <button data-o="forgotten" aria-pressed="false">Forgotten</button>
             <button data-o="random" aria-pressed="true">Random</button>
           </div>
         </div>
@@ -601,6 +608,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 @@asset:golem-sheet.js@@
 @@asset:demon-sheet.js@@
 @@asset:dragon-sheet.js@@
+@@asset:forgotten-sheet.js@@
 @@asset:ac-sheet.js@@
 </script>
 <script>
@@ -839,9 +847,24 @@ const CH = {
       // then the victim hops back on their feet (no fall, Alex's rule for specials, like the Troll's Stomp and the Ogre).
       special:{st:10, ac:6, rc:20, dmg:14, kb:2.0, hs:15, bs:10, box:[8,40,-26,0], cost:40}
     }
+  },
+  forgotten: {   // monster (Nov 21 2026; Alex's spec art/specs/forgotten-one.txt, ratings Power 8, Speed 4, Defense 7, Range 10).
+    // A floating cosmic horror: a head with six tentacles, no legs or arms. Every attack is a tentacle; he hovers a few px
+    // above the floor (drawn only: FO_HOVER). 5% bigger than the Golem (Alex).
+    key:'forgotten', name:'FORGOTTEN', speed:1.3, jump:-6.0, grav:0.30, weight:1.15, armor:0.13, jumpVx:1.8, w:22, h:46,
+    meterCol:'#b05cff',
+    moves:{
+      punch:{st:6, ac:3, rc:14, dmg:7, kb:1.8, hs:15, bs:10, box:[8,30,-40,-28]},     // tentacle jab
+      low:  {st:7, ac:3, rc:14, dmg:7, kb:1.6, hs:14, bs:9,  box:[8,31,-18,0]},       // tentacle sweeps along the floor
+      kick: {st:9, ac:4, rc:22, dmg:13, kb:3.0, hs:19, bs:12, box:[8,36,-34,-8]},     // tentacle whip, longer reach
+      air:  {st:5, ac:12,rc:6,  dmg:9, kb:2.4, hs:16, bs:10, box:[2,24,-16,6]},       // aerial lash, striking down
+      // VOID GRASP: two tentacles coil back, then shoot forward (voidStep); the first opponent they reach is wrapped up,
+      // squeezed and flung away (a big hop back on their feet). Pushes away, unlike the Demon Lord's Soul Grasp.
+      special:{st:11, ac:0, rc:16, cost:40}
+    }
   }
 };
-CH.ac.altMeterCol='#ff4a3d'; CH.becky.altMeterCol='#ff3b6b'; CH.bmoney.altMeterCol='#2fe0a8'; CH.winston.altMeterCol='#ff8a1f'; CH.haddie.altMeterCol='#3b9dff'; CH.harper.altMeterCol='#2fe07a'; CH.slime.altMeterCol='#b05cff'; CH.goblin.altMeterCol='#4a7dff'; CH.imp.altMeterCol='#3b8cff'; CH.skeleton.altMeterCol='#5ce07a'; CH.orc.altMeterCol='#3b7cff'; CH.troll.altMeterCol='#b05cff'; CH.ogre.altMeterCol='#3b7cff'; CH.golem.altMeterCol='#7ee01f'; CH.demon.altMeterCol='#3fd0ff'; CH.dragon.altMeterCol='#3fa9ff';
+CH.ac.altMeterCol='#ff4a3d'; CH.becky.altMeterCol='#ff3b6b'; CH.bmoney.altMeterCol='#2fe0a8'; CH.winston.altMeterCol='#ff8a1f'; CH.haddie.altMeterCol='#3b9dff'; CH.harper.altMeterCol='#2fe07a'; CH.slime.altMeterCol='#b05cff'; CH.goblin.altMeterCol='#4a7dff'; CH.imp.altMeterCol='#3b8cff'; CH.skeleton.altMeterCol='#5ce07a'; CH.orc.altMeterCol='#3b7cff'; CH.troll.altMeterCol='#b05cff'; CH.ogre.altMeterCol='#3b7cff'; CH.golem.altMeterCol='#7ee01f'; CH.demon.altMeterCol='#3fd0ff'; CH.dragon.altMeterCol='#3fa9ff'; CH.forgotten.altMeterCol='#c8e03a';
 // Fighters are drawn 10% larger than the original design; scale their bodies and attack reach to match.
 const FIGHTER_SCALE=1.1;
 for(const c of Object.values(CH)){
@@ -871,7 +894,7 @@ for(const [k,r] of [['winston',1.1],['haddie',60/63]]){
   for(const m of Object.values(c.moves)) if(m.box) m.box=m.box.map(v=>Math.round(v*r));
 }
 // Per-fighter heights in pixels (Alex's 60–99 ratings: 50px = 60, 59px = 99). Art, hit area and reach grow together.
-const FIGHTER_H={ac:53, becky:51, orc:53, troll:58, ogre:58, golem:58, demon:58, dragon:58};   // the Orc Brute: AC's height (Alex), bulkier through his art and width
+const FIGHTER_H={ac:53, becky:51, orc:53, troll:58, ogre:58, golem:58, demon:58, dragon:58, forgotten:61};   // the Orc Brute: AC's height (Alex), bulkier through his art and width
 for(const [k,th] of Object.entries(FIGHTER_H)){
   const c=CH[k], r=th/c.h;
   c.drawK=r; c.h=th; c.w=Math.round(c.w*r);
@@ -1239,7 +1262,7 @@ function bkFrame(f){
 }
 // ---- Super move sheets (one per fighter) + alternate-color versions for mirror matches
 const SUPERS=window.SUPERS, SUPIMG={}, ALT_S={}, supReady={};
-const ALT_RULES={dragon:[(h,s)=>h>=12&&h<=50&&s>0.5,190,1],demon:[(h,s)=>(h>=330||h<=25)&&s>0.45,200,1],golem:[(h,s)=>h>=265&&h<=320&&s>0.4,150,1],ogre:[(h,s)=>h>=18&&h<=42&&s>0.62,200,1],troll:[(h,s)=>h>=12&&h<=45&&s>0.5,250,1],orc:[(h,s)=>(h>=340||h<=20)&&s>0.4,210,1],skeleton:[(h,s)=>h>=265&&h<=350&&s>0.2,180,1],goblin:[(h,s)=>h>=45&&h<=82&&s>0.35,170,1],ac:[(h,s)=>h>=190&&h<=255&&s>0.3,150,1],brick:[(h,s)=>(h>=345||h<=22)&&s>0.5,205,1],
+const ALT_RULES={forgotten:[(h,s)=>h>=265&&h<=330&&s>0.35,120,1],dragon:[(h,s)=>h>=12&&h<=50&&s>0.5,190,1],demon:[(h,s)=>(h>=330||h<=25)&&s>0.45,200,1],golem:[(h,s)=>h>=265&&h<=320&&s>0.4,150,1],ogre:[(h,s)=>h>=18&&h<=42&&s>0.62,200,1],troll:[(h,s)=>h>=12&&h<=45&&s>0.5,250,1],orc:[(h,s)=>(h>=340||h<=20)&&s>0.4,210,1],skeleton:[(h,s)=>h>=265&&h<=350&&s>0.2,180,1],goblin:[(h,s)=>h>=45&&h<=82&&s>0.35,170,1],ac:[(h,s)=>h>=190&&h<=255&&s>0.3,150,1],brick:[(h,s)=>(h>=345||h<=22)&&s>0.5,205,1],
   becky:[(h,s)=>h>=70&&h<=170&&s>0.22,232,1.45],volt:[(h,s)=>h>=38&&h<=70&&s>0.4,150,1],bmoney:[(h,s)=>h>=255&&h<=315&&s>0.3,240,1],winston:[(h,s)=>h>=185&&h<=240&&s>0.3,178,1],haddie:[(h,s)=>(h>=340||h<=15)&&s>0.45,205,1],harper:[(h,s)=>h>=295&&h<=345&&s>0.4,170,1],imp:[(h,s)=>(h<=16||h>=340)&&s>0.45,210,1],slime:[(h,s)=>h>=55&&h<=140&&s>0.3,180,1]};
 for(const k of Object.keys(SUPERS)){ const im=new Image(); SUPIMG[k]=im;
   im.onload=()=>{ supReady[k]=true; const r=ALT_RULES[k]; if(r) makeAlt(k,im,r[0],r[1],r[2],ALT_S); }; im.src=SUPERS[k].src; }
@@ -1325,6 +1348,9 @@ DLIMG.src=DLS.src;
 const DRS=window.DR_SHEET, DRIMG=new Image(); let drReady=false;   // Ancient Dragon: standard sprite-sheet layout (stdFrame)
 DRIMG.onload=()=>{ drReady=true; makeAlt('dragon',DRIMG,(h,s)=>h>=12&&h<=50&&s>0.5,190); };   // mirror match: orange scales, wings and fire -> blue
 DRIMG.src=DRS.src;
+const FOS=window.FO_SHEET, FOIMG=new Image(); let foReady=false;   // The Forgotten One: standard sprite-sheet layout (stdFrame)
+FOIMG.onload=()=>{ foReady=true; makeAlt('forgotten',FOIMG,(h,s)=>h>=265&&h<=330&&s>0.35,120); };   // mirror match: purple -> olive gold
+FOIMG.src=FOS.src;
 function gobFrame(f){   // Goblin v1 art (unused since v2 uses stdFrame; kept for reference): idle 0-5, walk 0-6, jump 0-7, duck 0-4, roll 0-6, block 0-5, punch 0-5, kick 0-6, hit 0-6, down 0-5, getup 0-3, win 0-4, special 0-8
   const key=f.state+(f.move||'');
   if(f.vS!==key){ f.vS=key; f.vA=f.anim; }
@@ -1376,7 +1402,7 @@ function stdFrame(f){   // fighters drawn with Alex's sprite-sheet prompt (art/s
     case 'block': return f.bstun>0?'block1':'block0';
     case 'hit': return 'hit'+Math.min(2,Math.floor(t/5));
     case 'ko': if(!f.onGround) return t<8?'down0':'down1'; return f.landT<6?'down2':'down3';
-    case 'win': if(f.key==='ogre'||f.key==='golem'||f.key==='demon'||f.key==='dragon') return t<10?'win0':t<22?'win1':'win2';   // Iron Ogre: pulls the axe, raises it and holds it overhead
+    case 'win': if(f.key==='ogre'||f.key==='golem'||f.key==='demon'||f.key==='dragon'||f.key==='forgotten') return t<10?'win0':t<22?'win1':'win2';   // Iron Ogre: pulls the axe, raises it and holds it overhead
       return t<10?'win0':'win'+(1+Math.floor(t/12)%2);
     case 'attack': {
       const m=f.cfg.moves[f.move], k=f.mf, st=m.st, ac=m.ac, rc=m.rc||0;
@@ -1517,10 +1543,11 @@ const SHEETS={ac:{S:()=>ACS,img:()=>ACIMG,frame:acFrame,ready:()=>acReady},
   ogre:{S:()=>OGS,img:()=>OGIMG,frame:stdFrame,ready:()=>ogReady},
   golem:{S:()=>GMS,img:()=>GMIMG,frame:stdFrame,ready:()=>gmReady},
   demon:{S:()=>DLS,img:()=>DLIMG,frame:stdFrame,ready:()=>dlReady},
-  dragon:{S:()=>DRS,img:()=>DRIMG,frame:stdFrame,ready:()=>drReady}};
+  dragon:{S:()=>DRS,img:()=>DRIMG,frame:stdFrame,ready:()=>drReady},
+  forgotten:{S:()=>FOS,img:()=>FOIMG,frame:stdFrame,ready:()=>foReady}};
 // Free-for-all can have up to four of the same fighter: color sets 2 and 3 rotate the accent hue further
-const PAL_SHIFT={ac:[263,183],brick:[116,276],becky:[165,290],volt:[301,226],bmoney:[75,120],winston:[273,73],haddie:[120,280],harper:[60,240],slime:[120,240],imp:[120,270],goblin:[200,290],skeleton:[60,150],orc:[120,240],troll:[120,240],ogre:[120,240],golem:[120,240],demon:[120,240],dragon:[120,240]};
-const PAL_COL={ac:['#3ddc5a','#ffc23d'],brick:['#3ddc5a','#b05cff'],becky:['#b05cff','#ffc23d'],volt:['#ff4a3d','#b05cff'],bmoney:['#ff4a3d','#ffc23d'],winston:['#3ddc5a','#c05cff'],haddie:['#3ddc5a','#ffc23d'],harper:['#ffc23d','#b05cff'],slime:['#3b9dff','#ff3b8a'],imp:['#3ddc5a','#b05cff'],goblin:['#b05cff','#ff3b6b'],skeleton:['#ffc23d','#ff3b6b'],orc:['#3b9dff','#b05cff'],troll:['#3b9dff','#ff3b6b'],ogre:['#3ddc5a','#b05cff'],golem:['#3b9dff','#ffc23d'],demon:['#3ddc5a','#ffc23d'],dragon:['#3ddc5a','#b05cff']};
+const PAL_SHIFT={ac:[263,183],brick:[116,276],becky:[165,290],volt:[301,226],bmoney:[75,120],winston:[273,73],haddie:[120,280],harper:[60,240],slime:[120,240],imp:[120,270],goblin:[200,290],skeleton:[60,150],orc:[120,240],troll:[120,240],ogre:[120,240],golem:[120,240],demon:[120,240],dragon:[120,240],forgotten:[120,240]};
+const PAL_COL={ac:['#3ddc5a','#ffc23d'],brick:['#3ddc5a','#b05cff'],becky:['#b05cff','#ffc23d'],volt:['#ff4a3d','#b05cff'],bmoney:['#ff4a3d','#ffc23d'],winston:['#3ddc5a','#c05cff'],haddie:['#3ddc5a','#ffc23d'],harper:['#ffc23d','#b05cff'],slime:['#3b9dff','#ff3b8a'],imp:['#3ddc5a','#b05cff'],goblin:['#b05cff','#ff3b6b'],skeleton:['#ffc23d','#ff3b6b'],orc:['#3b9dff','#b05cff'],troll:['#3b9dff','#ff3b6b'],ogre:['#3ddc5a','#b05cff'],golem:['#3b9dff','#ffc23d'],demon:['#3ddc5a','#ffc23d'],dragon:['#3ddc5a','#b05cff'],forgotten:['#3ddc5a','#ffc23d']};
 const PALS={2:{},3:{}}, PALS_S={2:{},3:{}}, PALS_P={2:{},3:{}}, PALS_C={2:{},3:{}};
 function ensurePal(key,p){
   if(p<2) return; const r=ALT_RULES[key], sh=PAL_SHIFT[key][p-2];
@@ -1539,6 +1566,7 @@ function drawAC(g,f,x,y,tint,frameKey){
   let name=frameKey||commonFrame(f)||(f.move==='super'&&f.sup?superFrame(f):SHD.frame(f)), SH=SHD.S(), IMG=sheetImg(f.key,f.alt);
   if(name.startsWith('S:')){ if(!supReady[f.key]) return; SH=SUPERS[f.key]; IMG=supImg(f.key,f.alt); name=name.slice(2); }
   const s=SH.spr[name]; if(!s) return;
+  if(f.key==='forgotten' && !/^(down|getup0)/.test(name)) y-=FO_HOVER+(f.state==='win'?Math.min(8,(f.anim-(f.vA||0))*0.3):0)+Math.sin(f.anim*0.09)*1.2;   // he levitates (rises higher when he wins)
   const [sx,sy,w,h,ax,ay]=s, dv=s[6]||2;
   let src=IMG, ox=sx, oy=sy;
   if(tint){
@@ -1950,7 +1978,7 @@ const G={fmode:(()=>{ try{ return localStorage.getItem('nrb.fmode')||'1v1'; }cat
   rules:{mode:'bestof',bestOf:5,minutes:2,stocks:3}, mclock:0, sudden:false, mode:'menu', paused:false, diff:'normal', pick:'ac', cpuPick:'random', f:null, proj:[], parts:[], shake:0, hitstop:0, slow:0,
   round:1, timer:60, ft:0, phase:'intro', pt:0, winner:null, combo:null, t:0};
 
-const FIGHTERS=['ac','becky','bmoney','winston','haddie','harper','slime','imp','goblin','skeleton','orc','troll','ogre','golem','demon','dragon'];   // Brick and Volt removed Nov 20 2026 (Alex is making new monsters)
+const FIGHTERS=['ac','becky','bmoney','winston','haddie','harper','slime','imp','goblin','skeleton','orc','troll','ogre','golem','demon','dragon','forgotten'];   // Brick and Volt removed Nov 20 2026 (Alex is making new monsters)
 const MAXHP=200;
 // Fight Options: 'bestof' (1/3/5/7 rounds, 60s per round) or 'mostwins' (most KOs in 1-4 minutes, then sudden death)
 const OPT_DEFAULT={mode:'bestof',bestOf:5,minutes:2,stocks:3};
@@ -2002,7 +2030,7 @@ function startRound(){
 // Specials (Alex, Nov 20 2026): no longer earned with meter (only supers are). They're free, one out at a time, and
 // recharge; the stronger the special, the longer the wait (frames, 60 = 1 s). The dagger and fireball hit like a punch,
 // so they come back fast. Every special ends on the first fighter it hits.
-const SKILL_CD_BY={goblin:36, imp:36, becky:90, haddie:90, slime:90, skeleton:150, orc:120, troll:180, ogre:240, golem:120, demon:140, dragon:90, harper:120, bmoney:135, winston:135, ac:150};
+const SKILL_CD_BY={goblin:36, imp:36, becky:90, haddie:90, slime:90, skeleton:150, orc:120, troll:180, ogre:240, golem:120, demon:140, dragon:90, forgotten:210, harper:120, bmoney:135, winston:135, ac:150};
 const skillCDOf=f=>SKILL_CD_BY[f.key]||120;
 // CAVE TROLL'S STOMP (Alex's spec): a foot stomp whose small shockwave hits everyone on the ground within STOMP_R of his
 // body on either side, for moderate damage and a small hop back (never a knockdown). Fighters in the air above it are missed.
@@ -2062,6 +2090,44 @@ function graspStep(p){
     return true; }
   return false;
 }
+// VOID GRASP (The Forgotten One): two tentacle tips shoot out VOID_V px/frame up to VOID_RANGE (~3.5 bodies). The first
+// opponent they touch is wrapped (VOID_DMG, held in place, can't act) for VOID_HOLD frames, squeezed (VOID_SQUEEZE more) and
+// flung away: a big hop back on their feet (VOID_PUSH/VOID_HOP, ~110 px), no knockdown (Alex). Blocked = the tentacles
+// recoil (1 chip); a miss fades at full reach. He holds the reaching pose until they're back, so a miss can be punished.
+const FO_HOVER=4, FO_REACH0=26, FO_REACH_Y=30, VOID_V=6.5, VOID_RANGE=100, VOID_DMG=4, VOID_SQUEEZE=8, VOID_HOLD=22, VOID_PUSH=5.0, VOID_HOP=-3.0;
+const VOID_FX=['#e7a8ff','#b05cff','#ffffff'], VOID_FX_ALT=['#f3ff9a','#c8e03a','#ffffff'];
+function voidStep(p){
+  const f=p.owner, dir=p.dir, FX=f.alt?VOID_FX_ALT:VOID_FX;
+  const ownerBusy=f.state==='ko'||f.kd||f.stun>0||f.held||f.sup;
+  if(p.held<0){
+    p.x+=p.vx; p.t++;
+    if(ownerBusy || Math.abs(p.x-p.x0)>VOID_RANGE || p.x<-20 || p.x>AW+20){ sparks(p.x,p.y,FX,5); return true; }
+    if(G.phase!=='fight') return false;
+    const box={x0:p.x-10,x1:p.x+10,y0:p.y-10,y1:p.y+10};
+    for(const d of (G.multi?foes(f):[f===G.f[0]?G.f[1]:G.f[0]])){
+      if(d.dead || d.state==='ko' || untouchable(d) || dodgy(d)) continue;
+      const hb=hurt(d); if(box.x1<hb.x0||box.x0>hb.x1||box.y1<hb.y0||box.y0>hb.y1) continue;
+      if((d.state==='block' && d.onGround && d.dir===-dir) || d.superArmor){ applyHit(f,d,{dmg:1,kb:0.6,hs:0,bs:10},p.x-dir*10,p.x,p.y); sparks(p.x,p.y,FX,10); return true; }
+      applyHit(f,d,{dmg:VOID_DMG,kb:0,hs:15,bs:10,noScale:true},p.x-dir*10,p.x,p.y);
+      if(d.kd || d.state!=='hit'){ sparks(p.x,p.y,FX,8); return true; }
+      p.held=fidx(d); p.hold=0; d.roll=null; d.move=null;
+      G.parts.push({type:'sfx',key:'forgotten',name:'vimp0',x:d.x,y:GROUND+1,life:12,max:12,sc:0.6,alt:f.alt,main:true}); sfx('grab');
+      return false;
+    }
+    return false;
+  }
+  const d=G.f[p.held];
+  if(!d || d.dead || d.state==='ko' || d.kd || d.superArmor || ownerBusy){ if(d && !d.kd && d.state==='hit') d.stun=Math.min(d.stun,15); return true; }
+  p.hold++; d.vx=0; d.vy=0; d.stun=Math.max(d.stun,4); d.bstun=0; d.state='hit'; d.move=null; d.roll=null;
+  if(p.hold%3===0) sparks(d.x+(rnd()-0.5)*12,d.y-20-rnd()*16,FX,1);
+  if(p.hold>=VOID_HOLD){   // squeeze, then fling them away on their feet
+    applyHit(f,d,{dmg:VOID_SQUEEZE,kb:0,hs:15,bs:10,noScale:true},d.x-dir*10,d.x,d.y-24);
+    if(!d.kd && d.hp>0){ d.vy=VOID_HOP; d.onGround=false; d.y=Math.min(d.y,GROUND-1); d.vx=dir*VOID_PUSH*d.cfg.weight; d.stun=15; }
+    G.parts.push({type:'sfx',key:'forgotten',name:'vimp1',x:d.x,y:GROUND+1,life:14,max:14,sc:0.7,alt:f.alt,main:true}); sfx('heavy');
+    return true;
+  }
+  return false;
+}
 const GM_HAND=[30,30], RBLAST_V=6.0, RBLAST_RANGE=90;   // Runic Golem: palm position (forward, up), blast speed and range (~3 bodies)
 const RUNE_FX=['#e7a8ff','#b05cff','#ffffff'], RUNE_FX_ALT=['#c8ff8a','#7ee01f','#ffffff'];
 const OGRE_CHARGE=4.6, OGRE_PUSH=4.2, OGRE_HOP=-2.4;
@@ -2071,7 +2137,7 @@ const SLASH_LUNGE=3.2;   // Skeleton Warrior's Sword Slash lunges ~25px forward 
 // Specials hit like a punch (Alex, Nov 20 2026): the target flinches the way a punch makes it flinch (the thrower's punch
 // knockback and hit/block stun), never falls or gets knocked down. Damage stays the special's own.
 function punchLike(p){ const pm=p.owner.cfg.moves.punch; return {...p, kb:pm.kb, hs:pm.hs, bs:pm.bs, kd:false, launch:false}; }
-const SKILL_PROJ={sgrasp:1,rblast:1,plate:1,mug:1,bone:1,puke:1,yap:1,slimeshot:1,fireball:1,ripple:1,wave:1,dagger:1};
+const SKILL_PROJ={vgrasp:1,sgrasp:1,rblast:1,plate:1,mug:1,bone:1,puke:1,yap:1,slimeshot:1,fireball:1,ripple:1,wave:1,dagger:1};
 const skillOut=f=>G.proj.some(p=>p.owner===f&&SKILL_PROJ[p.type]);
 const skillOk=f=>!(f.skillCD>0)&&!skillOut(f);
 const skillWait=f=>Math.max(0,Math.min(1,(f.skillCD||0)/skillCDOf(f)));
@@ -2202,6 +2268,10 @@ function spawnSpecial(f){
     trollStomp(f);
   } else if(f.key==='orc'){   // SHOULDER CHARGE: the rush itself is in updF (ORC_CHARGE); the hit comes from moves.special's box
     sfx('whoosh'); dust(f.x-f.dir*8,GROUND,5);
+  } else if(f.key==='forgotten'){   // VOID GRASP: the tentacles shoot out from his body (voidStep)
+    const k=f.cfg.drawK||1, x=f.x+f.dir*FO_REACH0*k, y=f.y-FO_REACH_Y*k;
+    G.proj.push({type:'vgrasp',owner:f,x,y,x0:x,vx:f.dir*VOID_V,dir:f.dir,t:0,held:-1,hold:0,dmg:VOID_DMG,kb:0,hs:15,bs:10});
+    sparks(x,y,f.alt?VOID_FX_ALT:VOID_FX,6); sfx('whoosh');
   } else if(f.key==='dragon'){   // TAIL SWEEP: a melee swing (the hit comes from moves.special's box); the fiery arc is in his drawings
     sfx('whoosh');
   } else if(f.key==='skeleton'){   // SWORD SLASH: a melee swing (the hit comes from moves.special's box); the blue arc is in his drawings
@@ -2327,11 +2397,11 @@ function endSprint(f,o){
    A full meter (100 = 2.5 specials) unlocks a super. The camera closes in on the fighter while they set up,
    everything else freezes, then it pulls back out and the attack plays. Supers can't be blocked or jumped,
    and each one does the damage of three of that fighter's specials. */
-const SUPER_COST=100, CINE=86, ORC_SUPER_V=5.2, TQ_V=4.4, OWAVE_V=4.8, OGRE_AXE_DMG=66, RUNE_WARN=40, PILLAR_T=50, FIRE_WIND=26, FIRE_T=110, FIRE_TICK=10, FIRE_DMG=5, METEOR_N=6, METEOR_WARN=32, METEOR_GAP=10, METEOR_FALL=22, METEOR_SMALL=12, METEOR_BIG=36;   // Demon Lord's meteor shower   // RUNE_WARN: frames of rune warning before the Golem's pillars erupt; PILLAR_T: how long they stand   // OWAVE_V: the Axe Chop shockwave's speed; OGRE_AXE_DMG: a direct axe hit   // TQ_V: the Cave Troll's Earthquake ripple speed   // ORC_SUPER_V: the Body Slam's rush speed   // close-up length in frames (~1.4s): zoom in, hold on the power pose, snap back out
-const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6,skeleton:1.9,orc:1.9,troll:1.8,ogre:1.45,golem:1.35,demon:1.35,dragon:1.3}, CINE_FY={dragon:50,demon:50,golem:50,ogre:46,troll:26,orc:24,skeleton:22,goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
-const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:52,skeleton:56,orc:60,troll:58,ogre:52,golem:56,demon:36,dragon:50};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
-const SUPER_NAME={dragon:'INFERNO BREATH',demon:'INFERNAL APOCALYPSE',golem:'RUNIC ERUPTION',ogre:'AXE CHOP',troll:'EARTHQUAKE',orc:'BODY SLAM',ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB',skeleton:'SKELETON ARMY'};
-const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:3,imp:3,goblin:3,skeleton:3,orc:1,troll:3,ogre:2,golem:3,demon:3,dragon:3};
+const SUPER_COST=100, CINE=86, ORC_SUPER_V=5.2, TQ_V=4.4, OWAVE_V=4.8, OGRE_AXE_DMG=66, RUNE_WARN=40, PILLAR_T=50, HOLE_AHEAD=72, HOLE_GROW=22, HOLE_PULL=96, HOLE_R=112, HOLE_TICK=16, HOLE_DMG=4, HOLE_CAP=24, HOLE_BOOM=30, HOLE_BOOM_R=56, FIRE_WIND=26, FIRE_T=110, FIRE_TICK=10, FIRE_DMG=5, METEOR_N=6, METEOR_WARN=32, METEOR_GAP=10, METEOR_FALL=22, METEOR_SMALL=12, METEOR_BIG=36;   // Demon Lord's meteor shower   // RUNE_WARN: frames of rune warning before the Golem's pillars erupt; PILLAR_T: how long they stand   // OWAVE_V: the Axe Chop shockwave's speed; OGRE_AXE_DMG: a direct axe hit   // TQ_V: the Cave Troll's Earthquake ripple speed   // ORC_SUPER_V: the Body Slam's rush speed   // close-up length in frames (~1.4s): zoom in, hold on the power pose, snap back out
+const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.9,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6,skeleton:1.9,orc:1.9,troll:1.8,ogre:1.45,golem:1.35,demon:1.35,dragon:1.3,forgotten:1.4}, CINE_FY={forgotten:48,dragon:50,demon:50,golem:50,ogre:46,troll:26,orc:24,skeleton:22,goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
+const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:52,skeleton:56,orc:60,troll:58,ogre:52,golem:56,demon:36,dragon:50,forgotten:54};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
+const SUPER_NAME={forgotten:'REALITY COLLAPSE',dragon:'INFERNO BREATH',demon:'INFERNAL APOCALYPSE',golem:'RUNIC ERUPTION',ogre:'AXE CHOP',troll:'EARTHQUAKE',orc:'BODY SLAM',ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'RISING QUAKE',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB',skeleton:'SKELETON ARMY'};
+const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:1,winston:10,haddie:2,harper:3,slime:3,imp:3,goblin:3,skeleton:3,orc:1,troll:3,ogre:2,golem:3,demon:3,dragon:3,forgotten:3};
 const AC_RELEASE=[33.3, 48.6], BK_REL=SUPERS.becky.meta.rel;   // where the barbell / book stack leaves their hands [ahead, above feet]
 const clampX=x=>Math.max(14,Math.min(AW-14,x));
 function startSuper(f,o){
@@ -2482,6 +2552,16 @@ function superStep(f,o){
       }
       if(s.ph===9){ s.liftI=-1; s.fr=7; if(++s.kt===1) dust(f.x+f.dir*6,GROUND,6); if(s.kt>=24){ superLanded(f); return endSuper(f,o); } break; }   // whiffed
       s.kt++; s.fr=s.kt<10?7:8; if(s.kt>=20) return endSuper(f,o);
+      break; }
+    case 'forgotten': {   // REALITY COLLAPSE (Alex's spec): spreads his tentacles, the central eye blazes, purple energy swirls (close-up:
+      // tentacles raised), then a singularity opens just ahead of him and grows into a black hole (voidHole) that pulls in
+      // everyone near it, burning them a little at a time, then collapses and explodes. Super frames: 0 stance, 1-2 tentacles
+      // spreading, 3 power pose (close-up), 4 tentacles spread, 5 casting (the singularity), 6-7 stance.
+      if(t<=CINE){ s.fr=t<12?0:t<24?1:t<40?2:3; if(t>=30 && t%3===0) part(f.x+(rnd()-0.5)*44,f.y-10-rnd()*56,(rnd()-0.5)*0.4,-0.4,16,(f.alt?VOID_FX_ALT:VOID_FX)[t%3],rnd()<0.4?2:1,-0.01); break; }
+      if(u===1){ G.proj.push({type:'vhole',sup:1,owner:f,x:clampX(f.x+f.dir*HOLE_AHEAD),y:GROUND-34,vx:0,dir:f.dir,t:0,got:[],hitl:[]}); sfx('super'); }
+      const on=G.proj.some(p=>p.type==='vhole'&&p.owner===f);
+      if(on) s.fr=u<HOLE_GROW?5:4;
+      else { s.k++; s.fr=s.k<10?6:7; if(s.k>=20) return endSuper(f,o); }
       break; }
     case 'dragon': {   // INFERNO BREATH (Alex's spec): spreads his wings, rears back with fire in his throat (close-up), then breathes a
       // continuous stream of fire straight ahead to the edge of the arena (dragonFire). Getting behind him before it starts
@@ -2944,7 +3024,41 @@ function dragonFire(p){
   if(p.t>=FIRE_T){ superLanded(f); return true; }
   return false;
 }
+// REALITY COLLAPSE (The Forgotten One): the singularity appears HOLE_AHEAD px in front of him and grows for HOLE_GROW
+// frames, then pulls for HOLE_PULL frames: every opponent within HOLE_R of its centre (any height) slides toward it (up to
+// ~1.7 px/frame, stronger the closer they are; walking away fights it) and every HOLE_TICK frames takes HOLE_DMG with a short
+// stun, at most HOLE_CAP in total (p.got). Then it collapses and explodes: anyone within HOLE_BOOM_R takes HOLE_BOOM and is
+// knocked away. A fighter blocking on the ground takes a quarter and stays up. Outside the radius you're safe.
+function voidHole(p){
+  const f=p.owner; p.t++;
+  const pull=p.t>HOLE_GROW && p.t<=HOLE_GROW+HOLE_PULL, boom=p.t===HOLE_GROW+HOLE_PULL+10;
+  if(G.phase==='fight') for(const o of foes(f)){
+    const i=fidx(o); if(o.dead || o.state==='ko') continue;
+    const dx=p.x-o.x, ad=Math.abs(dx);
+    if(pull && ad<HOLE_R && !o.kd && !untouchable(o)){
+      const sp=Math.min(1.7,0.6+1.4*(1-ad/HOLE_R)); if(ad>3) o.x=clampX(o.x+Math.sign(dx)*Math.min(sp,ad));
+      if(p.t%HOLE_TICK===0 && (p.got[i]||0)<HOLE_CAP){
+        const keep=f.meter, blk=o.state==='block'&&o.onGround;   // (he stays guarded until the explosion)
+        const d=blk?1:Math.min(HOLE_DMG,HOLE_CAP-(p.got[i]||0)); p.got[i]=(p.got[i]||0)+d;
+        applyHit(f,o,{dmg:d,kb:0,hs:blk?0:10,bs:blk?HOLE_TICK+2:0,unblockable:!blk,noScale:true},p.x,o.x,o.y-24); f.meter=keep;
+        sparks(o.x,o.y-26,f.alt?VOID_FX_ALT:VOID_FX,4);
+      }
+    }
+    if(boom && ad<o.cfg.w/2+HOLE_BOOM_R && !p.hitl.includes(i)){
+      p.hitl.push(i); superLanded(f); if(untouchable(o)) continue;
+      const keep=f.meter, away=o.x>=p.x?1:-1;
+      if(o.state==='block' && o.onGround){ applyHit(f,o,{dmg:Math.round(HOLE_BOOM/4),kb:0.8,hs:14,bs:0,unblockable:true,noScale:true},p.x,o.x,o.y-20); }
+      else { applyHit(f,o,{dmg:HOLE_BOOM,kb:2,hs:46,bs:0,unblockable:true,noScale:true,launch:true},p.x,o.x,o.y-20); if(o.hp>0) knockDown(o,away,3.2,-5.4); }
+      f.meter=keep; sfx('superhit');
+    }
+  }
+  if(boom){ G.flashT=4; G.flashCol=f.alt?'rgba(200,224,58,.22)':'rgba(176,92,255,.25)'; G.hitstop=Math.max(G.hitstop,6); sfx('quake'); debris(p.x,GROUND-2,14); dust(p.x,GROUND,10);
+    G.parts.push({type:'sfx',key:'forgotten',name:'burst1',x:p.x,y:GROUND+2,life:30,max:30,sc:0.9,alt:f.alt}); }
+  if(p.t>=HOLE_GROW+HOLE_PULL+24){ superLanded(f); return true; }
+  return false;
+}
 function superProj(p){
+  if(p.type==='vhole') return voidHole(p);
   if(p.type==='dfire') return dragonFire(p);
   if(p.type==='meteors') return demonMeteors(p);
   if(p.type==='reruption') return golemEruption(p);
@@ -3039,6 +3153,16 @@ function drawSuperProj(p){
   if(p.type==='sbar') drawSup('ac',f.alt,'bar_fly',p.x,p.y,dir,1,1,Math.sin(p.t*0.5)*0.06);
   else if(p.type==='squake') drawSup('brick',f.alt,'erupt_small',p.x,GROUND+2,dir,0.62+0.1*Math.sin(p.t*0.9));
   else if(p.type==='sshake') drawSup('harper',f.alt,'swoosh2',p.x,GROUND+2,dir,0.95+0.08*Math.sin(p.t*0.8));
+  else if(p.type==='vhole'){   // singularity -> swirling black hole with violet lightning -> collapse -> (the burst is a particle)
+    const t=p.t, end=HOLE_GROW+HOLE_PULL, sc=t<HOLE_GROW?0.4+0.6*t/HOLE_GROW:t<=end?1+0.05*Math.sin(t*0.5):Math.max(0,1-(t-end)/10);
+    if(sc>0){ const nm=t<HOLE_GROW*0.4?'hole0':t<HOLE_GROW?'hole1':'hole2';
+      drawSup('forgotten',f.alt,nm,p.x,p.y,(t>>3)%2?1:-1,sc*1.1,1,t*0.12);
+      if(t>HOLE_GROW && t<=end && t%5===0){ ctx.save(); ctx.strokeStyle=f.alt?'#f3ff9a':'#e7a8ff'; ctx.lineWidth=1; ctx.beginPath();
+        let x=p.x, y=p.y; const an=rnd()*Math.PI*2; ctx.moveTo(x,y); for(let i=0;i<4;i++){ x+=Math.cos(an)*9+(rnd()-0.5)*8; y+=Math.sin(an)*6+(rnd()-0.5)*6; ctx.lineTo(x,y); } ctx.stroke(); ctx.restore(); }
+      if(t>HOLE_GROW && t<=end && t%2===0){ const an=rnd()*Math.PI*2, r=HOLE_R*(0.5+rnd()*0.5);   // debris and sparks swirling inward
+        part(p.x+Math.cos(an)*r,Math.min(GROUND-2,p.y+Math.sin(an)*r*0.4),-Math.cos(an)*2.2,-Math.sin(an)*0.9,14,(f.alt?VOID_FX_ALT:VOID_FX)[t%3],rnd()<0.3?2:1,0); }
+    }
+  }
   else if(p.type==='dfire'){   // the fire stream: flickering fire pieces tiled from his snout to the edge, bursts on everyone it's burning
     const t=p.t, d=p.dir, y=f.y-36, x0=fireFront(f), end=d>0?AW+20:-20, grow=Math.min(1,t/8), fade=t>FIRE_T-10?(FIRE_T-t)/10:1;
     const reach=x0+d*Math.abs(end-x0)*grow;
@@ -3198,7 +3322,7 @@ function drawCineBanner(){
 // Each hit after the 2nd in a combo does less: 100%, 100%, 85%, 70%, 55%, then 50% floor. Supers aren't scaled.
 const comboScale=n=>Math.max(0.5,1-0.15*Math.max(0,n-1));
 const KD_LIE=46, KD_UP=28, WAKE_INV=14;   // frames lying down, getting up, and invincible after standing
-const THROW_POWER={ac:3,brick:5,becky:3,volt:3,bmoney:3,winston:2,haddie:2,harper:2,slime:2,imp:3,goblin:2,skeleton:3,orc:5,troll:5,ogre:5,golem:5,demon:5,dragon:5};   // matches the Power stat on the fighter cards
+const THROW_POWER={ac:3,brick:5,becky:3,volt:3,bmoney:3,winston:2,haddie:2,harper:2,slime:2,imp:3,goblin:2,skeleton:3,orc:5,troll:5,ogre:5,golem:5,demon:5,dragon:5,forgotten:5};   // matches the Power stat on the fighter cards
 const untouchable=d=>d.kd||d.inv>0||d.held||d.thr;
 /* ---------------- Team fights & free-for-all (2-4 fighters) ----------------
    G.multi is on for 2v2 and free-for-all. Every fighter has a team (in free-for-all each is its own team);
@@ -3342,6 +3466,7 @@ function updF(f,o){
     const m=c.moves[f.move]; f.mf++;
     if(f.move==='special' && f.mf===m.st) spawnSpecial(f);
     if(f.key==='demon' && f.move==='special' && f.mf>m.st+1 && graspOut(f)) f.mf=m.st+1;
+    if(f.key==='forgotten' && f.move==='special' && f.mf>m.st+1 && G.proj.some(p=>p.type==='vgrasp'&&p.owner===f)) f.mf=m.st+1;   // holds the reach while the tentacles are out
     if(f.key==='dragon' && f.move==='special' && f.mhit && f.bumpId!==f.moveId){   // TAIL SWEEP connects: impact burst, the victim hops back on their feet
       f.bumpId=f.moveId; sfx('heavy');
       for(const e of foes(f)) if(e.state==='hit' && !e.kd && (e.x-f.x)*f.dir>0 && Math.abs(e.x-f.x)<100){
@@ -3437,6 +3562,9 @@ function aiInput(f,o){
   if(f.onGround && !f.move && canThrow(f,o) && arnd()<0.025*D.aggr){ a.tap=[0,1,0,0,1]; return blankIn(); }
   // airborne: steer toward the opponent instead of holding the take-off direction (air control overshoots otherwise)
   if(!f.onGround){ inp.left=inp.right=false; if(d>16) inp[tw]=true; }
+  // a black hole pulling at it (The Forgotten One): a CPU that reacts walks away from it
+  for(const p of G.proj) if(p.type==='vhole' && p.owner!==f && !(G.multi&&p.owner.team===f.team) && f.onGround && !f.move && Math.abs(f.x-p.x)<HOLE_R && arnd()<0.3*D.dodge)
+    return Object.assign(blankIn(),{[f.x>=p.x?'right':'left']:true});
   // a meteor warning under its feet (Demon Lord): a CPU that reacts in time walks off it
   for(const p of G.proj) if(p.type==='meteors' && p.owner!==f && !(G.multi&&p.owner.team===f.team) && f.onGround && !f.move){
     const m=p.list.find(q=>!q.done && q.x!==null && q.land-p.t<METEOR_WARN && Math.abs(f.x-q.x)<f.cfg.w/2+(q.big?32:20));
@@ -3456,7 +3584,7 @@ function aiInput(f,o){
       const dk='d'+G.f.indexOf(f); if(p[dk]===undefined) p[dk]=arnd()<D.dodge;
       if(p[dk]){
         threat=true;
-        if(p.type==='sgrasp'||p.type==='rblast'||p.type==='plate'||p.type==='mug'||p.type==='bone'||p.type==='puke'||p.type==='yap'||p.type==='slimeshot'||p.type==='fireball'||p.type==='dagger'){ if(pd<70) Object.assign(inp,{block:true,left:false,right:false,up:false}); }
+        if(p.type==='vgrasp'||p.type==='sgrasp'||p.type==='rblast'||p.type==='plate'||p.type==='mug'||p.type==='bone'||p.type==='puke'||p.type==='yap'||p.type==='slimeshot'||p.type==='fireball'||p.type==='dagger'){ if(pd<70) Object.assign(inp,{block:true,left:false,right:false,up:false}); }
         else if(pd<36 && pd>12 && f.onGround){ inp.up=true; inp.block=false; }
       }
     }
@@ -3482,7 +3610,7 @@ function aiInput(f,o){
   if(f.meter>=SUPER_COST && f.onGround && !f.move && !G.cine && !o.sup && !o.superArmor && arnd()<0.035*D.aggr){ inp.super=true; return inp; }
   if(a.cool>0){ a.cool--; return inp; }
   a.cool=D.react+((arnd()*D.react)|0);
-  if(skillOk(f) && (f.key==='skeleton'?d>40&&d<80:f.key==='orc'?d>30&&d<72:f.key==='troll'?d<44:f.key==='ogre'?d>28&&d<64:f.key==='golem'?d>40&&d<110:f.key==='demon'?d>50&&d<120:f.key==='dragon'?d>18&&d<72:d>70) && arnd()<0.4*D.aggr){ inp.special=true; return inp; }   // the Skeleton lunges in with his sword from just out of reach
+  if(skillOk(f) && (f.key==='skeleton'?d>40&&d<80:f.key==='orc'?d>30&&d<72:f.key==='troll'?d<44:f.key==='ogre'?d>28&&d<64:f.key==='golem'?d>40&&d<110:f.key==='demon'?d>50&&d<120:f.key==='dragon'?d>18&&d<72:f.key==='forgotten'?d>40&&d<100:d>70) && arnd()<0.4*D.aggr){ inp.special=true; return inp; }   // the Skeleton lunges in with his sword from just out of reach
   // AC escapes a corner by jumping over the opponent
   const cornered=(f.x<44&&dx>0)||(f.x>AW-44&&dx<0);
   if(f.key==='ac' && cornered && d<46 && f.onGround && arnd()<0.55*D.aggr){ inp.up=true; inp[tw]=true; return inp; }
@@ -3524,6 +3652,7 @@ function updProj(){
     const p=G.proj[i];
     if(p.sup){ if(superProj(p)){ G.proj.splice(i,1); superArmorCheck(p.owner); } continue; }
     if(p.type==='sgrasp'){ if(graspStep(p)) G.proj.splice(i,1); continue; }
+    if(p.type==='vgrasp'){ if(voidStep(p)) G.proj.splice(i,1); continue; }
     p.x+=p.vx; p.t++;
     if(p.type==='rblast' && Math.abs(p.x-p.x0)>RBLAST_RANGE){   // the rune bolt fades out at its range
       sparks(p.x,p.y,p.owner.alt?RUNE_FX_ALT:RUNE_FX,5); G.proj.splice(i,1); continue;
@@ -3707,6 +3836,23 @@ function drawProj(p){
     const [sx,sy,w,h,ax,ay]=GBS.spr['dagger'+((p.t>>2)%3)], dir=Math.sign(p.vx)||1;
     ctx.save(); ctx.translate(Math.round(p.x*2)/2,Math.round(p.y*2)/2); if(dir<0) ctx.scale(-1,1);
     ctx.drawImage(sheetImg('goblin',p.owner.alt),sx,sy,w,h,-ax/2,-ay/2,w/2,h/2); ctx.restore();
+  }
+  if(p.type==='vgrasp' && foReady){   // two tentacles from his body to the tips (the tips glow), wrapped around a held opponent
+    const f=p.owner, k=f.cfg.drawK||1, dir=p.dir, hx=f.x+dir*FO_REACH0*k*0.6, hy=f.y-FO_REACH_Y*k-FO_HOVER;
+    const tx=p.held>=0?G.f[p.held].x:p.x, ty=p.held>=0?G.f[p.held].y-22:p.y;
+    for(const [off,wd] of [[-5,4.2],[5,3.4]]){
+      ctx.save(); ctx.strokeStyle=f.alt?'#6e7a1c':'#5a1f7a'; ctx.lineWidth=wd+1.6; ctx.lineCap='round';
+      const mx=(hx+tx)/2, my=Math.min(hy,ty)-10+off+Math.sin(p.t*0.4+off)*3;
+      ctx.beginPath(); ctx.moveTo(hx,hy+off*0.4); ctx.quadraticCurveTo(mx,my,tx,ty+off*0.6); ctx.stroke();
+      ctx.strokeStyle=f.alt?'#c8e03a':'#b05cff'; ctx.lineWidth=wd; ctx.stroke();
+      ctx.strokeStyle=f.alt?'#f3ff9a':'#e7a8ff'; ctx.lineWidth=1; ctx.stroke(); ctx.restore();
+    }
+    if(p.held>=0){ const d=G.f[p.held]; ctx.save(); ctx.strokeStyle=f.alt?'#c8e03a':'#b05cff'; ctx.lineWidth=3;
+      for(let i=0;i<3;i++){ ctx.beginPath(); ctx.ellipse(d.x,d.y-12-i*11,(d.cfg.w/2+3),3,0,0,Math.PI*2); ctx.stroke(); } ctx.restore(); }
+    else { const [sx,sy,w,h,ax,ay]=FOS.spr['vg'+Math.min(2,p.t>>2)];
+      ctx.save(); ctx.translate(Math.round(p.x*2)/2,Math.round(p.y*2)/2); ctx.scale(dir*0.7,0.7);
+      ctx.drawImage(sheetImg('forgotten',f.alt),sx,sy,w,h,-ax/2,-ay/2,w/2,h/2); ctx.restore(); }
+    return;
   }
   if(p.type==='sgrasp' && dlReady){   // the spectral hand, a faint crimson tether back to his palm
     const f=p.owner, k=f.cfg.drawK||1, hx=f.x+f.dir*DL_HAND[0]*k, hy=f.y-DL_HAND[1]*k, dir=p.dir;
@@ -4069,7 +4215,7 @@ function drawVSMulti(){   // 2v2 / free-for-all intro: every fighter's card in a
 const VS_LEN=156, VS_SLAM=26;
 const PORT={}; for(const [k,src] of Object.entries(window.PORTRAITS)){ const im=new Image(); im.src=src; PORT[k]=im; }
 const CARD={}; for(const [k,src] of Object.entries(window.CARDS)){ const im=new Image(); im.src=src; CARD[k]=im; }
-const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'COFFEE MUG TOSS',volt:'HYPER SPRINT',bmoney:'GROUND RIPPLE',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP',slime:'SLIME SHOT',imp:'FIREBALL',goblin:'DAGGER TOSS',skeleton:'SWORD SLASH',orc:'SHOULDER CHARGE',troll:'STOMP',ogre:'SHOULDER HIT',golem:'RUNIC BLAST',demon:'SOUL GRASP',dragon:'TAIL SWEEP'};
+const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'COFFEE MUG TOSS',volt:'HYPER SPRINT',bmoney:'GROUND RIPPLE',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP',slime:'SLIME SHOT',imp:'FIREBALL',goblin:'DAGGER TOSS',skeleton:'SWORD SLASH',orc:'SHOULDER CHARGE',troll:'STOMP',ogre:'SHOULDER HIT',golem:'RUNIC BLAST',demon:'SOUL GRASP',dragon:'TAIL SWEEP',forgotten:'VOID GRASP'};
 function vsSkip(){ if(G.mode==='play' && G.phase==='vs' && !NET.active && G.pt<VS_LEN-14) G.pt=VS_LEN-14; }
 function drawVS(){
   const t=G.pt, [a,b]=G.f, C=W/2, PS=112, top=16;
@@ -4106,7 +4252,7 @@ function drawVS(){
 }
 
 /* ---------------- Fighter select: portraits, hero panel, pick badges ---------------- */
-const FC={ac:'#3b7cff',brick:'#e0402a',becky:'#4cc93a',volt:'#ffd400',bmoney:'#a24dff',winston:'#3fa9ff',haddie:'#ff3b3b',harper:'#ff2fa0',slime:'#7ee01f',imp:'#ff5a1f',goblin:'#9bd12a',skeleton:'#3fd0ff',orc:'#e0402a',troll:'#3fd04a',ogre:'#ff7a1f',golem:'#b05cff',demon:'#ff3b3b',dragon:'#ff8a1f'};
+const FC={ac:'#3b7cff',brick:'#e0402a',becky:'#4cc93a',volt:'#ffd400',bmoney:'#a24dff',winston:'#3fa9ff',haddie:'#ff3b3b',harper:'#ff2fa0',slime:'#7ee01f',imp:'#ff5a1f',goblin:'#9bd12a',skeleton:'#3fd0ff',orc:'#e0402a',troll:'#3fd04a',ogre:'#ff7a1f',golem:'#b05cff',demon:'#ff3b3b',dragon:'#ff8a1f',forgotten:'#b05cff'};
 document.querySelectorAll('.pick .tport').forEach(im=>{ im.src=window.CARDS[im.dataset.port]; });
 // Fighter pages (Family, Monsters): arrows or a sideways swipe flip between them
 const PAGES=[...document.querySelectorAll('#pagerTrack .picks')]; let fsPage=0;
@@ -4145,7 +4291,8 @@ const STATS={
   ogre:    {power:10, speed:2, defense:10, range:3},
   golem:   {power:7, speed:3, defense:9, range:8},
   demon:   {power:9, speed:7, defense:5, range:7},
-  dragon:  {power:9, speed:6, defense:6, range:10}
+  dragon:  {power:9, speed:6, defense:6, range:10},
+  forgotten:{power:8, speed:4, defense:7, range:10}
 };
 function statStars(k){
   const r=STATS[k]||{}; let h='<span class="stats">';
@@ -4226,7 +4373,7 @@ document.getElementById('fsBack').addEventListener('click',()=>{ sfx('select'); 
 function leaveLobbyScreen(){ lastLobby=null; howOv.hidden=true; menuEl.hidden=true; menuEl.classList.remove('online'); show('room',false); show('roomCode',false); setRoomControls(); mainMenu.hidden=false; mmTop.hidden=true; mmArc.hidden=false; }
 // ---- 1v1 / 2v2 / free-for-all
 const fmodeSel=document.getElementById('fmodeSel'), cpuMulti=document.getElementById('cpuMulti');
-const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',winston:'Winston',haddie:'Haddie',harper:'Harper',slime:'Slime',imp:'Imp',goblin:'Goblin',skeleton:'Skeleton Warrior',orc:'Orc Brute',troll:'Cave Troll',ogre:'Iron Ogre',golem:'Runic Golem',demon:'Demon Lord',dragon:'Ancient Dragon'};
+const NAMES={ac:'AC',brick:'Brick',becky:'Becky',volt:'Volt',bmoney:'B-Money',winston:'Winston',haddie:'Haddie',harper:'Harper',slime:'Slime',imp:'Imp',goblin:'Goblin',skeleton:'Skeleton Warrior',orc:'Orc Brute',troll:'Cave Troll',ogre:'Iron Ogre',golem:'Runic Golem',demon:'Demon Lord',dragon:'Ancient Dragon',forgotten:'The Forgotten One'};
 function renderCpuSlots(){
   const fm=G.fmode, multi=fm!=='1v1', online=appMode==='online';
   document.getElementById('cpuPick').hidden=multi; cpuMulti.hidden=!multi;
@@ -4378,7 +4525,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=35;
+const HASH_EVERY=30, KEEP=900, NET_V=36;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late

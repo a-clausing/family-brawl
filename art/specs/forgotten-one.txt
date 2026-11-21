@@ -1,0 +1,28 @@
+The Forgotten One spec (Alex, Nov 21 2026; sent in the chat with the card art/originals/forgotten-card.png and sheet
+art/originals/forgotten-sheet.png). "This is the final monster to add."
+
+An ancient cosmic horror: a floating dark-purple armored head, a large glowing orange central eye, smaller orange eyes,
+curved horns and six massive purple tentacles. No legs or arms; he levitates and uses his tentacles for movement, combat
+and defense. Eldritch magic and tentacle combat. High damage, high defense, medium speed, excellent range.
+
+Normal attacks: Punch = Tentacle Jab. Low jab = Low Tentacle Strike (sweeps along the ground). Kick = Tentacle Whip
+(longer reach). Jump kick = Aerial Lash (strikes downward). Throw = Tentacle Grab. Block = Tentacle Shield. Jump =
+Levitation. Roll = Phase Shift (dissolves into purple energy and moves forward).
+
+SPECIAL - Void Grasp: two tentacles coil back, shoot forward, wrap and immobilize the opponent briefly, squeeze for damage,
+then violently throw them backward; tentacles retract. Medium-range grab, moderate damage, strong knockback; can miss and be
+punished. Pushes opponents away (unlike the Demon Lord's Soul Grasp, which pulls).
+
+SUPER - Reality Collapse: tentacles spread, central eye glows, purple energy swirls, power pose with tentacles raised; a
+small singularity appears in front of him and grows into a black hole that pulls nearby opponents toward its center with
+repeated damage, then collapses and explodes, launching them backward. Large area; opponents outside its radius are safe;
+no permanent stun-lock or unavoidable instant kills.
+
+VICTORY - The Awakening: rises higher, spreads all six tentacles, opens his central eye fully, purple lightning.
+
+Implementation: use the supplied sheet and effects; consistent scale in every frame (never shrink him in jumps or attacks);
+keep his whole body and tentacles visible while levitating; natural tentacle movement; works facing either way; existing
+systems; card on fighter select; don't change existing fighters.
+
+Alex's answers (Nov 21 2026): 5% bigger than the Golem ("but since he levitates he may appear 7-10% taller"); Void Grasp =
+big hop back with no fall; the black hole pulls anyone at any height (supers can't be jumped).

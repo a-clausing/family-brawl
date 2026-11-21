@@ -8,8 +8,8 @@ import asyncio, sys
 from playwright.async_api import async_playwright
 from _common import page_url
 
-EXP = {'ac': 62, 'becky': 48, 'bmoney': 58, 'winston': 56, 'haddie': 56, 'harper': 56, 'slime': 56, 'imp': 58, 'goblin': 52, 'skeleton': 56, 'orc': 60, 'troll': 58, 'ogre': 52, 'golem': 56, 'demon': 36, 'dragon': 50}   # expected super damage
-OPP = {'ac': 'becky', 'becky': 'bmoney', 'bmoney': 'becky', 'winston': 'becky', 'haddie': 'bmoney', 'harper': 'bmoney', 'slime': 'becky', 'imp': 'bmoney', 'goblin': 'becky', 'skeleton': 'bmoney', 'orc': 'becky', 'troll': 'becky', 'ogre': 'becky', 'golem': 'becky', 'demon': 'becky', 'dragon': 'becky'}
+EXP = {'ac': 62, 'becky': 48, 'bmoney': 58, 'winston': 56, 'haddie': 56, 'harper': 56, 'slime': 56, 'imp': 58, 'goblin': 52, 'skeleton': 56, 'orc': 60, 'troll': 58, 'ogre': 52, 'golem': 56, 'demon': 36, 'dragon': 50, 'forgotten': 54}   # expected super damage
+OPP = {'ac': 'becky', 'becky': 'bmoney', 'bmoney': 'becky', 'winston': 'becky', 'haddie': 'bmoney', 'harper': 'bmoney', 'slime': 'becky', 'imp': 'bmoney', 'goblin': 'becky', 'skeleton': 'bmoney', 'orc': 'becky', 'troll': 'becky', 'ogre': 'becky', 'golem': 'becky', 'demon': 'becky', 'dragon': 'becky', 'forgotten': 'becky'}
 fails = []
 
 
