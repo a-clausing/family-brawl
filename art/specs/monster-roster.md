@@ -23,6 +23,18 @@ All attributes rated 1–10 (10 = highest).
 
 **Alex's rule:** higher evolution levels should not automatically win fights. Balance using attack recovery, hitboxes, cooldowns and counterplay, so every monster still lands near 50% in `tests/sim_1v1.py`.
 
+## Family ratings (Claude's first pass, Nov 20 2026; Alex can change them)
+The family was never rated, so these were worked out from their current in-game stats with the guide below. Fighter select shows every fighter's four ratings as stars (`STATS` in `src/game.html`; each point = half a star).
+
+| Character | Power | Speed | Defense | Range |
+|---|---|---|---|---|
+| AC | 7 | 6 | 5 | 7 |
+| Becky | 5 | 6 | 5 | 7 |
+| B-Money | 6 | 8 | 4 | 6 |
+| Winston | 5 | 8 | 3 | 6 |
+| Haddie | 3 | 8 | 4 | 5 |
+| Harper | 3 | 7 | 2 | 8 |
+
 ## The rule: ratings are binding (Alex, Nov 20 2026)
 Every monster's in-game stats must match its ratings here, "so characters don't completely out do one another". When a monster wins too much or too little, **don't change its ratings to fix it**: tune attack startup/recovery, hitbox reach, special recharge and counterplay instead, until `tests/sim_one.py <key> 20` is near 50%.
 

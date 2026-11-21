@@ -109,9 +109,10 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .tag{margin:0;text-align:center;color:var(--dim);font-size:14px}
 .label{font-family:var(--pixel);font-size:9px;color:var(--dim);letter-spacing:.06em;margin:0}
 .stats{display:grid;grid-template-columns:auto minmax(22px,1fr);gap:3px 4px;align-items:center;width:100%;max-width:170px;text-align:left;font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.02em}
-.pips{display:flex;gap:2px}
-.pips span{flex:1;height:6px;background:#2d2540;border-radius:1px}
-.pips span.f{background:var(--gold)}
+.stars{display:flex;gap:1px;font-size:12px;line-height:1;letter-spacing:0}
+.stars i{font-style:normal;color:#3a3150;position:relative;display:inline-block}
+.stars i.f{color:var(--gold)}
+.stars i.h::before{content:'\2605';position:absolute;left:0;top:0;width:50%;overflow:hidden;color:var(--gold)}
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .seg button{padding:9px 0;background:var(--panel);border:2px solid var(--line);border-radius:8px;font-weight:700;font-size:15px}
 .seg button[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
@@ -181,7 +182,6 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
   text-shadow:2px 2px 0 #0a0d1c,-2px -2px 0 #0a0d1c,2px -2px 0 #0a0d1c,-2px 2px 0 #0a0d1c,0 0 14px var(--fc,#3b7cff)}
 .hero-info{margin-top:5px;background:rgba(9,13,30,.94);border:2px solid var(--fc,#3b7cff);border-radius:10px;padding:6px 8px;display:flex;flex-direction:column;gap:5px}
 .hero-stats .stats{max-width:none;font-size:8px}
-.hero-stats .pips span{height:5px}
 .hero-sup{margin:0;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
 .hero-sup span{font-family:var(--pixel);font-size:7px;color:var(--dim)}
 .hero-sup b{font-family:var(--brush);font-weight:400;font-size:clamp(15px,5vh,22px);letter-spacing:.03em;color:var(--fc,#3b7cff);display:inline-block;transform:skewX(-8deg);line-height:1;text-shadow:1px 1px 0 #0a0d1c}
@@ -203,7 +203,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
   text-shadow:2px 2px 0 #0a0d1c,-1px -1px 0 #0a0d1c,1px -1px 0 #0a0d1c,-1px 1px 0 #0a0d1c}
 .pick .nm{white-space:nowrap;overflow:hidden;padding:0 2px}
 .pick[data-c="bmoney"] .nm,.pick[data-c="winston"] .nm,.pick[data-c="haddie"] .nm,.pick[data-c="harper"] .nm{font-size:clamp(12px,4.3vh,21px)}
-.pick .nm,.pick .spc,.pick .stats{display:none}   /* the card shows the name */
+.pick .nm,.pick .spc{display:none}   /* the card shows the name */
 .pick[aria-pressed="true"]{transform:translateY(-2px);box-shadow:0 0 0 3px #ffd23f,0 0 18px rgba(255,210,63,.6)}
 .pick:not([aria-pressed="true"]) .tport{filter:saturate(.8) brightness(.82)}
 .badges{position:absolute;top:0;left:0;z-index:2;display:flex;gap:2px}
@@ -392,42 +392,36 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
         <span class="badges"></span>
         <span class="nm">AC</span>
         <span class="spc">Special: Dumbbell Throw</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
       </button>
       <button class="pick" data-c="becky" aria-pressed="false" style="--fc:#4cc93a">
         <img class="tport" alt="" data-port="becky">
         <span class="badges"></span>
         <span class="nm">BECKY</span>
         <span class="spc">Special: Coffee Mug Toss</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
       </button>
       <button class="pick" data-c="bmoney" aria-pressed="false" style="--fc:#a24dff">
         <img class="tport" alt="" data-port="bmoney">
         <span class="badges"></span>
         <span class="nm">B-MONEY</span>
         <span class="spc">Special: Ground Ripple</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span></span>
       </button>
       <button class="pick" data-c="haddie" aria-pressed="false" style="--fc:#ff3b3b">
         <img class="tport" alt="" data-port="haddie">
         <span class="badges"></span>
         <span class="nm">HADDIE</span>
         <span class="spc">Special: Projectile Puke</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span></span>
       </button>
       <button class="pick" data-c="harper" aria-pressed="false" style="--fc:#ff2fa0">
         <img class="tport" alt="" data-port="harper">
         <span class="badges"></span>
         <span class="nm">HARPER</span>
         <span class="spc">Special: Yap</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
       </button>
       <button class="pick" data-c="winston" aria-pressed="false" style="--fc:#3fa9ff">
         <img class="tport" alt="" data-port="winston">
         <span class="badges"></span>
         <span class="nm">WINSTON</span>
         <span class="spc">Special: Bone Throw</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
       </button>
       </div>
       <div class="picks" data-group="MONSTERS">
@@ -436,28 +430,24 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
         <span class="badges"></span>
         <span class="nm">SLIME</span>
         <span class="spc">Special: Slime Shot</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span></span><span></span><span></span><span></span></span></span>
       </button>
       <button class="pick" data-c="imp" aria-pressed="false" style="--fc:#ff5a1f">
         <img class="tport" alt="" data-port="imp">
         <span class="badges"></span>
         <span class="nm">IMP</span>
         <span class="spc">Special: Fireball</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span></span>
       </button>
       <button class="pick" data-c="goblin" aria-pressed="false" style="--fc:#9bd12a">
         <img class="tport" alt="" data-port="goblin">
         <span class="badges"></span>
         <span class="nm">GOBLIN</span>
         <span class="spc">Special: Dagger Toss</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span class="f"></span><span></span><span></span><span></span></span></span>
       </button>
       <button class="pick" data-c="skeleton" aria-pressed="false" style="--fc:#3fd0ff">
         <img class="tport" alt="" data-port="skeleton">
         <span class="badges"></span>
         <span class="nm">SKELETON WARRIOR</span>
         <span class="spc">Special: Sword Slash</span>
-        <span class="stats"><span>Speed</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span><span class="f"></span></span><span>Power</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Jump</span><span class="pips"><span class="f"></span><span class="f"></span><span class="f"></span><span></span><span></span></span><span>Durability</span><span class="pips"><span class="f"></span><span></span><span></span><span></span><span></span></span></span>
       </button>
       </div>
       </div></div>
@@ -3543,12 +3533,35 @@ document.getElementById('pgNext').addEventListener('click',()=>{ audioInit(); sf
   pg.addEventListener('touchend',e=>{ if(sx===null) return; const dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy; sx=null;
     if(Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)*1.3){ audioInit(); sfx('select'); showPage(fsPage+(dx<0?1:-1)); } },{passive:true}); }
 document.getElementById('fsLogo').src=document.querySelector('.mm-logo').src;
+// Fighter ratings shown on fighter select, 1-10 each (Alex's monster roster scale, art/specs/monster-roster.md).
+// Shown as stars out of 5: every rating point is half a star (1 = half a star, 10 = five stars).
+const STATS={
+  ac:      {power:7, speed:6, defense:5, range:7},
+  becky:   {power:5, speed:6, defense:5, range:7},
+  bmoney:  {power:6, speed:8, defense:4, range:6},
+  winston: {power:5, speed:8, defense:3, range:6},
+  haddie:  {power:3, speed:8, defense:4, range:5},
+  harper:  {power:3, speed:7, defense:2, range:8},
+  slime:   {power:3, speed:9, defense:3, range:2},
+  imp:     {power:4, speed:8, defense:3, range:9},
+  goblin:  {power:5, speed:9, defense:3, range:5},
+  skeleton:{power:6, speed:6, defense:5, range:7}
+};
+function statStars(k){
+  const r=STATS[k]||{}; let h='<span class="stats">';
+  for(const [lab,key] of [['Power','power'],['Speed','speed'],['Defense','defense'],['Range','range']]){
+    const v=Math.max(0,Math.min(10,r[key]||0)); h+=`<span>${lab}</span><span class="stars" aria-label="${v/2} of 5 stars">`;
+    for(let i=1;i<=5;i++) h+=`<i class="${v>=2*i?'f':v===2*i-1?'h':''}">\u2605</i>`;
+    h+='</span>';
+  }
+  return h+'</span>';
+}
 function renderHero(){
   const k=G.pick, b=document.querySelector(`.pick[data-c="${k}"]`);
   document.querySelector('.fs-hero').style.setProperty('--fc',FC[k]);
   document.getElementById('heroPort').src=window.CARDS[k];
   document.getElementById('heroName').textContent=CH[k].name.toUpperCase();
-  const st=document.getElementById('heroStats'); st.innerHTML=''; st.appendChild(b.querySelector('.stats').cloneNode(true));
+  document.getElementById('heroStats').innerHTML=statStars(k);
   document.getElementById('heroSup').textContent=SUPER_NAME[k];
 }
 let lastLobby=null;
@@ -3934,7 +3947,7 @@ setInterval(keepAwake,1500); document.addEventListener('visibilitychange',keepAw
 // version.json next to index.html. Alex (Nov 20 2026): check only when the app is opened (launch, or coming back on
 // screen), tell the player, load the new version right away if they're on a menu, and otherwise tell them to close and
 // reopen the app. After an update loads, a message says so (the last build seen is kept in localStorage nrb.build).
-const BUILD_ID='413e9679e990'; let UPD=null, updTold=false;
+const BUILD_ID='057b240e08f8'; let UPD=null, updTold=false;
 function toast(msg,ms=4000){
   let t=document.getElementById('updToast');
   if(!t){ t=document.createElement('div'); t.id='updToast'; t.setAttribute('role','status'); document.body.appendChild(t); }
