@@ -12,7 +12,7 @@ All attributes rated 1–10 (10 = highest).
 | Cave Troll | 7 | 3 | 9 | 5 | in game |
 | Iron Ogre | 10 | 2 | 10 | 3 | in game |
 | Runic Golem | 7 | 3 | 9 | 8 | in game |
-| Demon Lord | 9 | 7 | 5 | 7 | planned |
+| Demon Lord | 9 | 7 | 5 | 7 | in game (Nov 20 2026) |
 | Ancient Dragon | 9 | 6 | 6 | 10 | planned |
 | The Forgotten One | 8 | 4 | 7 | 10 | planned |
 
@@ -69,3 +69,4 @@ Higher `weight` = harder to knock back.
 - **Cave Troll** (built Nov 20 2026 to his ratings): speed 1.15, armor +0.20, weight 1.25, shrugs off light hits; punch 7 / kick 12 / stomp 10; Range 5 = a both-sides stomp and an arena-wide quake. Balanced with slow moves (punch rc 13, kick st 9 rc 20) and a 2.5 s stomp recharge. Sim 57%.
 - **Iron Ogre** (built Nov 20 2026 to his ratings): speed 1.0, armor +0.25, weight 1.3, shrugs off light hits (one every 4 s); punch 8 / kick 14 / shoulder hit 14; Orc-length reach. At these ratings he first won 96%; balanced only with very slow swings (punch st 10 rc 22, kick st 13 rc 33) and a 4 s special recharge. Sim 52%, but lopsided matchups.
 - **Runic Golem** (built Nov 20 2026): Troll-like body (speed 1.15, armor +0.20, light-hit armor), Range 8 from rune magic: a fast 90 px blast and pillars under every opponent. Sim 46% with no tuning.
+- **Demon Lord** (built Nov 20 2026): speed 1.75, armor +0.07, no light-hit armor, strong punches/kicks (Power 9). Range 7 from Soul Grasp (a ~110 px grab that pulls the opponent in front of him) and a full-arena meteor super with warning rings. Sim 55%.

@@ -1,0 +1,178 @@
+Add New Fighter: DEMON LORD
+
+Add Demon Lord as a playable fighter in Family Brawl using the provided character card and sprite sheet.
+
+Character Description
+
+Demon Lord is a terrifying, muscular demonic warrior with dark crimson and charcoal skin, enormous curved horns, glowing orange eyes, sharp teeth, jagged armor, and fiery orange cracks running across his body.
+
+He is an aggressive, powerful fighter who combines strong physical attacks with dark magic and devastating hellfire abilities.
+
+Fighting Style: Demonic magic bruiser
+Strength: Very High
+Defense: High
+Speed: Medium
+Jump: Medium
+Magic Range: Medium to Long
+
+Demon Lord should feel like a Level 9 boss character without being unfairly overpowered.
+
+SPECIAL MOVE: SOUL GRASP
+
+Demon Lord summons a large spectral demonic hand made of dark red and crimson energy. The hand flies forward, grabs an opponent, and pulls them toward Demon Lord.
+
+Animation Sequence
+
+1. Demon Lord plants his feet and raises one clawed hand.
+2. Dark crimson energy begins swirling around his arm.
+3. He thrusts his hand forward.
+4. A large ghostly demonic hand launches horizontally toward the opponent.
+5. If the hand connects, it grabs the opponent.
+6. The spectral hand retracts, dragging the opponent toward Demon Lord.
+7. Demon Lord releases the magical grip and returns to his fighting stance.
+
+Gameplay Mechanics
+
+* Range: Medium, approximately 4 character widths.
+* Damage: Low initial damage.
+* Effect: Pulls the opponent toward Demon Lord.
+* On Hit: Briefly immobilizes the opponent while the hand retracts.
+* On Release: Opponent ends up directly in front of Demon Lord, within punching distance.
+* On Block: The hand dissipates without grabbing the opponent.
+* On Miss: The hand disappears at maximum range.
+* Cooldown: Slightly longer than a standard projectile special to compensate for its powerful positioning advantage.
+
+The opponent should be vulnerable to a follow-up attack after being pulled in, but should not remain permanently stunned.
+
+Use the separate spectral hand sprites from the supplied sprite sheet.
+
+Important: Soul Grasp is NOT a normal damaging projectile. Its primary purpose is grabbing and pulling opponents toward Demon Lord.
+
+SUPER MOVE: INFERNAL APOCALYPSE
+
+Demon Lord opens a fiery portal above the battlefield and summons a devastating meteor shower that rains hellfire across the arena.
+
+Animation Sequence
+
+1. Demon Lord plants his feet and raises both arms.
+2. His eyes glow brighter as crimson flames begin surrounding his body.
+3. He spreads his arms outward and enters a dramatic POWER POSE.
+4. A large circular red-orange portal opens in the sky above the arena.
+5. Several flaming meteors begin falling diagonally toward the battlefield.
+6. Meteors strike different locations, creating fiery explosions.
+7. A final enormous meteor crashes down, creating a massive explosion of fire and debris.
+8. The portal closes, the flames dissipate, and Demon Lord returns to his fighting stance.
+
+Gameplay Mechanics
+
+Attack Type: Multi-hit area attack.
+
+Range: Entire arena.
+
+Damage: Very High if multiple meteors connect.
+
+Meteor Behavior:
+
+* Summon 5–7 meteors during the attack.
+* Meteors fall diagonally from above.
+* Spread impacts across the battlefield rather than targeting one exact spot repeatedly.
+* Each impact creates a brief explosion.
+* Show a short warning indicator at each impact location before the meteor lands.
+* Meteors can hit opponents individually.
+* Apply a short hit-stun period to prevent unfair repeated stun-locking.
+* The final meteor creates a larger explosion with stronger knockback.
+* The attack should not automatically guarantee a hit.
+
+Defending:
+
+* Opponents can avoid meteors by moving away from marked impact locations.
+* Blocking reduces damage and knockback.
+* The super should be dangerous but still possible to defend against.
+
+Visual Effects
+
+* Red-orange circular portal overhead.
+* Falling flaming meteors with fiery trails.
+* Large explosions on impact.
+* Burning particles and scattered embers.
+* Brief screen shake during major impacts.
+* Stronger screen shake for the final meteor.
+
+Use the separate meteor, explosion, and hellfire sprites from the supplied sprite sheet.
+
+Important: Infernal Apocalypse is a meteor shower, NOT a ground shockwave or single fireball. The meteors must fall from above and strike multiple positions throughout the arena.
+
+VICTORY ANIMATION: DEMONIC ASCENSION
+
+After defeating his opponent, Demon Lord celebrates by unleashing his demonic power.
+
+Animation Sequence
+
+1. Demon Lord stands upright and spreads his arms.
+2. He raises both arms high above his head.
+3. His eyes glow intensely orange.
+4. Crimson flames rise around his body.
+5. He throws his head back and roars triumphantly.
+6. He holds the final victory pose until the match transitions.
+
+Use the provided victory animation frames.
+
+NORMAL ATTACKS
+
+* Punch: Powerful clawed punch with heavy impact.
+* Low Jab: Quick crouching claw strike.
+* Kick: Strong forward kick with moderate reach.
+* Jump Kick: Aggressive airborne kick.
+* Throw: Grabs the opponent and forcefully throws them forward.
+* Block: Raises his armored forearms to defend.
+* Roll: Forward evasive roll.
+* Jump: Standard jump with a heavy landing animation.
+
+IMPLEMENTATION REQUIREMENTS
+
+1. Use the supplied sprite sheet for all animations.
+2. Keep Demon Lord’s character height consistent across every animation.
+3. Align his feet correctly with the arena floor.
+4. Use the existing Family Brawl movement, combat, damage, and super meter systems.
+5. Ensure all attacks function correctly when facing left or right.
+6. Soul Grasp must visually travel toward the opponent and pull them back when it connects.
+7. Soul Grasp must properly release opponents and restore their normal movement afterward.
+8. Infernal Apocalypse must spawn falling meteors from above, not from Demon Lord’s hands.
+9. Meteor impacts must have accurate collision detection.
+10. Avoid excessive simultaneous damage from overlapping meteor explosions.
+11. Support multiple opponents during the super.
+12. Use the supplied special and super effect sprites.
+13. Add Demon Lord’s character card to the fighter selection screen.
+14. Do not modify existing fighters or their abilities.
+15. Follow the game’s existing animation and combat architecture.
+
+BALANCING
+
+Demon Lord should be one of the strongest characters in the monster roster, but not unbeatable.
+
+Strengths:
+
+* High physical damage.
+* Excellent ability to control opponent positioning.
+* Powerful full-arena super.
+* Strong close-range combat.
+
+Weaknesses:
+
+* Soul Grasp is punishable when blocked or missed.
+* Medium movement speed.
+* Super has a noticeable startup animation.
+* Meteor impact locations are telegraphed.
+* Limited long-range pressure outside his super.
+
+CHARACTER IDENTITY
+
+Demon Lord is an aggressive demonic powerhouse who controls opponents with dark magic and unleashes catastrophic hellfire.
+
+His Soul Grasp pulls opponents into close combat.
+
+His Infernal Apocalypse transforms the battlefield into a meteor-filled inferno.
+
+His Demonic Ascension victory animation showcases his overwhelming power.
+
+Make his attacks visually dramatic, powerful, and distinct from Imp, Iron Ogre, Cave Troll, and Runic Golem.
