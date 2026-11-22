@@ -60,7 +60,7 @@ LAYOUT = [
 ]
 
 
-def find_frames(A, gap=3, splits=None, minsize=25, rowgap=10):
+def find_frames(A, gap=3, splits=None, minsize=25, rowgap=10, rowcuts=()):
     """Rows by horizontal projection, frames by grouping blobs closer than `gap` px.
     splits: {row_index: [x, ...]} cuts merged frames at those x positions (find them with survey.py).
     Returns (bands, rows) where rows[i] = [(x0, x1), ...]."""
@@ -74,6 +74,9 @@ def find_frames(A, gap=3, splits=None, minsize=25, rowgap=10):
             if bands and y0 - bands[-1][1] < rowgap: bands[-1][1] = y
             else: bands.append([y0, y])
         y += 1
+    for yc in rowcuts:   # rows that touch (a raised fist reaching into the row above): split the band at yc
+        for k, (a, b) in enumerate(bands):
+            if a < yc < b: bands[k:k + 1] = [[a, yc], [yc, b]]; break
     bands = [b for b in bands if b[1] - b[0] > 20]
     lab, n = nd.label(fg); objs = nd.find_objects(lab); size = nd.sum(fg, lab, range(1, n + 1))
     rows = []
@@ -116,6 +119,7 @@ def cut(A, img, fg, band, a, b):
         m = wl[sl] == i + 1; xs = np.where(m.any(0))[0]; cx = sl[1].start + (np.where(m)[1].mean())
         wide = sl[1].stop - sl[1].start > 1.6 * (b - a)
         if not wide and not (a <= cx < b): continue
+        if sl[0].start >= band[1] - 1 or sl[0].stop <= band[0] + 1: continue   # wholly in the margin: a neighbouring row's piece
         if wide:   # joined figures: every frame it crosses takes its own slice
             part = np.zeros(fg.shape, bool); part[sl] = m; keep[y0:y1, a:b] |= part[y0:y1, a:b]
         else: keep[sl] |= m

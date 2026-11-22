@@ -9,7 +9,7 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
 SHEET = os.path.join(ROOT, 'art/originals/fighter-cards.png')
 OUTJS = os.path.join(ROOT, 'src/assets/cards.js')
 REMOVED = {'brick', 'volt'}   # on the sheet but taken out of the game (Nov 20 2026)
-NEWCARD = {'bmoney'}   # have a newer single card made with tools/make_card.py (B-Money v2, Nov 21 2026): don't overwrite
+NEWCARD = {'bmoney', 'ac'}   # have a newer single card made with tools/make_card.py (B-Money v2, Nov 21 2026): don't overwrite
 ORDER = [['ac', 'brick', 'becky', 'volt'], ['bmoney', 'winston', 'haddie', 'harper']]   # as laid out on the sheet
 W, H = 360, 480   # stored size (3:4); the sheet's cards are ~375 x 502
 

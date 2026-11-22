@@ -361,7 +361,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
       </div>
       <div class="hero-info">
         <div class="hero-stats" id="heroStats"></div>
-        <p class="hero-sup"><span>SUPER MOVE</span><b id="heroSup">MAX REP</b></p>
+        <p class="hero-sup"><span>SUPER MOVE</span><b id="heroSup">BLADE FURY</b></p>
       </div>
     </aside>
     <section class="fs-center">
@@ -373,7 +373,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
         <img class="tport" alt="" data-port="ac">
         <span class="badges"></span>
         <span class="nm">AC</span>
-        <span class="spc">Special: Dumbbell Throw</span>
+        <span class="spc">Special: Sword Slash</span>
       </button>
       <button class="pick" data-c="becky" aria-pressed="false" style="--fc:#4cc93a">
         <img class="tport" alt="" data-port="becky">
@@ -544,7 +544,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
           <b>P, K</b><span>Punch and kick. Land a hit, then tap P or K again right away to chain a combo. Punches only land where the body really is: they sail over small fighters (Haddie, Harper, Slime) and over anyone ducking. Kicks, the low jab (duck + punch), Specials and Supers hit everyone.</span>
           <b>B</b><span>Tap or hold to block. Blocked hits only chip a little health. Double-tap B right next to an opponent who isn’t attacking or blocking to throw them.</span>
           <b>ROLL</b><span>Hold B and push the stick left or right to roll, even right past an opponent. You can’t be hit in the middle of a roll, but you can at the start and end, and a Super still catches you. To turn around while blocking, let go of B first.</span>
-          <b>SPECIAL</b><span>Free to use: after each one, the SPECIAL button fills back up. Light ones like the Goblin's dagger and Imp's fireball come back fast; big ones like AC's dumbbell take longer. One out at a time, and it stops at the first fighter it hits. Jump or block the dumbbell, and jump, duck or block Becky's coffee mug.</span>
+          <b>SPECIAL</b><span>Free to use: after each one, the SPECIAL button fills back up. Light ones like the Goblin's dagger and Imp's fireball come back fast; big ones like AC's sword slash take longer. One out at a time, and it stops at the first fighter it hits. Jump or block the dumbbell, and jump, duck or block Becky's coffee mug.</span>
           <b>SUPER</b><span>Land and take hits to fill your meter. When it’s full, SUPER lights up. Supers can’t be blocked, jumped or rolled through.</span>
           <b>TEAMS · FFA</b><span>Pick the fight type at the top of this screen. Up to four fighters share a wider arena and the camera follows the action. Everyone has a few lives (set them in Fight Options). Last fighter (or team) standing wins. Specials and supers hit everyone in their path, but never your teammate.</span>
           <b>SAME</b><span>Picking the same fighter as the CPU is fine: the CPU's copy wears different colors.</span>
@@ -645,7 +645,7 @@ const CH = {
       low:  {st:4, ac:3, rc:9,  dmg:4, kb:1.2, hs:13, bs:8,  box:[8,26,-24,-6]},
       kick: {st:7, ac:4, rc:12, dmg:8, kb:2.8, hs:18, bs:11, box:[8,27,-30,-12]},
       air:  {st:3, ac:12,rc:4,  dmg:7, kb:2.2, hs:16, bs:9,  box:[2,22,-16,2]},
-      special:{st:12, ac:0, rc:16, cost:40}
+      special:{st:10, ac:5, rc:16, dmg:14, kb:2.8, hs:15, bs:10, box:[6,46,-46,-8]}   // SWORD SLASH (Nov 22 2026): a melee swing; the blue crescent reaches past the blade
     }
   },
   becky: {
@@ -907,7 +907,7 @@ const BAL={
   golem:{armorCD:75},   // shrugs off light hits like the Cave Troll
   ogre:{armorCD:240, punch:{st:10, rc:22, box:[9,30,-46,-34]}, low:{st:10, rc:22, box:[9,29,-30,-9]}, kick:{st:13, rc:33, box:[9,32,-34,-14]}, air:{st:8, rc:12}, special:{rc:30}},   // Defense/Power 10 paid for with very slow swings; he shrugs off at most one light hit every 4 s
   troll:{armorCD:75},   // like Becky: after shrugging off a light hit, the next one within 1.25 s staggers him
-  ac:   {punch:{rc:6, dmg:6}, low:{dmg:6}, kick:{dmg:11, st:5}, plateDmg:10, speed:1.7, armor:0.08},
+  ac:   {punch:{rc:6, dmg:6}, low:{dmg:6}, kick:{dmg:11, st:5}, speed:1.7, armor:0.08},
   becky:{punch:{dmg:5}, low:{dmg:5}, kick:{dmg:9, st:5}, armorCD:75, speed:1.75},
   bmoney:{punch:{dmg:6}, low:{dmg:6}, kick:{dmg:10, st:4}, air:{dmg:8}, speed:2.1},
   winston:{punch:{dmg:6, st:2, rc:5, hs:15, bs:10}, low:{dmg:5, st:2, hs:14}, kick:{dmg:10, st:4, rc:9, hs:19, bs:11}, air:{dmg:8}, speed:2.1},
@@ -1418,6 +1418,11 @@ function stdFrame(f){   // fighters drawn with Alex's sprite-sheet prompt (art/s
             if(k<st*0.35) return 'special0'; if(k<=st) return 'special1';
             if(k<=st+ac) return f.mhit?'special5':'special'+(2+Math.floor((k-st)/3)%3); return k<st+ac+rc*0.7?'special5':'special1';
           }
+          if(f.key==='ac'){   // Sword Slash: 0 reaches over his shoulder, 1 draws the sword, 2 winds up, 3 the slash with the blue crescent,
+            // 4 the crescent sweeps forward, 5 follow-through, 6 the sword back on his back
+            if(k<st*0.3) return 'special0'; if(k<st*0.65) return 'special1'; if(k<st) return 'special2';
+            if(k<st+2) return 'special3'; if(k<=st+ac+2) return 'special4'; return k<st+ac+rc*0.6?'special5':'special6';
+          }
           if(f.key==='bmoney'){   // Purple Slash: 0 stance, 1 draws the sword, 2-3 raises it overhead, 4 swings down, 5 the crescent leaves, 6 follow-through
             if(k<st*0.3) return 'special0'; if(k<st*0.6) return 'special1'; if(k<st*0.85) return 'special2'; if(k<st) return 'special3';
             if(k<st+3) return 'special4'; return k<st+10?'special5':k<st+rc*0.8?'special6':'special0';
@@ -1533,7 +1538,7 @@ function wnFrame(f){
   }
   return 'idle0';
 }
-const SHEETS={ac:{S:()=>ACS,img:()=>ACIMG,frame:acFrame,ready:()=>acReady},
+const SHEETS={ac:{S:()=>ACS,img:()=>ACIMG,frame:stdFrame,ready:()=>acReady},   // v2 art (Nov 22 2026): sword on his back; acFrame was v1's picker, unused now
   becky:{S:()=>BKS,img:()=>BKIMG,frame:bkFrame,ready:()=>bkReady},
   bmoney:{S:()=>BMS,img:()=>BMIMG,frame:stdFrame,ready:()=>bmReady},   // v2 art (Nov 21 2026): Alex's standard-layout sheet; bmFrame was v1's picker, unused now
   winston:{S:()=>WNS,img:()=>WNIMG,frame:wnFrame,ready:()=>wnReady},
@@ -2035,7 +2040,7 @@ function startRound(){
 // Specials (Alex, Nov 20 2026): no longer earned with meter (only supers are). They're free, one out at a time, and
 // recharge; the stronger the special, the longer the wait (frames, 60 = 1 s). The dagger and fireball hit like a punch,
 // so they come back fast. Every special ends on the first fighter it hits.
-const SKILL_CD_BY={goblin:36, imp:36, becky:90, haddie:90, slime:90, skeleton:150, orc:120, troll:180, ogre:240, golem:120, demon:140, dragon:90, forgotten:210, harper:120, bmoney:135, winston:135, ac:150};
+const SKILL_CD_BY={goblin:36, imp:36, becky:90, haddie:90, slime:90, skeleton:150, orc:120, troll:180, ogre:240, golem:120, demon:140, dragon:90, forgotten:210, harper:120, bmoney:135, winston:135, ac:105};
 const skillCDOf=f=>SKILL_CD_BY[f.key]||120;
 // CAVE TROLL'S STOMP (Alex's spec): a foot stomp whose small shockwave hits everyone on the ground within STOMP_R of his
 // body on either side, for moderate damage and a small hop back (never a knockdown). Fighters in the air above it are missed.
@@ -2182,7 +2187,9 @@ function tryHit(f,o,m){
   const hb=hurt(o,f.move==='punch');
   if(x1<hb.x0||x0>hb.x1||y1<hb.y0||y0>hb.y1) return;
   f.mhit=true;
-  applyHit(f,o,m,f.x,(Math.max(x0,hb.x0)+Math.min(x1,hb.x1))/2,(Math.max(y0,hb.y0)+Math.min(y1,hb.y1))/2);
+  const hx=(Math.max(x0,hb.x0)+Math.min(x1,hb.x1))/2, hy=(Math.max(y0,hb.y0)+Math.min(y1,hb.y1))/2;
+  applyHit(f,o,m,f.x,hx,hy);
+  if(f.key==='ac' && f.move==='special'){ G.parts.push({type:'sfx',key:'ac',name:'sburst1',x:hx,y:hy,life:12,max:12,sc:0.7,alt:f.alt,main:true}); sparks(hx,hy,f.alt?AC_FX_ALT:AC_FX,8); }
 }
 function applyHit(att,def,m,srcX,hx,hy){
   if(untouchable(def)) return;   // knocked down, getting up, being thrown, or throwing
@@ -2243,9 +2250,11 @@ function cornerPush(att,def,srcX,away,kb){
   if(pinned) att.vx=-away*Math.max(1.6,kb*0.9);
 }
 function spawnSpecial(f){
-  if(f.key==='ac'){
-    G.proj.push({type:'plate',owner:f,x:f.x+f.dir*18,y:f.y-41,vx:f.dir*3.4,t:0,dmg:BAL.ac.plateDmg,kb:2.6,hs:20,bs:10,kd:true});
-    sfx('plate');
+  if(f.key==='ac'){   // SWORD SLASH: a melee swing (the hit comes from moves.special's box); the blue crescent leaves the blade
+    // and sweeps forward to the end of its reach, so the hit never lands past what you can see
+    const k=f.cfg.drawK||1;
+    G.parts.push({type:'sfx',key:'ac',name:'slash1',x:f.x+f.dir*30*k,y:f.y-26*k,vx:f.dir*2.4,life:11,max:11,sc:1,dir:f.dir,alt:f.alt,main:true});
+    sfx('whoosh');
   } else if(f.key==='volt'){
     startSprint(f);
   } else if(f.key==='winston'){   // BONE THROW: the bone leaves from his mouth, flies straight, blockable
@@ -2412,10 +2421,12 @@ function endSprint(f,o){
    everything else freezes, then it pulls back out and the attack plays. Supers can't be blocked or jumped,
    and each one does the damage of three of that fighter's specials. */
 const SUPER_COST=100, CINE=86, FERRARI_V=7.5, ORC_SUPER_V=5.2, TQ_V=4.4, OWAVE_V=4.8, OGRE_AXE_DMG=66, RUNE_WARN=40, PILLAR_T=50, HOLE_AHEAD=72, HOLE_GROW=22, HOLE_PULL=96, HOLE_R=112, HOLE_TICK=16, HOLE_DMG=4, HOLE_CAP=24, HOLE_BOOM=30, HOLE_BOOM_R=56, FIRE_WIND=26, FIRE_T=110, FIRE_TICK=10, FIRE_DMG=5, METEOR_N=6, METEOR_WARN=32, METEOR_GAP=10, METEOR_FALL=22, METEOR_SMALL=12, METEOR_BIG=36;   // Demon Lord's meteor shower   // RUNE_WARN: frames of rune warning before the Golem's pillars erupt; PILLAR_T: how long they stand   // OWAVE_V: the Axe Chop shockwave's speed; OGRE_AXE_DMG: a direct axe hit   // TQ_V: the Cave Troll's Earthquake ripple speed   // ORC_SUPER_V: the Body Slam's rush speed   // close-up length in frames (~1.4s): zoom in, hold on the power pose, snap back out
-const CINE_Z={goblin:2.5,ac:2.0,brick:1.7,becky:2.2,volt:2.4,bmoney:1.45,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6,skeleton:1.9,orc:1.9,troll:1.8,ogre:1.45,golem:1.35,demon:1.35,dragon:1.18,forgotten:1.35}, CINE_FY={forgotten:48,dragon:50,demon:50,golem:50,ogre:46,troll:26,orc:24,skeleton:22,goblin:18,ac:42,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
+const CINE_Z={goblin:2.5,ac:1.5,brick:1.7,becky:2.2,volt:2.4,bmoney:1.45,winston:2.6,haddie:2.4,harper:2.6,slime:3.0,imp:2.6,skeleton:1.9,orc:1.9,troll:1.8,ogre:1.45,golem:1.35,demon:1.35,dragon:1.18,forgotten:1.35}, CINE_FY={forgotten:48,dragon:50,demon:50,golem:50,ogre:46,troll:26,orc:24,skeleton:22,goblin:18,ac:30,brick:50,becky:31,volt:24,bmoney:20,winston:14,haddie:22,harper:15,slime:9,imp:20};   // close-up zoom and framing height per fighter
 const SUPER_DMG={ac:62, brick:58, becky:48, volt:62, bmoney:58, winston:56, haddie:56, harper:56, slime:56, imp:58,goblin:52,skeleton:56,orc:60,troll:58,ogre:52,golem:56,demon:36,dragon:50,forgotten:54};   // B-Money: wave 14 + uppercut 44   // 3 specials' worth, scaled to the 200 health bar
-const SUPER_NAME={forgotten:'REALITY COLLAPSE',dragon:'INFERNO BREATH',demon:'INFERNAL APOCALYPSE',golem:'RUNIC ERUPTION',ogre:'AXE CHOP',troll:'EARTHQUAKE',orc:'BODY SLAM',ac:'MAX REP',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'FERRARI',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB',skeleton:'SKELETON ARMY'};
-const SUPER_POSE={ac:3,brick:2,becky:1,volt:0,bmoney:2,winston:10,haddie:2,harper:3,slime:3,imp:3,goblin:3,skeleton:3,orc:1,troll:3,ogre:2,golem:3,demon:3,dragon:3,forgotten:3};
+const SUPER_NAME={forgotten:'REALITY COLLAPSE',dragon:'INFERNO BREATH',demon:'INFERNAL APOCALYPSE',golem:'RUNIC ERUPTION',ogre:'AXE CHOP',troll:'EARTHQUAKE',orc:'BODY SLAM',ac:'BLADE FURY',brick:'RACK QUAKE',becky:'BOOK STACK THROW',volt:'OVERLOAD FURY',bmoney:'FERRARI',winston:'BODY CHECK',haddie:'TRASH PILE ATTACK',harper:'ANXIETY SHAKES',slime:'SPLIT & SLAM',imp:'DEMON FIREBALL',goblin:'POISON BOMB',skeleton:'SKELETON ARMY'};
+const SUPER_POSE={ac:2,brick:2,becky:1,volt:0,bmoney:2,winston:10,haddie:2,harper:3,slime:3,imp:3,goblin:3,skeleton:3,orc:1,troll:3,ogre:2,golem:3,demon:3,dragon:3,forgotten:3};
+const BF_DASH=7, BF_DASH_T=40, BF_REACH=26, BF_GAP=9, BF_BLADE=27, BF_HITS=[12,12,12], BLADE_V=7.5, BLADE_DMG=26;   // AC's Blade Fury: 3 x 12 + the blade 26 = SUPER_DMG.ac 62
+const AC_FX=['#e6f6ff','#7fc4ff','#3b7cff'], AC_FX_ALT=['#ffe9e0','#ff9a7f','#ff4a3d'];
 const AC_RELEASE=[33.3, 48.6], BK_REL=SUPERS.becky.meta.rel;   // where the barbell / book stack leaves their hands [ahead, above feet]
 const clampX=x=>Math.max(14,Math.min(AW-14,x));
 function startSuper(f,o){
@@ -2470,15 +2481,62 @@ function superStep(f,o){
   if(s.hitT>0) s.hitT--;
   if(s.lock && o.state!=='ko' && !o.superArmor && !o.kd){ o.stun=Math.max(o.stun,30); o.bstun=0; o.move=null; o.sprint=null; o.sup=null; o.state='hit'; }
   switch(f.key){
-    case 'ac': {   // MAX REP: deadlift, clean, press overhead, then throw the barbell across the gym
-      if(t<=CINE){ s.fr=t<12?0:t<24?1:t<36?2:3; break; }
-      if(u<6) s.fr=4; else if(u<10) s.fr=5;
-      else {
-        if(u===10){ f.dir=o.x>=f.x?1:-1; G.proj.push({type:'sbar',sup:1,owner:f,x:f.x+f.dir*AC_RELEASE[0],y:f.y-AC_RELEASE[1],vx:f.dir*6.5,t:0,
-          dmg:SUPER_DMG.ac,kb:4,hs:46,bs:0,unblockable:true,launch:true}); sfx('plate'); G.shake=Math.max(G.shake,3); }
-        s.fr=u<26?6:7; if(u>=34) return endSuper(f,o);
+    case 'ac': {   // BLADE FURY (Nov 22 2026): draws his sword and raises it overhead (close-up), dashes in, and if the opening slash
+      // lands: diagonal, reverse diagonal, horizontal, then a forward strike that sends a huge blue energy blade across the stage.
+      // Unblockable like every super (Alex's pick), no screen shake: each hit freezes the action for a moment with a blue flash.
+      // Super frames: 0 reaches for the sword, 1 sword drawn (the dash), 2 overhead (close-up), 3 diagonal slash, 4 reverse slash,
+      // 5 the forward strike releasing the blade, 6 finishing pose, 7 sword back on his back. The horizontal slash is his
+      // special's frame 4 (s.mn).
+      const FX=f.alt?AC_FX_ALT:AC_FX;
+      if(t<=CINE){ s.fr=t<12?0:t<24?1:2;
+        if(t>=20 && t%3===0) part(f.x+f.dir*(rnd()*14-8),f.y-34-rnd()*26,(rnd()-0.5)*0.3,-0.5,14,FX[t%3],rnd()<0.4?2:1,-0.02);
+        break; }
+      const vs=(G.multi?foes(f):[o]).filter(e=>!e.dead && !e.out && e.state!=='ko');
+      const inReach=e=>{ const dx=(e.x-f.x)*f.dir; return dx>-e.cfg.w/2 && dx<e.cfg.w/2+BF_REACH; };
+      if(u===1){ f.dir=o.x>=f.x?1:-1; s.ph=0; s.k=0; s.locked=[]; s.mn=null; sfx('whoosh'); }
+      if(s.ph===0){   // the dash: straight at the target, stops in sword reach (or at the wall, or after BF_DASH_T frames)
+        s.fr=1; s.k++;
+        const gap=(o.x-f.x)*f.dir-o.cfg.w/2, x0=f.x;
+        if(o.state!=='ko' && gap>BF_REACH-10 && s.k<=BF_DASH_T) f.x=clampX(f.x+f.dir*Math.min(BF_DASH,gap-(BF_REACH-12)));
+        if(f.x===x0 || o.state==='ko' || gap<=BF_REACH-10 || s.k>BF_DASH_T){ s.ph=1; s.k=0; }
+        else if(s.k%2===0) part(f.x-f.dir*10,f.y-8-rnd()*30,-f.dir*1.2,0,10,FX[s.k%3],1,0);
+        break;
       }
-      break; }
+      const k=s.k++;
+      const strike=(e,dmg,nm)=>{   // one sword hit on a held opponent: freeze + blue flash, a slash arc across them
+        if(e.state==='ko' || e.dead) return;
+        const keep=f.meter; superLanded(f);
+        applyHit(f,e,{dmg,kb:0,hs:40,bs:0,unblockable:true,noScale:true},f.x,e.x,e.y-26); f.meter=keep; e.vx=0;
+        G.parts.push({type:'sfx',key:'ac',name:nm,x:e.x,y:e.y-24,life:12,max:12,sc:0.85,dir:f.dir,alt:f.alt});
+        G.parts.push({type:'sfx',key:'ac',name:'boom0',x:e.x,y:e.y-24,life:10,max:10,sc:0.7,alt:f.alt});
+        sparks(e.x,e.y-24,FX,10); G.hitstop=Math.max(G.hitstop,6); G.flashT=3; G.flashCol=f.alt?'rgba(255,90,60,.16)':'rgba(80,160,255,.18)'; sfx('heavy');
+      };
+      if(k===0){   // the opening slash: everyone in reach in front is caught (any height), unless their own super guards them
+        s.fr=3; sfx('whoosh');
+        for(const e of vs){ if(!inReach(e) || untouchable(e)) continue;
+          if(e.superArmor){ applyHit(f,e,{dmg:1,kb:0,hs:0,bs:0},f.x,e.x,e.y-26); continue; }
+          strike(e,BF_HITS[0],'arc0'); s.locked.push(fidx(e)); }
+        s.miss=!s.locked.length;
+      }
+      const held=s.locked.map(i=>G.f[i]).filter(e=>e && e.state!=='ko' && !e.dead);
+      if(k<BF_BLADE) for(const e of held){ e.stun=Math.max(e.stun,30); e.bstun=0; e.move=null; e.sup=null; e.sprint=null; e.state='hit'; e.vx=0; if(!e.onGround) e.vy=Math.max(e.vy,1); }   // staggered: no escape
+      if(s.miss){   // the opening missed: no combo, he finishes the swing, then sheathes the sword
+        s.fr=k<12?3:k<26?6:7; if(k>=36){ superLanded(f); return endSuper(f,o); }
+        break;
+      }
+      s.mn=null;
+      if(k<BF_GAP) s.fr=3;
+      else if(k<BF_GAP*2){ s.fr=4; if(k===BF_GAP){ sfx('whoosh'); for(const e of held) strike(e,BF_HITS[1],'arc1'); } }
+      else if(k<BF_BLADE){ s.mn='special4'; if(k===BF_GAP*2){ sfx('whoosh'); for(const e of held) strike(e,BF_HITS[2],'arc0'); } }
+      else if(k<BF_BLADE+8){ s.fr=5;
+        if(k===BF_BLADE){   // the final strike: a huge blue energy blade flies across the stage (bladeProj)
+          G.proj.push({type:'sblade',sup:1,owner:f,x:f.x+f.dir*18,y:f.y-26,vx:f.dir*BLADE_V,t:0,hitl:[],dmg:BLADE_DMG,kb:3,hs:46,bs:0,unblockable:true,noScale:true,launch:true});
+          sfx('superhit'); G.flashT=4; G.flashCol=f.alt?'rgba(255,90,60,.2)':'rgba(80,160,255,.22)'; sparks(f.x+f.dir*24,f.y-26,FX,16); }
+      }
+      else if(k<BF_BLADE+30) s.fr=6;   // holds the finishing pose, sword extended
+      else { s.fr=7; if(k>=BF_BLADE+40) return endSuper(f,o); }   // sword back on his back
+      break;
+    }
     case 'harper': {   // ANXIETY SHAKES: the nerves build and build, then burst out as a pink wave rolling along the floor
       const FX=f.alt?YAP_FX_ALT:YAP_FX;
       if(t<=CINE){ s.fr=t<10?0:t<22?1:t<34?2:t<46?3:4; if(t%4===0) sparks(f.x+(rnd()-0.5)*20,f.y-8-rnd()*24,FX,2); break; }
@@ -3063,7 +3121,23 @@ function voidHole(p){
   if(p.t>=HOLE_GROW+HOLE_PULL+24){ superLanded(f); return true; }
   return false;
 }
+// BLADE FURY's energy blade (AC): flies across the stage, hitting everyone in its path once at any height with a knockdown.
+function bladeProj(p){
+  const f=p.owner, dir=Math.sign(p.vx), px=p.x; p.t++; p.x+=p.vx;
+  if(p.t%2===0) part(p.x-dir*20,p.y+(rnd()-0.5)*18,-p.vx*0.2,(rnd()-0.5)*0.4,10,(f.alt?AC_FX_ALT:AC_FX)[p.t%3],1,0);
+  if(G.phase==='fight') for(const e of foes(f)){
+    if(e.dead || e.out || e.state==='ko' || p.hitl.includes(fidx(e))) continue;
+    if(Math.abs(p.x-e.x)>e.cfg.w/2+16 && (px-e.x)*(p.x-e.x)>0) continue;
+    p.hitl.push(fidx(e)); if(untouchable(e)) continue;
+    const keep=f.meter; superLanded(f); applyHit(f,e,p,p.x-p.vx*10,e.x,e.y-26); f.meter=keep;
+    if(e.hp>0) knockDown(e,dir,3.4,-5.2);
+    G.parts.push({type:'sfx',key:'ac',name:'boom2',x:e.x,y:e.y-22,life:18,max:18,sc:0.9,alt:f.alt});
+    sparks(e.x,e.y-24,f.alt?AC_FX_ALT:AC_FX,18); G.hitstop=Math.max(G.hitstop,8); G.flashT=4; G.flashCol=f.alt?'rgba(255,90,60,.2)':'rgba(80,160,255,.22)'; sfx('superhit');
+  }
+  return p.x<-40 || p.x>AW+40;
+}
 function superProj(p){
+  if(p.type==='sblade') return bladeProj(p);
   if(p.type==='vhole') return voidHole(p);
   if(p.type==='dfire') return dragonFire(p);
   if(p.type==='meteors') return demonMeteors(p);
@@ -3156,6 +3230,7 @@ function superProjMulti(p){
 function drawSuperProj(p){
   const f=p.owner, dir=Math.sign(p.vx)||1;
   if(p.type==='bquake'){ drawSup('bmoney',f.alt,'bigwave',p.x,GROUND+2,dir,0.85+0.08*Math.sin(p.t*0.9)); return; }
+  if(p.type==='sblade'){ drawSup('ac',f.alt,'blade',p.x,p.y,dir,1+0.06*Math.sin(p.t*0.8)); return; }
   if(p.type==='sbar') drawSup('ac',f.alt,'bar_fly',p.x,p.y,dir,1,1,Math.sin(p.t*0.5)*0.06);
   else if(p.type==='squake') drawSup('brick',f.alt,'erupt_small',p.x,GROUND+2,dir,0.62+0.1*Math.sin(p.t*0.9));
   else if(p.type==='sshake') drawSup('harper',f.alt,'swoosh2',p.x,GROUND+2,dir,0.95+0.08*Math.sin(p.t*0.8));
@@ -3404,7 +3479,7 @@ function kdFrame(f){
   if(k.ph==='air') return k.t<8?'down0':'down1';
   if(k.ph==='lie' && k.flat) return lieFrame(f);   // slammed flat (Body Slam): no fall, just lying there until they get up
   if(k.ph==='lie'){ const d4=SHEETS[f.key].S().spr['down4']; return k.t<5?'down2':(k.t<10||!d4?'down3':'down4'); }
-  const n=SHEETS[f.key].S().spr['getup3']?4:3;
+  const sp=SHEETS[f.key].S().spr, n=sp['getup4']?5:sp['getup3']?4:3;   // AC's v2 sheet has a 5-frame get-up
   return 'getup'+Math.min(n-1,Math.floor(k.t/KD_UP*n));
 }
 function canThrow(f,o){
@@ -3617,7 +3692,7 @@ function aiInput(f,o){
   if(f.meter>=SUPER_COST && f.onGround && !f.move && !G.cine && !o.sup && !o.superArmor && arnd()<0.035*D.aggr){ inp.super=true; return inp; }
   if(a.cool>0){ a.cool--; return inp; }
   a.cool=D.react+((arnd()*D.react)|0);
-  if(skillOk(f) && (f.key==='skeleton'?d>40&&d<80:f.key==='orc'?d>30&&d<72:f.key==='troll'?d<44:f.key==='ogre'?d>28&&d<64:f.key==='golem'?d>40&&d<110:f.key==='demon'?d>50&&d<120:f.key==='dragon'?d>18&&d<72:f.key==='forgotten'?d>40&&d<100:d>70) && arnd()<0.4*D.aggr){ inp.special=true; return inp; }   // the Skeleton lunges in with his sword from just out of reach
+  if(skillOk(f) && (f.key==='ac'?d>14&&d<54:f.key==='skeleton'?d>40&&d<80:f.key==='orc'?d>30&&d<72:f.key==='troll'?d<44:f.key==='ogre'?d>28&&d<64:f.key==='golem'?d>40&&d<110:f.key==='demon'?d>50&&d<120:f.key==='dragon'?d>18&&d<72:f.key==='forgotten'?d>40&&d<100:d>70) && arnd()<0.4*D.aggr){ inp.special=true; return inp; }   // the Skeleton lunges in with his sword from just out of reach
   // AC escapes a corner by jumping over the opponent
   const cornered=(f.x<44&&dx>0)||(f.x>AW-44&&dx<0);
   if(f.key==='ac' && cornered && d<46 && f.onGround && arnd()<0.55*D.aggr){ inp.up=true; inp[tw]=true; return inp; }
@@ -3648,6 +3723,7 @@ function updParts(){
   for(let i=G.parts.length-1;i>=0;i--){
     const p=G.parts[i]; p.life--;
     if(p.life<=0){ G.parts.splice(i,1); continue; }
+    if(p.type==='sfx' && p.vx){ p.x+=p.vx; continue; }   // a drifting effect (AC's sword crescent)
     if(p.type==='burst'||p.type==='impact'||p.type==='bolt'||p.type==='zap'||p.type==='sfx') continue;
     if(p.type==='word'){ p.y+=p.vy; continue; }
     p.x+=p.vx; p.y+=p.vy; p.vy+=p.grav;
@@ -4222,7 +4298,7 @@ function drawVSMulti(){   // 2v2 / free-for-all intro: every fighter's card in a
 const VS_LEN=156, VS_SLAM=26;
 const PORT={}; for(const [k,src] of Object.entries(window.PORTRAITS)){ const im=new Image(); im.src=src; PORT[k]=im; }
 const CARD={}; for(const [k,src] of Object.entries(window.CARDS)){ const im=new Image(); im.src=src; CARD[k]=im; }
-const SPECIAL_NAME={ac:'DUMBBELL THROW',brick:'QUAKE SLAM',becky:'COFFEE MUG TOSS',volt:'HYPER SPRINT',bmoney:'PURPLE SLASH',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP',slime:'SLIME SHOT',imp:'FIREBALL',goblin:'DAGGER TOSS',skeleton:'SWORD SLASH',orc:'SHOULDER CHARGE',troll:'STOMP',ogre:'SHOULDER HIT',golem:'RUNIC BLAST',demon:'SOUL GRASP',dragon:'TAIL SWEEP',forgotten:'VOID GRASP'};
+const SPECIAL_NAME={ac:'SWORD SLASH',brick:'QUAKE SLAM',becky:'COFFEE MUG TOSS',volt:'HYPER SPRINT',bmoney:'PURPLE SLASH',winston:'BONE THROW',haddie:'PROJECTILE PUKE',harper:'YAP',slime:'SLIME SHOT',imp:'FIREBALL',goblin:'DAGGER TOSS',skeleton:'SWORD SLASH',orc:'SHOULDER CHARGE',troll:'STOMP',ogre:'SHOULDER HIT',golem:'RUNIC BLAST',demon:'SOUL GRASP',dragon:'TAIL SWEEP',forgotten:'VOID GRASP'};
 function vsSkip(){ if(G.mode==='play' && G.phase==='vs' && !NET.active && G.pt<VS_LEN-14) G.pt=VS_LEN-14; }
 function drawVS(){
   const t=G.pt, [a,b]=G.f, C=W/2, PS=112, top=16;
@@ -4532,7 +4608,7 @@ function showResultMulti(){
 const KEYBITS=['left','right','up','down','punch','kick','special','block','super'];
 const enc=o=>KEYBITS.reduce((b,k,i)=>b|(o[k]?1<<i:0),0);
 const dec=b=>{ const o={}; KEYBITS.forEach((k,i)=>o[k]=!!(b&(1<<i))); return o; };
-const HASH_EVERY=30, KEEP=900, NET_V=37;
+const HASH_EVERY=30, KEEP=900, NET_V=38;
 function sendTo(c,m){ try{ c&&c.send(m); }catch(e){} }
 function netSend(m){ if(NET.role==='host') NET.conns.forEach(x=>sendTo(x.c,m)); else sendTo(NET.conn,m); }
 // Button presses travel on a second, "fast" connection that doesn't make messages wait in line behind a late

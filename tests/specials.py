@@ -23,7 +23,7 @@ JS = """
     let back=-1; for(let i=1;i<400;i++){ step(); if(back<0 && !(G.f[0].skillCD>0) && !G.proj.some(p=>p.owner===G.f[0])) back=i; }
     // close range: does the special make the target fall?
     G.f=[mkF(k,0,false),mkF('becky',1,false)]; G.round=1; startRound(); G.phase='fight';
-    G.f[0].x=120; G.f[1].x=k==='skeleton'||k==='troll'?156:190;   // the Sword Slash and the Stomp are melee: stand in reach G.f[0].dir=1; G.f[1].dir=-1; G.f.forEach(f=>f.netIn=inp());
+    G.f[0].x=120; G.f[1].x=k==='skeleton'||k==='troll'||k==='ac'?156:190; G.f[0].dir=1; G.f[1].dir=-1; G.f.forEach(f=>f.netIn=inp());   // the Sword Slashes and the Stomp are melee: stand in reach
     fire(); let fell=false, hit=false, maxStun=0;
     for(let i=0;i<120;i++){ step(); const d=G.f[1]; if(d.hp<200) hit=true; if(d.state==='ko'||d.kd||d.down) fell=true; maxStun=Math.max(maxStun,d.stun||0); }
     out[k]={used, meterAfter:meter, readyAfterFrames:back, hit, fell, maxStun};
@@ -37,7 +37,7 @@ JS_FFA = """
   const K=['left','right','up','down','punch','kick','special','block','super'];
   const inp=o=>{ const r={}; K.forEach(k=>r[k]=!!(o&&o[k])); return r; };
   const res={};
-  for(const k of ['bmoney','ac','imp','goblin']){
+  for(const k of ['bmoney','golem','imp','goblin']){   // thrown specials (AC's is a sword swing now)
     __sim.setupMulti([k,'becky','becky'],[false,false,false],false);
     G.phase='fight'; G.f[0].x=100; G.f[1].x=170; G.f[2].x=200; G.f[0].dir=1; G.f.forEach(f=>{ f.netIn=inp(); f.inv=0; });
     G.f[0].netIn=inp({special:true}); step(); G.f[0].netIn=inp();
