@@ -46,7 +46,7 @@ async def main():
             for pg in P: await pg.wait_for_function(FIGHT, timeout=20000)
             print('fighters', await A.evaluate("__G.f.length"), 'lives', await A.evaluate("__G.f.map(f=>f.stocks)"))
             st = [await pg.evaluate("__G.stage") for pg in P]
-            check(len(set(st)) == 1 and st[0] in ('slime', 'house'), f'every phone fights in the same arena ({st[0]})')
+            check(len(set(st)) == 1 and st[0] not in ('gym', None), f'every phone fights in the same arena ({st[0]})')
             await P[2].evaluate("__G.f[1].hp-=37"); await A.wait_for_timeout(2500)
             rs = await P[2].evaluate("__NET.synced"); check(rs >= 1, f'forced desync resynced ({rs})')
             X = await A.evaluate("__NET.frame+30")

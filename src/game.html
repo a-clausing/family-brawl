@@ -193,7 +193,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 /* right: mode chips, panel, ready */
 .fs-chips{display:flex;gap:6px;align-items:center;margin-bottom:6px}
 .fs-chips .fmode{flex:1;margin:0;padding:7px 26px 7px 9px;font-size:10px;background-color:rgba(9,13,30,.9)}
-.fs-side .arena{margin:0 0 6px;padding:7px 26px 7px 9px;font-size:10px;background-color:rgba(9,13,30,.9);width:100%}
+.fs-side .arena{margin:0 0 6px;padding:7px 22px 7px 8px;font-size:9px;background-color:rgba(9,13,30,.9);width:100%}
 .fs-title{font-family:var(--pixel);font-size:9px;color:#3fa9ff;border:2px solid #3fa9ff;border-radius:8px;padding:8px;white-space:nowrap;background:rgba(9,13,30,.9)}
 .side-panel{flex:1;min-height:0;overflow-y:auto;background:rgba(9,13,30,.9);border:2px solid #2c6fd6;border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px}
 .solo-cpu{display:flex;flex-direction:column;gap:6px}
@@ -593,6 +593,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 @@asset:gym-backdrop.js@@
 @@asset:house-backdrop.js@@
 @@asset:slime-arena.js@@
+@@asset:arenas.js@@
 @@asset:becky-sheet.js@@
 @@asset:portraits.js@@
 @@asset:cards.js@@
@@ -1721,22 +1722,36 @@ function buildGym(){
 //  HOUSE_ZPOW: how much the backdrop follows the camera zoom (0 = not at all, 1 = same as the fighters).
 const HOUSEIMG=new Image(); let houseReady=false; const MULTI_FLOOR_ROW=0.93, HOUSE_H1=246, HOUSE_ZPOW=0.5;
 HOUSEIMG.onload=()=>{ houseReady=true; }; if(window.HOUSE_BG) HOUSEIMG.src=window.HOUSE_BG;
-function drawHouseBg(cam){
-  const iw=HOUSEIMG.naturalWidth, ih=HOUSEIMG.naturalHeight, ar=iw/ih, z=cam?cam.z:1, cx=cam?cam.cx:AW/2, cy=cam?cam.cy:H/2;
+function drawHouseBg(cam){ drawPicBg(HOUSEIMG,MULTI_FLOOR_ROW,HOUSE_H1,cam); }
+// One-picture arena drawn like the house: a far layer that pans and zooms less than the fighters.
+// row: fraction of the picture's height where the feet go; h1: picture height on screen at zoom 1.
+function drawPicBg(IMG,row,h1,cam){
+  const iw=IMG.naturalWidth, ih=IMG.naturalHeight, ar=iw/ih, z=cam?cam.z:1, cx=cam?cam.cx:AW/2, cy=cam?cam.cy:H/2;
   const gs=(GROUND-cy)*z+H/2;                                   // where the feet line is on screen
-  const hd=Math.max(HOUSE_H1*Math.pow(z,HOUSE_ZPOW), (W+2)/ar, (gs+1)/MULTI_FLOOR_ROW), wd=hd*ar;
+  const hd=Math.max(h1*Math.pow(z,HOUSE_ZPOW), (W+2)/ar, (gs+1)/row), wd=hd*ar;
   const lo=W/(2*z), hi=AW-W/(2*z), t=hi>lo?Math.min(1,Math.max(0,(cx-lo)/(hi-lo))):0.5;
-  const x0=-(wd-W)*t, y0=gs-MULTI_FLOOR_ROW*hd, bot=y0+hd;
+  const x0=-(wd-W)*t, y0=gs-row*hd, bot=y0+hd;
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  ctx.drawImage(HOUSEIMG,x0,y0,wd,hd);
-  if(bot<H) ctx.drawImage(HOUSEIMG,0,ih-4,iw,4,x0,bot-0.5,wd,H-bot+1); // stretch the near street down to the screen edge
+  ctx.drawImage(IMG,x0,y0,wd,hd);
+  if(bot<H) ctx.drawImage(IMG,0,ih-4,iw,4,x0,bot-0.5,wd,H-bot+1); // stretch the near ground down to the screen edge
+}
+// Placeholder arenas, one picture each (Alex, Nov 24 2026; art/originals/arenas/, tools/arena/single_arenas.py).
+// Decoded only when first needed.
+const PIC_H1=230, PICIMG={};
+function picImg(k){
+  const P=window.ARENA_PICS&&window.ARENA_PICS[k]; if(!P) return null;
+  if(!PICIMG[k]){ const im=new Image(); im.src=P.src; PICIMG[k]=im; }
+  const im=PICIMG[k]; return im.complete&&im.naturalWidth?im:null;
 }
 /* ---------------- Arenas ----------------
    Picked on fighter select (Alex, Nov 2026). G.arena is the choice (saved as nrb.arena, may be 'random'),
    G.stage the arena of the fight on now (online: the host's pick, sent in the start message).
    The gym is one screen wide, so it's 1 VS 1 only. */
-const ARENAS={gym:'GYM', slime:"SLIME'S ARENA", house:'THE HOUSE'};
-const arenaList=fm=>fm==='1v1'?['gym','slime','house']:['slime','house'];
+const ARENAS={gym:'GYM', slime:'OOZE CAVERNS', imp:'EMBER PITS', goblin:'GOBLIN HIDEOUT', skeleton:'FORGOTTEN CRYPT',
+  orc:'WARBORN STRONGHOLD', troll:'HOLLOW GORGE', ogre:'IRONFORGE', golem:'RUNIC SANCTUARY', demon:'INFERNAL THRONE',
+  dragon:"DRAGON'S SUMMIT", forgotten:'SHATTERED REALM', house:'THE HOUSE'};   // monster arenas use the monster's key
+const ARENA_ALL=Object.keys(ARENAS);
+const arenaList=fm=>fm==='1v1'?ARENA_ALL:ARENA_ALL.filter(a=>a!=='gym');
 function arenaFor(fm,choice){   // turn the choice into a real arena for this fight type
   const L=arenaList(fm);
   if(choice==='random') return L[Math.floor(Math.random()*L.length)];
@@ -4260,8 +4275,9 @@ function render(){
   const stage=G.mode==='play'?(G.stage||(G.multi?'house':'gym')):'gym';
   const slimeBg=stage==='slime' && slimeReady(); if(slimeBg) drawSlimeArena(cam);
   const houseBg=stage==='house' && houseReady; if(houseBg) drawHouseBg(cam);
+  const pic=!slimeBg&&!houseBg&&picImg(stage); if(pic) drawPicBg(pic,window.ARENA_PICS[stage].row,PIC_H1,cam);
   if(cam){ ctx.translate(W/2,H/2); ctx.scale(cam.z,cam.z); ctx.translate(-cam.cx,-cam.cy); ctx.imageSmoothingEnabled=true; }
-  if(houseBg||slimeBg){}
+  if(houseBg||slimeBg||pic){}
   else if(G.multi && G.mode==='play'){ buildGymMulti(); if(gymReady) ctx.drawImage(GYMM,0,GYMM_Y,AW,GYMM_H); }
   else if(gymReady) ctx.drawImage(GYMC,0,0,W*2,H*2,0,0,W,H); else ctx.drawImage(SCENE,0,0);
   if(!cam||cam.z===1) ctx.imageSmoothingEnabled=false;
