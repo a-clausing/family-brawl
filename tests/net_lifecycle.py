@@ -30,12 +30,14 @@ async def main():
             for pg in P: await pg.reload()
             await A.wait_for_timeout(400)
             await A.click('#mmArcade'); await A.click('#mmOnline'); await A.click('#hostBtn'); await A.wait_for_selector('#room', state='visible')
-            await A.select_option('#fmodeSel', 'ffa'); await A.select_option('#lobbyCpu0', 'off'); code = await A.inner_text('#codeOut')
+            await A.select_option('#fmodeSel', 'ffa'); await A.select_option('#arenaSel', 'random'); await A.select_option('#lobbyCpu0', 'off'); code = await A.inner_text('#codeOut')
             for pg in P[1:]:
                 await pg.click('#mmArcade'); await pg.click('#mmOnline'); await pg.fill('#codeIn', code); await pg.click('#joinBtn')
                 await pg.wait_for_selector('#room', state='visible'); await pg.wait_for_timeout(300)
             check(await P[1].evaluate("document.getElementById('fmodeSel').value==='ffa' && document.getElementById('fmodeSel').disabled"),
                   "guest sees the host's fight type and can't change it")
+            check(await P[1].evaluate("document.getElementById('arenaSel').value==='random' && document.getElementById('arenaSel').disabled"),
+                  "guest sees the host's arena and can't change it")
             check(await A.evaluate(HUMANS) == 3, 'host lobby lists 3 players')
             for pg in P[:2]: await pg.click('#goBtn')
             await A.wait_for_timeout(600)
@@ -43,6 +45,8 @@ async def main():
             await P[2].click('#goBtn')
             for pg in P: await pg.wait_for_function(FIGHT, timeout=20000)
             print('fighters', await A.evaluate("__G.f.length"), 'lives', await A.evaluate("__G.f.map(f=>f.stocks)"))
+            st = [await pg.evaluate("__G.stage") for pg in P]
+            check(len(set(st)) == 1 and st[0] in ('slime', 'house'), f'every phone fights in the same arena ({st[0]})')
             await P[2].evaluate("__G.f[1].hp-=37"); await A.wait_for_timeout(2500)
             rs = await P[2].evaluate("__NET.synced"); check(rs >= 1, f'forced desync resynced ({rs})')
             X = await A.evaluate("__NET.frame+30")
