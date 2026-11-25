@@ -641,10 +641,11 @@ window.AC_SHEET={"src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABAAAAAH+C
 'use strict';
 // Arena height is fixed; its width stretches to match the screen's shape (320 = 16:9 up to 400 = 20:9).
 let W = 320; const H = 180, GROUND = 158, WMIN = 320, WMAX = 400;
-// Screen layout (Nov 2026, Alex): the fight picture (W x H) is drawn ~10% smaller and higher on the screen, with a
-// STRIP of floor below the fighters' feet and dark frame columns at the sides (MX each), so the touch controls sit
-// over floor and frame instead of over the fighters. VW x HV is the whole canvas. Gameplay sizes (W, H, AW) are unchanged.
-const STRIP=20, HV=H+STRIP; let VW=356, MX=18;
+// Screen layout: the fight picture (W x H) fills the screen (Alex, Nov 24 2026: "make it full screen again"). From
+// Nov 2026 it was drawn ~10% smaller with a STRIP of mirrored floor below it and dark side columns, which looked like a
+// cut-off under the new arenas. STRIP is 0 now; MX side columns only appear on screens wider than WMAX allows (or online,
+// where W is fixed). VW x HV is the whole canvas. Gameplay sizes (W, H, AW) are unchanged.
+const STRIP=0, HV=H+STRIP; let VW=356, MX=18;
 // AW is the arena the fighters move in. In 1v1 it equals the screen width W; team and free-for-all fights use a wider
 // arena (MULTI_AW) and a camera that follows the fighters.
 let AW = W; const MULTI_AW = 640;
@@ -4277,10 +4278,10 @@ function banners(){
 function drawFrame(){
   ctx.setTransform(1,0,0,1,0,0); ctx.imageSmoothingEnabled=false;
   const x0=MX*2, aw=W*2, y=H*2, sh=STRIP*2;
-  ctx.save(); ctx.translate(0,y*2); ctx.scale(1,-1); ctx.drawImage(cv,x0,y-sh,aw,sh,x0,y,aw,sh); ctx.restore();
+  if(sh>0){ ctx.save(); ctx.translate(0,y*2); ctx.scale(1,-1); ctx.drawImage(cv,x0,y-sh,aw,sh,x0,y,aw,sh); ctx.restore();
   const g=ctx.createLinearGradient(0,y,0,y+sh); g.addColorStop(0,'rgba(10,8,16,.45)'); g.addColorStop(1,'rgba(10,8,16,.9)');
   ctx.fillStyle=g; ctx.fillRect(x0,y,aw,sh);
-  ctx.fillStyle='rgba(0,0,0,.35)'; ctx.fillRect(x0,y,aw,2);
+  ctx.fillStyle='rgba(0,0,0,.35)'; ctx.fillRect(x0,y,aw,2); }
   ctx.fillStyle='#0d0a14'; ctx.fillRect(0,0,x0,cv.height); ctx.fillRect(x0+aw,0,cv.width-x0-aw,cv.height);
   ctx.fillStyle='rgba(255,255,255,.07)'; ctx.fillRect(x0-2,0,2,cv.height); ctx.fillRect(x0+aw,0,2,cv.height);
 }
@@ -4872,7 +4873,7 @@ setInterval(keepAwake,1500); document.addEventListener('visibilitychange',keepAw
 // version.json next to index.html. Alex (Nov 20 2026): check only when the app is opened (launch, or coming back on
 // screen), tell the player, load the new version right away if they're on a menu, and otherwise tell them to close and
 // reopen the app. After an update loads, a message says so (the last build seen is kept in localStorage nrb.build).
-const BUILD_ID='2e596be7bbdb'; let UPD=null, updTold=false;
+const BUILD_ID='aaf156cf6308'; let UPD=null, updTold=false;
 function toast(msg,ms=4000){
   let t=document.getElementById('updToast');
   if(!t){ t=document.createElement('div'); t.id='updToast'; t.setAttribute('role','status'); document.body.appendChild(t); }
