@@ -1765,6 +1765,88 @@ const SLIME_L=[['bg',0.06],['m3',0.22],['m2',0.45],['m1',0.7],['fg',1]], DRIFT_K
 const SLIMEIMG={}; let ARENA_DRIFT=0;
 if(window.SLIME_ARENA) for(const [k] of SLIME_L){ const im=new Image(); im.src=window.SLIME_ARENA[k].src; SLIMEIMG[k]=im; }
 const slimeReady=()=>SLIME_L.every(([k])=>SLIMEIMG[k]&&SLIMEIMG[k].complete&&SLIMEIMG[k].naturalWidth);
+/* Ooze Caverns motion (Alex, Nov 26 2026: "slime pools ooze and the slime bubbles float up"). Visual only, so it may use
+   Math.random. Made once from the layer pictures: OOZE.lake = the slime lake's pixels (m1), OOZE.fall = the bright slime
+   on the ledges and waterfalls (m2), OOZE.glow = the turquoise mushrooms (m2), OOZE.surf = the lake's top edge per column.
+   Each frame: the lake sways in thin rows and has light glints drifting across it, bright bands flow down the
+   waterfalls, the mushrooms pulse, and glowing bubbles rise out of the lake, wobble and pop. */
+const OOZE={t:0,bub:[],ready:false};
+function oozeCanvas(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; }
+function oozeMask(im,test){
+  const w=im.naturalWidth,h=im.naturalHeight,c=oozeCanvas(w,h),x=c.getContext('2d'); x.drawImage(im,0,0);
+  const d=x.getImageData(0,0,w,h),p=d.data;
+  for(let i=0;i<p.length;i+=4) if(!(p[i+3]>200&&test(p[i],p[i+1],p[i+2]))) p[i+3]=0;
+  x.putImageData(d,0,0); return {c,p,w,h};
+}
+function oozeInit(){
+  try{
+    const L=oozeMask(SLIMEIMG.m1,(r,g,b)=>g>r+40&&g>b+20&&g>120);
+    const F=oozeMask(SLIMEIMG.m2,(r,g,b)=>g>150&&g>b+40);
+    const C=oozeMask(SLIMEIMG.m2,(r,g,b)=>b>170&&g>170&&r<170);
+    const surf=[];                                            // first lake row in each column (lake proper: below row 70)
+    for(let x=0;x<L.w;x+=4){ for(let y=70;y<L.h;y++) if(L.p[(y*L.w+x)*4+3]){ surf.push([x,y]); break; } }
+    Object.assign(OOZE,{lake:L.c,fall:F.c,glow:C.c,surf,fxL:oozeCanvas(L.w,L.h),fxF:oozeCanvas(F.w,F.h),ready:true});
+  }catch(e){ OOZE.ready='no'; }                                // no motion if the browser won't read the pictures
+}
+function oozeLake(x0,y0,sc){                                  // after the lake layer (m1) is drawn
+  const t=OOZE.t, M=OOZE.lake, w=M.width, h=M.height;
+  ctx.save(); ctx.translate(x0,y0); ctx.scale(sc,sc);
+  for(let y=60;y<h;y+=2){                                     // slow sideways sway, row by row: thick liquid
+    const dx=Math.sin(t*0.035+y*0.3)*2.6+Math.sin(t*0.013+y*0.09)*1.8;
+    ctx.drawImage(M,0,y,w,2,dx,y,w,2);
+  }
+  const fx=OOZE.fxL, g=fx.getContext('2d');                   // light glints drifting across the surface
+  g.globalCompositeOperation='source-over'; g.clearRect(0,0,w,h); g.drawImage(M,0,0);
+  g.globalCompositeOperation='source-atop';
+  for(let i=0;i<14;i++){
+    const yy=96+((i*37)%62), len=60+(i*29)%70, sp=0.25+(i%5)*0.12;
+    const xx=((t*sp+i*211)%(w+len*2))-len, a=0.5+0.5*Math.sin(t*0.05+i);
+    g.fillStyle=`rgba(230,255,170,${0.55*a})`; g.fillRect(xx,yy,len,2+(i%3));
+  }
+  ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=0.55; ctx.drawImage(fx,0,0);
+  ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1;
+  // bubbles: born in the lake, rise with a wobble, swell, then pop in a ring
+  const B=OOZE.bub;
+  if(B.length<16 && Math.random()<0.09 && OOZE.surf.length){
+    const [sx,sy]=OOZE.surf[Math.floor(Math.random()*OOZE.surf.length)];
+    B.push({x:sx,y:sy+4+Math.random()*30,r:3+Math.random()*3,R:9+Math.random()*10,v:0.45+Math.random()*0.55,
+            ph:Math.random()*6.3,life:110+Math.random()*120,age:0,pop:0});
+  }
+  for(let i=B.length-1;i>=0;i--){
+    const b=B[i];
+    if(b.pop){ b.pop++; const k=b.pop/10;                     // pop: a fading ring and a few droplets
+      ctx.strokeStyle=`rgba(200,255,150,${0.8*(1-k)})`; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.arc(b.x,b.y,b.R*(1+k*0.9),0,6.283); ctx.stroke();
+      ctx.fillStyle=`rgba(170,255,110,${0.9*(1-k)})`;
+      for(let j=0;j<4;j++){ const an=j*1.57+0.6; ctx.fillRect(b.x+Math.cos(an)*b.R*(1+k*1.6)-1.5,b.y+Math.sin(an)*b.R*(1+k*1.6)-1.5,3,3); }
+      if(b.pop>=10) B.splice(i,1); continue; }
+    b.age++; b.y-=b.v; b.r+=(b.R-b.r)*0.03;
+    const x=b.x+Math.sin(b.age*0.06+b.ph)*4, r=b.r;
+    const gr=ctx.createRadialGradient(x-r*0.3,b.y-r*0.3,r*0.1,x,b.y,r);
+    gr.addColorStop(0,'rgba(220,255,180,0.7)'); gr.addColorStop(0.7,'rgba(110,235,60,0.42)'); gr.addColorStop(1,'rgba(170,255,100,0.95)');
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(x,b.y,r,0,6.283); ctx.fill();
+    ctx.strokeStyle='rgba(40,110,20,0.6)'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.fillRect(x-r*0.45,b.y-r*0.5,Math.max(2,r*0.3),Math.max(2,r*0.25));
+    if(b.age>b.life){ b.x=x; b.pop=1; }
+  }
+  ctx.restore();
+}
+function oozeLedges(x0,y0,sc){                                // after the ledge/waterfall layer (m2) is drawn
+  const t=OOZE.t, M=OOZE.fall, w=M.width, h=M.height, fx=OOZE.fxF, g=fx.getContext('2d');
+  ctx.save(); ctx.translate(x0,y0); ctx.scale(sc,sc);
+  g.globalCompositeOperation='source-over'; g.clearRect(0,0,w,h); g.drawImage(M,0,0);
+  g.globalCompositeOperation='source-atop';                   // bright bands sliding down the slime: it flows
+  for(let i=0;i<9;i++){
+    const yy=((t*1.1+i*47)%(h+40))-20, xs=(i*97)%w;
+    const gr=g.createLinearGradient(0,yy,0,yy+18); gr.addColorStop(0,'rgba(240,255,170,0)'); gr.addColorStop(0.5,'rgba(240,255,170,0.9)'); gr.addColorStop(1,'rgba(240,255,170,0)');
+    g.fillStyle=gr; g.fillRect(0,yy,w,18);
+    g.fillStyle='rgba(255,255,210,0.7)'; g.fillRect(xs,((t*1.6+i*61)%h),3,10);
+  }
+  ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=0.45; ctx.drawImage(fx,0,0);
+  ctx.globalAlpha=0.12+0.12*Math.sin(t*0.045); ctx.drawImage(OOZE.glow,0,0);   // mushrooms breathing light
+  ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1;
+  ctx.restore();
+}
 function drawSlimeArena(cam){
   const A=window.SLIME_ARENA, z=cam?cam.z:1, cx=cam?cam.cx:AW/2, cy=cam?cam.cy:H/2;
   const gs=(GROUND-cy)*z+H/2;                                   // the feet line on screen
@@ -1773,6 +1855,7 @@ function drawSlimeArena(cam){
   ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,H); ctx.clip();   // stay out of the floor strip below the picture
   ctx.fillStyle='#0b2a3a'; ctx.fillRect(0,0,W,H);
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
+  if(!OOZE.ready) oozeInit(); OOZE.t++;
   for(const [k,p] of SLIME_L){
     const L=A[k], im=SLIMEIMG[k];
     const off=(AW/2-cx)*z*p+ARENA_DRIFT*(1-p);                  // camera parallax + 1 VS 1 drift (the floor never drifts)
@@ -1781,7 +1864,8 @@ function drawSlimeArena(cam){
       wl=Math.max(wl,2*(gs+2)/0.62*L.w/L.h/2, (H-gs+2)/0.38*L.w/L.h);
       const hl=wl*L.h/L.w; ctx.drawImage(im,W/2+off-wl/2,gs-0.62*hl,wl,hl); continue;
     }
-    const sc=wl/L.w; ctx.drawImage(im,W/2+off-wl/2,gs-L.base*sc,wl,L.h*sc);
+    const sc=wl/L.w, x0=W/2+off-wl/2, y0=gs-L.base*sc; ctx.drawImage(im,x0,y0,wl,L.h*sc);
+    if(OOZE.ready===true){ if(k==='m1') oozeLake(x0,y0,sc); else if(k==='m2') oozeLedges(x0,y0,sc); }
   }
   ctx.restore();
 }
