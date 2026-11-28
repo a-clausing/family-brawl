@@ -593,6 +593,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 @@asset:gym-backdrop.js@@
 @@asset:house-backdrop.js@@
 @@asset:slime-arena.js@@
+@@asset:imp-arena.js@@
 @@asset:arenas.js@@
 @@asset:becky-sheet.js@@
 @@asset:portraits.js@@
@@ -1758,13 +1759,25 @@ function arenaFor(fm,choice){   // turn the choice into a real arena for this fi
   if(choice==='random') return L[Math.floor(Math.random()*L.length)];
   return L.includes(choice)?choice:(fm==='1v1'?'gym':'house');
 }
-// Slime's Arena: five layers from Alex (art/originals/slime-arena/, cut by tools/arena/slime_arena.py), back to front,
-// each with how much it follows the camera (1 = moves with the fighters). Every layer's base row ('base') sits on the
-// fighters' feet line. In 1 VS 1 (no camera) the far layers drift a little with the fighters for depth.
-const SLIME_L=[['bg',0.06],['m3',0.22],['m2',0.45],['m1',0.7],['fg',1]], DRIFT_K=0.15;
-const SLIMEIMG={}; let ARENA_DRIFT=0;
-if(window.SLIME_ARENA) for(const [k] of SLIME_L){ const im=new Image(); im.src=window.SLIME_ARENA[k].src; SLIMEIMG[k]=im; }
-const slimeReady=()=>SLIME_L.every(([k])=>SLIMEIMG[k]&&SLIMEIMG[k].complete&&SLIMEIMG[k].naturalWidth);
+// Layered arenas: five layers from Alex, back to front, each with how much it follows the camera (1 = moves with the
+// fighters). Every layer's base row ('base') sits on the fighters' feet line; the sky ('bg') puts row bgRow there.
+// In 1 VS 1 (no camera) the far layers drift a little with the fighters for depth. Slime's Ooze Caverns
+// (art/originals/slime-arena/, tools/arena/slime_arena.py) and Imp's Ember Pits (art/originals/imp-arena/,
+// tools/arena/layered_arena.py imp). Each arena's motion: init() once the pictures are in, fx(k,x0,y0,sc) after
+// drawing layer k (in that layer's picture coordinates), after() once every layer is drawn. Pictures load on first use.
+const LAY_P=[['bg',0.06],['m3',0.22],['m2',0.45],['m1',0.7],['fg',1]], DRIFT_K=0.15;
+const LAYERED={
+  slime:{v:'SLIME_ARENA', bgRow:0.62, fill:'#0b2a3a', init:()=>oozeInit(), tick:()=>OOZE.t++,
+         fx:(k,x0,y0,sc)=>{ if(OOZE.ready!==true) return; if(k==='m1') oozeLake(x0,y0,sc); else if(k==='m2') oozeLedges(x0,y0,sc); }},
+  imp:{v:'IMP_ARENA', bgRow:0.66, fill:'#3a0618', init:()=>emberInit(), tick:()=>EMB.t++,
+       fx:(k,x0,y0,sc)=>{ if(EMB.ready===true) emberFx(k,x0,y0,sc); }, after:()=>{ if(EMB.ready===true) emberDrift(); }},
+};
+const LIMG={}; let ARENA_DRIFT=0;
+function layImgs(st){
+  const A=LAYERED[st], D=A&&window[A.v]; if(!D) return null;
+  if(!LIMG[st]){ LIMG[st]={}; for(const [k] of LAY_P){ const im=new Image(); im.src=D[k].src; LIMG[st][k]=im; } }
+  const I=LIMG[st]; return LAY_P.every(([k])=>I[k].complete&&I[k].naturalWidth)?I:null;
+}
 /* Ooze Caverns motion (Alex, Nov 26 2026: "slime pools ooze and the slime bubbles float up"). Visual only, so it may use
    Math.random. Made once from the layer pictures: OOZE.lake = the slime lake's pixels (m1), OOZE.fall = the bright slime
    on the ledges and waterfalls (m2), OOZE.glow = the turquoise mushrooms (m2), OOZE.surf = the lake's top edge per column.
@@ -1780,9 +1793,9 @@ function oozeMask(im,test){
 }
 function oozeInit(){
   try{
-    const L=oozeMask(SLIMEIMG.m1,(r,g,b)=>g>r+40&&g>b+20&&g>120);
-    const F=oozeMask(SLIMEIMG.m2,(r,g,b)=>g>150&&g>b+40);
-    const C=oozeMask(SLIMEIMG.m2,(r,g,b)=>b>170&&g>170&&r<170);
+    const SI=LIMG.slime, L=oozeMask(SI.m1,(r,g,b)=>g>r+40&&g>b+20&&g>120);
+    const F=oozeMask(SI.m2,(r,g,b)=>g>150&&g>b+40);
+    const C=oozeMask(SI.m2,(r,g,b)=>b>170&&g>170&&r<170);
     const surf=[];                                            // first lake row in each column (lake proper: below row 70)
     for(let x=0;x<L.w;x+=4){ for(let y=70;y<L.h;y++) if(L.p[(y*L.w+x)*4+3]){ surf.push([x,y]); break; } }
     Object.assign(OOZE,{lake:L.c,fall:F.c,glow:C.c,surf,fxL:oozeCanvas(L.w,L.h),fxF:oozeCanvas(F.w,F.h),ready:true});
@@ -1847,26 +1860,140 @@ function oozeLedges(x0,y0,sc){                                // after the ledge
   ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1;
   ctx.restore();
 }
-function drawSlimeArena(cam){
-  const A=window.SLIME_ARENA, z=cam?cam.z:1, cx=cam?cam.cx:AW/2, cy=cam?cam.cy:H/2;
+/* Ember Pits motion (Alex, Nov 27 2026; his layers have no fire drawn in so the game can animate it). Visual only.
+   Masks of each layer's glowing lava (EMB.mask[k]); in picture coordinates of each layer:
+   m3 skull: lava flows down the waterfall and cracks (bright bands sliding down), the eyes pulse, smoke curls up from the
+     crown (EMB_SMOKE) and steam from the waterfall's foot (EMB_STEAM);
+   m2 bridges: fire in the two empty bowls (EMB_BOWLS: centre x, rim y, width), sparks, lava pools glint;
+   m1 lava river: rows sway, glints drift along it, lava blobs swell and burst (on EMB.lakeTop rows); crystals pulse;
+   fg floor: the lava cracks pulse with a slow wave of light; after all layers, embers drift up over the whole scene. */
+const EMB={t:0,ready:false,smoke:[],sparks:[],blobs:[],embers:[]};
+const EMB_BOWLS=[[136,34,96],[1099,52,92]], EMB_SMOKE=[[650,26,40]], EMB_STEAM=[[647,236,30]];
+function emberInit(){
+  try{
+    const I=LIMG.imp, hot=(r,g,b)=>r>215&&g>100&&b<120;
+    const M={m3:oozeMask(I.m3,hot), m2:oozeMask(I.m2,hot), m1:oozeMask(I.m1,(r,g,b)=>r>200&&g>80&&b<110), fg:oozeMask(I.fg,(r,g,b)=>r>200&&g>70&&b<110)};
+    const L=M.m1; let top=L.h, bot=0;                         // the river: rows where lava spans over 40% of the width
+    for(let y=0;y<L.h;y++){ let n=0; for(let x=0;x<L.w;x+=3) if(L.p[(y*L.w+x)*4+3]) n++; if(n*3>L.w*0.4){ top=Math.min(top,y); bot=y; } }
+    const mask={}, fx={}; for(const k in M){ mask[k]=M[k].c; fx[k]=oozeCanvas(M[k].w,M[k].h); }
+    Object.assign(EMB,{mask,fx,lakeTop:top,lakeBot:bot,ready:true});
+  }catch(e){ EMB.ready='no'; }
+}
+function emberShine(k,paint,alpha){                           // light painted only where layer k's lava is, added on top
+  const M=EMB.mask[k], fx=EMB.fx[k], g=fx.getContext('2d');
+  g.globalCompositeOperation='source-over'; g.clearRect(0,0,fx.width,fx.height); g.drawImage(M,0,0);
+  g.globalCompositeOperation='source-atop'; paint(g,fx.width,fx.height);
+  ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=alpha; ctx.drawImage(fx,0,0);
+  ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1;
+}
+function emberPuffs(list,srcs,rate,col,grow,life,rise){        // smoke / steam puffs
+  for(const [x,y,w] of srcs) if(Math.random()<rate) list.push({x:x+(Math.random()-.5)*w,y,r:4+Math.random()*4,a:0,age:0,life:life*(0.7+Math.random()*0.6),vx:(Math.random()-.3)*0.25,vy:-rise*(0.7+Math.random()*0.6)});
+  for(let i=list.length-1;i>=0;i--){
+    const p=list[i]; p.age++; p.x+=p.vx+Math.sin((p.age+p.y)*0.03)*0.2; p.y+=p.vy; p.r+=grow;
+    const k=p.age/p.life; if(k>=1){ list.splice(i,1); continue; }
+    const a=(k<0.2?k/0.2:1-(k-0.2)/0.8);
+    const gr=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r); gr.addColorStop(0,`rgba(${col},${0.42*a})`); gr.addColorStop(1,`rgba(${col},0)`);
+    ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283); ctx.fill();
+  }
+}
+function emberFlame(cx,rim,w,t,seed){                         // a fire in a bowl: layered flickering tongues
+  ctx.globalCompositeOperation='lighter';
+  const glow=ctx.createRadialGradient(cx,rim-w*0.25,2,cx,rim-w*0.25,w*0.95);
+  glow.addColorStop(0,`rgba(255,140,40,${0.35+0.08*Math.sin(t*0.3+seed)})`); glow.addColorStop(1,'rgba(255,60,0,0)');
+  ctx.fillStyle=glow; ctx.fillRect(cx-w,rim-w*1.4,w*2,w*1.6);
+  const layers=[['255,70,20',1,0.85],['255,150,30',0.72,0.9],['255,235,140',0.42,0.95]];
+  for(const [col,sz,al] of layers){
+    const n=5;
+    for(let i=0;i<n;i++){
+      const u=(i+0.5)/n-0.5, bx=cx+u*w*0.78*sz;
+      const n1=Math.sin(t*0.37+i*1.7+seed)+Math.sin(t*0.23+i*2.9+seed*2)*0.6;
+      const hgt=w*(0.55+0.25*(1-Math.abs(u)*2))*sz*(0.85+0.15*n1);
+      const tipx=bx+Math.sin(t*0.29+i*2.1+seed)*w*0.08, hw=w*0.16*sz;
+      ctx.fillStyle=`rgba(${col},${al})`; ctx.beginPath();
+      ctx.moveTo(bx-hw,rim); ctx.quadraticCurveTo(bx-hw*1.1,rim-hgt*0.55,tipx,rim-hgt);
+      ctx.quadraticCurveTo(bx+hw*1.1,rim-hgt*0.55,bx+hw,rim); ctx.closePath(); ctx.fill();
+    }
+  }
+  ctx.globalCompositeOperation='source-over';
+}
+function emberFx(k,x0,y0,sc){
+  const t=EMB.t;
+  ctx.save(); ctx.translate(x0,y0); ctx.scale(sc,sc);
+  if(k==='m3'){
+    emberShine('m3',(g,w,h)=>{ for(let i=0;i<8;i++){ const yy=((t*1.3+i*h/8)%(h+30))-15;
+      const gr=g.createLinearGradient(0,yy,0,yy+14); gr.addColorStop(0,'rgba(255,240,160,0)'); gr.addColorStop(.5,'rgba(255,240,160,1)'); gr.addColorStop(1,'rgba(255,240,160,0)');
+      g.fillStyle=gr; g.fillRect(0,yy,w,14); }
+      g.fillStyle=`rgba(255,120,40,${0.35+0.3*Math.sin(t*0.06)})`; g.fillRect(0,0,w,h*0.45); },0.5);
+    emberPuffs(EMB.smoke,EMB_SMOKE,0.12,'45,20,30',0.35,170,0.45);
+    emberPuffs(EMB.smoke,EMB_STEAM,0.10,'255,150,90',0.3,70,0.5);
+  }else if(k==='m2'){
+    emberShine('m2',(g,w,h)=>{ for(let i=0;i<12;i++){ const len=50+(i*37)%60, xx=((t*(0.3+(i%4)*0.1)+i*173)%(w+len*2))-len;
+      g.fillStyle=`rgba(255,240,150,${0.5+0.5*Math.sin(t*0.05+i)})`; g.fillRect(xx,h-90+((i*23)%80),len,2); } },0.6);
+    EMB_BOWLS.forEach(([x,y,w],i)=>{
+      emberFlame(x,y+4,w,t,i*3.1);
+      if(Math.random()<0.25) EMB.sparks.push({x:x+(Math.random()-.5)*w*0.6,y:y-w*0.3,vx:(Math.random()-.5)*0.8,vy:-1-Math.random()*1.2,age:0,life:30+Math.random()*30});
+    });
+    ctx.globalCompositeOperation='lighter';
+    for(let i=EMB.sparks.length-1;i>=0;i--){ const p=EMB.sparks[i]; p.age++; p.x+=p.vx+Math.sin(p.age*0.2)*0.3; p.y+=p.vy;
+      if(p.age>p.life){ EMB.sparks.splice(i,1); continue; } ctx.fillStyle=`rgba(255,${180+Math.random()*60|0},80,${1-p.age/p.life})`; ctx.fillRect(p.x-1.5,p.y-1.5,3,3); }
+    ctx.globalCompositeOperation='source-over';
+  }else if(k==='m1'){
+    const M=EMB.mask.m1, w=M.width;
+    for(let y=EMB.lakeTop;y<=EMB.lakeBot;y+=2){ const dx=Math.sin(t*0.03+y*0.25)*2.4+Math.sin(t*0.011+y*0.07)*1.6; ctx.drawImage(M,0,y,w,2,dx,y,w,2); }
+    emberShine('m1',(g,w,h)=>{ for(let i=0;i<16;i++){ const yy=EMB.lakeTop+4+((i*29)%Math.max(4,EMB.lakeBot-EMB.lakeTop-6)), len=50+(i*31)%80;
+      const xx=((t*(0.22+(i%5)*0.08)+i*197)%(w+len*2))-len; g.fillStyle=`rgba(255,250,190,${0.6*(0.5+0.5*Math.sin(t*0.04+i))})`; g.fillRect(xx,yy,len,2+(i%2)); }
+      g.fillStyle=`rgba(255,150,60,${0.15+0.15*Math.sin(t*0.05)})`; g.fillRect(0,0,w,h); },0.55);
+    const B=EMB.blobs;                                         // lava blobs swell up and burst
+    if(B.length<5 && Math.random()<0.03) B.push({x:w*0.12+Math.random()*w*0.76,y:EMB.lakeTop+6+Math.random()*Math.max(2,EMB.lakeBot-EMB.lakeTop-12),age:0,R:7+Math.random()*7,life:60+Math.random()*40});
+    for(let i=B.length-1;i>=0;i--){ const b=B[i]; b.age++;
+      if(b.age<b.life){ const r=b.R*Math.min(1,b.age/b.life*1.3);
+        const gr=ctx.createRadialGradient(b.x-r*0.3,b.y-r*0.4,1,b.x,b.y,r); gr.addColorStop(0,'rgba(255,245,170,1)'); gr.addColorStop(.6,'rgba(255,150,30,1)'); gr.addColorStop(1,'rgba(200,50,10,1)');
+        ctx.fillStyle=gr; ctx.beginPath(); ctx.ellipse(b.x,b.y,r*1.2,r*0.8,0,Math.PI,0); ctx.fill(); }
+      else{ const k2=(b.age-b.life)/14; if(k2>=1){ B.splice(i,1); continue; }
+        ctx.fillStyle=`rgba(255,190,60,${1-k2})`;
+        for(let j=0;j<6;j++){ const an=Math.PI*(0.1+0.8*j/5); const d=b.R*(0.5+k2*2.2); ctx.fillRect(b.x-Math.cos(an)*d-2,b.y-Math.sin(an)*d*1.3+k2*k2*b.R*2-2,4,4); } }
+    }
+  }else if(k==='fg'){
+    emberShine('fg',(g,w,h)=>{ const xx=((t*1.4)%(w+600))-300;
+      const gr=g.createLinearGradient(xx-300,0,xx+300,0); gr.addColorStop(0,'rgba(255,200,90,0)'); gr.addColorStop(.5,'rgba(255,200,90,1)'); gr.addColorStop(1,'rgba(255,200,90,0)');
+      g.fillStyle=gr; g.fillRect(0,0,w,h); g.fillStyle=`rgba(255,120,40,${0.3+0.25*Math.sin(t*0.07)})`; g.fillRect(0,0,w,h); },0.45);
+  }
+  ctx.restore();
+}
+function emberDrift(){                                        // embers rising over the whole scene (screen space)
+  const E=EMB.embers;
+  while(E.length<34) E.push({x:Math.random()*W,y:H+Math.random()*H*0.8,v:0.25+Math.random()*0.45,ph:Math.random()*6.3,s:0.6+Math.random()*0.9});
+  ctx.globalCompositeOperation='lighter';
+  for(const e of E){
+    e.y-=e.v; e.x+=Math.sin(e.y*0.04+e.ph)*0.25+0.08;
+    if(e.y<-4||e.x>W+4){ e.y=H+2+Math.random()*20; e.x=Math.random()*W; }
+    const a=Math.min(1,e.y/(H*0.5))*(0.6+0.4*Math.sin(EMB.t*0.2+e.ph));
+    ctx.fillStyle=`rgba(255,${150+((e.ph*20)|0)},60,${0.85*a})`; ctx.fillRect(e.x,e.y,e.s,e.s);
+    ctx.fillStyle=`rgba(255,90,20,${0.25*a})`; ctx.fillRect(e.x-e.s,e.y-e.s,e.s*3,e.s*3);
+  }
+  ctx.globalCompositeOperation='source-over';
+}
+function drawLayered(st,I,cam){
+  const R=LAYERED[st], A=window[R.v], z=cam?cam.z:1, cx=cam?cam.cx:AW/2, cy=cam?cam.cy:H/2;
   const gs=(GROUND-cy)*z+H/2;                                   // the feet line on screen
   const dmax=AW/2*DRIFT_K;
   if(!G.multi && G.f && G.mode==='play'){ const m=(G.f[0].x+G.f[1].x)/2; ARENA_DRIFT+=((m-AW/2)*DRIFT_K-ARENA_DRIFT)*0.05; } else ARENA_DRIFT=0;
   ctx.save(); ctx.beginPath(); ctx.rect(0,0,W,H); ctx.clip();   // stay out of the floor strip below the picture
-  ctx.fillStyle='#0b2a3a'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle=R.fill; ctx.fillRect(0,0,W,H);
   ctx.imageSmoothingEnabled=true; ctx.imageSmoothingQuality='high';
-  if(!OOZE.ready) oozeInit(); OOZE.t++;
-  for(const [k,p] of SLIME_L){
-    const L=A[k], im=SLIMEIMG[k];
+  if(!R.started){ R.started=1; R.init(); } R.tick();
+  for(const [k,p] of LAY_P){
+    const L=A[k], im=I[k];
     const off=(AW/2-cx)*z*p+ARENA_DRIFT*(1-p);                  // camera parallax + 1 VS 1 drift (the floor never drifts)
     let wl=W+Math.max(0,AW*z-W)*p+2*dmax*(1-p)+(p<1?2:0);      // just wide enough to cover the screen wherever the camera goes
-    if(k==='bg'){                                               // fills the screen; its misty horizon (row 62%) on the feet line
-      wl=Math.max(wl,2*(gs+2)/0.62*L.w/L.h/2, (H-gs+2)/0.38*L.w/L.h);
-      const hl=wl*L.h/L.w; ctx.drawImage(im,W/2+off-wl/2,gs-0.62*hl,wl,hl); continue;
+    if(k==='bg'){                                               // fills the screen; its horizon (row bgRow) on the feet line
+      const br=R.bgRow; wl=Math.max(wl,(gs+2)/br*L.w/L.h, (H-gs+2)/(1-br)*L.w/L.h);
+      const hl=wl*L.h/L.w, x0=W/2+off-wl/2, y0=gs-br*hl; ctx.drawImage(im,x0,y0,wl,hl); R.fx(k,x0,y0,wl/L.w); continue;
     }
     const sc=wl/L.w, x0=W/2+off-wl/2, y0=gs-L.base*sc; ctx.drawImage(im,x0,y0,wl,L.h*sc);
-    if(OOZE.ready===true){ if(k==='m1') oozeLake(x0,y0,sc); else if(k==='m2') oozeLedges(x0,y0,sc); }
+    R.fx(k,x0,y0,sc);
   }
+  if(R.after) R.after();
   ctx.restore();
 }
 const GYMM=mk(2,2); let GYMM_Y=0, GYMM_H=H, gymmFor=0;
@@ -4358,7 +4485,7 @@ function render(){
   const base=G.mode==='play'?baseCam():null;
   const cam=G.mode==='play'?(cineCam(base)||base):null; LASTCAM=cam;
   const stage=G.mode==='play'?(G.stage||(G.multi?'house':'gym')):'gym';
-  const slimeBg=stage==='slime' && slimeReady(); if(slimeBg) drawSlimeArena(cam);
+  const layI=LAYERED[stage]&&layImgs(stage), slimeBg=!!layI; if(layI) drawLayered(stage,layI,cam);
   const houseBg=stage==='house' && houseReady; if(houseBg) drawHouseBg(cam);
   const pic=!slimeBg&&!houseBg&&picImg(stage); if(pic) drawPicBg(pic,window.ARENA_PICS[stage].row,PIC_H1,cam);
   if(cam){ ctx.translate(W/2,H/2); ctx.scale(cam.z,cam.z); ctx.translate(-cam.cx,-cam.cy); ctx.imageSmoothingEnabled=true; }

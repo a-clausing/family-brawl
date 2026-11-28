@@ -1,11 +1,11 @@
-"""Placeholder arenas (Nov 24 2026): one picture per monster, art/originals/arenas/<fighter>.png.
+"""Placeholder arenas (the Imp now has a layered arena, tools/arena/layered_arena.py) (Nov 24 2026): one picture per monster, art/originals/arenas/<fighter>.png.
 Packs them into src/assets/arenas.js as WebP. ROW = how far down the picture (0-1) the fighters' feet go:
 a little way onto the floor from its back edge, judged by eye on each picture.
 Run from the repo root: python3 tools/arena/single_arenas.py"""
 import base64, io, json
 from PIL import Image
 
-ROW = {'imp': .76, 'goblin': .76, 'skeleton': .725, 'orc': .755, 'troll': .74, 'ogre': .725,
+ROW = {'goblin': .76, 'skeleton': .725, 'orc': .755, 'troll': .74, 'ogre': .725,
        'golem': .725, 'demon': .74, 'dragon': .69, 'forgotten': .715}
 out = {}
 for k, row in ROW.items():
