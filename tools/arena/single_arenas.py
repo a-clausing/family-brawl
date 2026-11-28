@@ -5,7 +5,7 @@ Run from the repo root: python3 tools/arena/single_arenas.py"""
 import base64, io, json
 from PIL import Image
 
-ROW = {'goblin': .76, 'skeleton': .725, 'orc': .755, 'troll': .74, 'ogre': .725,
+ROW = {'skeleton': .725, 'orc': .755, 'troll': .74, 'ogre': .725,
        'golem': .725, 'demon': .74, 'dragon': .69, 'forgotten': .715}
 out = {}
 for k, row in ROW.items():

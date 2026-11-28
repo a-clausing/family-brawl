@@ -594,6 +594,7 @@ details.howto summary{cursor:pointer;font-weight:700;color:var(--ink);font-size:
 @@asset:house-backdrop.js@@
 @@asset:slime-arena.js@@
 @@asset:imp-arena.js@@
+@@asset:goblin-arena.js@@
 @@asset:arenas.js@@
 @@asset:becky-sheet.js@@
 @@asset:portraits.js@@
@@ -1771,6 +1772,8 @@ const LAYERED={
          fx:(k,x0,y0,sc)=>{ if(OOZE.ready!==true) return; if(k==='m1') oozeLake(x0,y0,sc); else if(k==='m2') oozeLedges(x0,y0,sc); }},
   imp:{v:'IMP_ARENA', bgRow:0.66, fill:'#3a0618', init:()=>emberInit(), tick:()=>EMB.t++,
        fx:(k,x0,y0,sc)=>{ if(EMB.ready===true) emberFx(k,x0,y0,sc); }, after:()=>{ if(EMB.ready===true) emberDrift(); }},
+  goblin:{v:'GOBLIN_ARENA', bgRow:0.56, fill:'#2a6f8f', init:()=>gobArenaInit(), tick:()=>GBX.t++,
+       fx:(k,x0,y0,sc)=>{ if(GBX.ready===true) gobArenaFx(k,x0,y0,sc); }, after:()=>{ if(GBX.ready===true) gobFireflies(); }},
 };
 const LIMG={}; let ARENA_DRIFT=0;
 function layImgs(st){
@@ -1970,6 +1973,79 @@ function emberDrift(){                                        // embers rising o
     const a=Math.min(1,e.y/(H*0.5))*(0.6+0.4*Math.sin(EMB.t*0.2+e.ph));
     ctx.fillStyle=`rgba(255,${150+((e.ph*20)|0)},60,${0.85*a})`; ctx.fillRect(e.x,e.y,e.s,e.s);
     ctx.fillStyle=`rgba(255,90,20,${0.25*a})`; ctx.fillRect(e.x-e.s,e.y-e.s,e.s*3,e.s*3);
+  }
+  ctx.globalCompositeOperation='source-over';
+}
+/* Goblin Hideout motion (Alex, Nov 27 2026; his layers were drawn with unlit fires and still water). Visual only.
+   In each layer's picture coordinates: m3 hilltop camp: the waterfalls flow; m2 towers: fires burn in the four tower
+   baskets (GBX_BASKETS = centre x, flame base y, width), sparks, the waterfall flows and the river glints; m1 camp edge:
+   a fire in the stone pit with smoke (GBX_PIT), the cauldron bubbles and gives off green fumes (GBX_CAUL), the potions
+   and poison pulse, gold glints (sparkles on GBX.gold spots); after all layers, fireflies wander over the clearing. */
+const GBX={t:0,ready:false,smoke:[],fumes:[],sparks:[],bub:[],tw:[],flies:[]};
+const GBX_BASKETS=[[186,88,60],[1092,94,56],[478,187,40],[827,186,38]], GBX_PIT=[192,250,74], GBX_CAUL=[1076,219,88];
+function gobArenaInit(){
+  try{
+    const I=LIMG.goblin, water=(r,g,b)=>b>190&&g>150&&r<200;
+    const M={m3:oozeMask(I.m3,water), m2:oozeMask(I.m2,water), m1:oozeMask(I.m1,(r,g,b)=>g>200&&r<190&&b<120)};
+    const G=oozeMask(I.m1,(r,g,b)=>r>225&&g>170&&b<90), gold=[];
+    for(let y=0;y<G.h;y+=3) for(let x=0;x<G.w;x+=3) if(G.p[(y*G.w+x)*4+3]) gold.push([x,y]);
+    const mask={}, fx={}; for(const k in M){ mask[k]=M[k].c; fx[k]=oozeCanvas(M[k].w,M[k].h); }
+    Object.assign(GBX,{mask,fx,gold,ready:true});
+  }catch(e){ GBX.ready='no'; }
+}
+function gobShine(k,paint,alpha){ const E=EMB; const m=E.mask, f=E.fx; E.mask=GBX.mask; E.fx=GBX.fx; try{ emberShine(k,paint,alpha); } finally{ E.mask=m; E.fx=f; } }
+const gobFlow=(speed,n)=>(g,w,h)=>{ const t=GBX.t; for(let i=0;i<n;i++){ const yy=((t*speed+i*h/n)%(h+20))-10;
+  const gr=g.createLinearGradient(0,yy,0,yy+10); gr.addColorStop(0,'rgba(255,255,255,0)'); gr.addColorStop(.5,'rgba(255,255,255,1)'); gr.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle=gr; g.fillRect(0,yy,w,10); } };
+function gobArenaFx(k,x0,y0,sc){
+  const t=GBX.t;
+  ctx.save(); ctx.translate(x0,y0); ctx.scale(sc,sc);
+  if(k==='m3') gobShine('m3',gobFlow(1.2,10),0.5);
+  else if(k==='m2'){
+    gobShine('m2',(g,w,h)=>{ gobFlow(1.6,12)(g,w,h); for(let i=0;i<10;i++){ const len=30+(i*23)%40, xx=((t*(0.35+(i%3)*0.1)+i*131)%(w+len*2))-len;
+      g.fillStyle=`rgba(255,255,255,${0.7*(0.5+0.5*Math.sin(t*0.06+i))})`; g.fillRect(xx,h-30+((i*7)%22),len,2); } },0.55);
+    GBX_BASKETS.forEach(([x,y,w],i)=>{ emberFlame(x,y,w,t,i*2.3);
+      if(Math.random()<0.12*w/50) GBX.sparks.push({x:x+(Math.random()-.5)*w*0.5,y:y-w*0.4,vx:(Math.random()-.5)*0.6,vy:-0.8-Math.random(),age:0,life:25+Math.random()*25}); });
+    gobSparks();
+  }else if(k==='m1'){
+    const [px,py,pw]=GBX_PIT; emberFlame(px,py,pw,t,7.7);
+    emberPuffs(GBX.smoke,[[px,py-pw*0.9,pw*0.3]],0.1,'70,60,55',0.3,140,0.5);
+    if(Math.random()<0.15) GBX.sparks.push({x:px+(Math.random()-.5)*pw*0.5,y:py-pw*0.4,vx:(Math.random()-.5)*0.6,vy:-0.8-Math.random(),age:0,life:25+Math.random()*25});
+    gobSparks();
+    const [cx,cy,cw]=GBX_CAUL, B=GBX.bub;                       // cauldron: bubbles swell and pop, green fumes rise
+    if(B.length<6 && Math.random()<0.12) B.push({x:cx+(Math.random()-.5)*cw*0.7,age:0,R:3+Math.random()*4,life:30+Math.random()*30});
+    for(let i=B.length-1;i>=0;i--){ const b=B[i]; b.age++;
+      if(b.age<b.life){ const r=b.R*Math.min(1,b.age/b.life*1.4); ctx.fillStyle='rgba(150,255,60,0.95)'; ctx.beginPath(); ctx.ellipse(b.x,cy,r*1.2,r,0,Math.PI,0); ctx.fill();
+        ctx.fillStyle='rgba(230,255,200,0.9)'; ctx.fillRect(b.x-r*0.5,cy-r*0.7,Math.max(1.5,r*0.35),Math.max(1.5,r*0.3)); }
+      else{ const k2=(b.age-b.life)/10; if(k2>=1){ B.splice(i,1); continue; } ctx.fillStyle=`rgba(170,255,80,${1-k2})`;
+        for(let j=0;j<4;j++){ const an=Math.PI*(0.15+0.7*j/3), d=b.R*(0.6+k2*2); ctx.fillRect(b.x-Math.cos(an)*d-1.5,cy-Math.sin(an)*d*1.4+k2*k2*b.R*2-1.5,3,3); } } }
+    emberPuffs(GBX.fumes,[[cx,cy-4,cw*0.6]],0.12,'120,255,60',0.28,90,0.45);
+    gobShine('m1',(g,w,h)=>{ g.fillStyle=`rgba(200,255,120,${0.5+0.5*Math.sin(t*0.06)})`; g.fillRect(0,0,w,h); },0.35);
+    if(GBX.gold.length && GBX.tw.length<5 && Math.random()<0.06){ const [gx,gy]=GBX.gold[Math.floor(Math.random()*GBX.gold.length)]; GBX.tw.push({x:gx,y:gy,age:0}); }
+    ctx.globalCompositeOperation='lighter';
+    for(let i=GBX.tw.length-1;i>=0;i--){ const s2=GBX.tw[i]; s2.age++; const k2=s2.age/24; if(k2>=1){ GBX.tw.splice(i,1); continue; }
+      const a=Math.sin(k2*Math.PI), r=7*a; ctx.fillStyle=`rgba(255,250,200,${a})`;
+      ctx.fillRect(s2.x-r,s2.y-0.8,r*2,1.6); ctx.fillRect(s2.x-0.8,s2.y-r,1.6,r*2); ctx.fillRect(s2.x-1.5,s2.y-1.5,3,3); }
+    ctx.globalCompositeOperation='source-over';
+  }
+  ctx.restore();
+}
+function gobSparks(){
+  ctx.globalCompositeOperation='lighter';
+  for(let i=GBX.sparks.length-1;i>=0;i--){ const p=GBX.sparks[i]; p.age++; p.x+=p.vx+Math.sin(p.age*0.2)*0.3; p.y+=p.vy;
+    if(p.age>p.life){ GBX.sparks.splice(i,1); continue; } ctx.fillStyle=`rgba(255,${180+Math.random()*60|0},80,${1-p.age/p.life})`; ctx.fillRect(p.x-1.2,p.y-1.2,2.4,2.4); }
+  ctx.globalCompositeOperation='source-over';
+}
+function gobFireflies(){                                      // screen space, over the clearing
+  const F=GBX.flies, t=GBX.t;
+  while(F.length<14) F.push({x:Math.random()*W,y:H*0.35+Math.random()*H*0.5,ph:Math.random()*6.3,sp:0.3+Math.random()*0.4,blink:Math.random()*6.3});
+  ctx.globalCompositeOperation='lighter';
+  for(const f of F){
+    f.x+=Math.cos(t*0.013*f.sp*3+f.ph)*0.35; f.y+=Math.sin(t*0.017*f.sp*3+f.ph*1.3)*0.25;
+    if(f.x<-5) f.x=W+4; if(f.x>W+5) f.x=-4; f.y=Math.max(H*0.25,Math.min(H*0.92,f.y));
+    const a=Math.max(0,Math.sin(t*0.05*f.sp+f.blink));
+    const gr=ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,3.2); gr.addColorStop(0,`rgba(230,255,120,${0.9*a})`); gr.addColorStop(1,'rgba(160,255,60,0)');
+    ctx.fillStyle=gr; ctx.fillRect(f.x-3.2,f.y-3.2,6.4,6.4);
   }
   ctx.globalCompositeOperation='source-over';
 }

@@ -9,13 +9,19 @@ ARENAS = {
     'imp': {'src': 'art/originals/imp-arena/', 'var': 'IMP_ARENA',
             'files': {'fg': 'foreground.png', 'm1': 'mid1-lava.png', 'm2': 'mid2-bridges.png',
                       'm3': 'mid3-skull.png', 'bg': 'background.png'}},
+    'goblin': {'src': 'art/originals/goblin-arena/', 'var': 'GOBLIN_ARENA',
+               'files': {'fg': 'foreground.png', 'm1': 'mid1-camp-edge.png', 'm2': 'mid2-towers.png',
+                         'm3': 'mid3-hilltop-camp.png', 'bg': 'background.png'}},
 }
 OUT_W = {'fg': 1500, 'm1': 1300, 'm2': 1200, 'm3': 1100, 'bg': 1000}   # enough detail for a phone screen
 
 def key_out(a):
     """alpha from the distance to the screen colour (read from the corners), plus despill on soft edges"""
     rgb = a[..., :3].astype(np.float32)
-    key = np.median(np.concatenate([rgb[:8, :8].reshape(-1, 3), rgb[:8, -8:].reshape(-1, 3)]), 0)
+    # the screen colour = the most common colour around the border (corners can be covered by scenery)
+    bd = np.concatenate([rgb[:4].reshape(-1, 3), rgb[-4:].reshape(-1, 3), rgb[:, :4].reshape(-1, 3), rgb[:, -4:].reshape(-1, 3)])
+    q = (bd // 32).astype(int); code = q[:, 0] * 64 + q[:, 1] * 8 + q[:, 2]
+    key = bd[code == np.bincount(code).argmax()].mean(0)
     d = np.sqrt(((rgb - key) ** 2).sum(-1))
     al = np.clip((d - 70) / 80, 0, 1)
     soft = al < 1
